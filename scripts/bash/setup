@@ -11,26 +11,212 @@ echo "╚═══════════════════════�
 echo ""
 
 # Check required dependencies
+
+declare -A ARCH_PKG=(
+  [jq]="jq"
+  [python3]="python"
+  [quickshell]="quickshell-git"
+  [matugen]="matugen-bin"
+  [ffmpeg]="ffmpeg"
+  [playerctl]="playerctl"
+  [cava]="cava"
+  [notify-send]="libnotify"
+  [awww]="awww"
+  [mpvpaper]="mpvpaper"
+  [grim]="grim"
+  [parallel]="parallel"
+  [linux-wallpaperengine]="linux-wallpaperengine-git"
+  [ollama]="ollama"
+)
+
+declare -A FEDORA_PKG=(
+  [jq]="jq"
+  [python3]="python3"
+  [quickshell]="quickshell"
+  [matugen]="matugen"
+  [ffmpeg]="ffmpeg"
+  [playerctl]="playerctl"
+  [cava]="cava"
+  [notify-send]="libnotify"
+  [awww]="awww"
+  [mpvpaper]="mpvpaper"
+  [grim]="grim"
+  [parallel]="parallel"
+  [linux-wallpaperengine]="linux-wallpaperengine"
+  [ollama]="ollama"
+)
+
+COPR_PKGS=(
+  "quickshell:outfoxxed/quickshell"
+)
+
+AUR_PKGS=("quickshell-git" "matugen-bin" "cava" "awww" "mpvpaper" "linux-wallpaperengine-git")
+
+is_aur_pkg() {
+  local pkg="$1"
+  for a in "${AUR_PKGS[@]}"; do
+    [[ "$a" == "$pkg" ]] && return 0
+  done
+  return 1
+}
+
+detect_aur_helper() {
+  for helper in yay paru; do
+    command -v "$helper" >/dev/null 2>&1 && echo "$helper" && return
+  done
+}
+
+is_arch() {
+  [[ -f /etc/arch-release ]] || command -v pacman >/dev/null 2>&1
+}
+
+is_fedora() {
+  [[ -f /etc/fedora-release ]] || (command -v dnf >/dev/null 2>&1 && [[ -f /etc/redhat-release ]])
+}
+
+install_fedora_packages() {
+  local copr_enabled=() pkgs=()
+  for pkg in "$@"; do
+    # Check if this package needs a COPR repo
+    for entry in "${COPR_PKGS[@]}"; do
+      local cpkg="${entry%%:*}"
+      local crepo="${entry#*:}"
+      if [[ "$pkg" == "$cpkg" ]] && ! printf '%s\n' "${copr_enabled[@]}" | grep -qx "$crepo" 2>/dev/null; then
+        echo "  Enabling COPR repo: $crepo"
+        sudo dnf copr enable -y "$crepo"
+        copr_enabled+=("$crepo")
+      fi
+    done
+    pkgs+=("$pkg")
+  done
+
+  if [[ ${#pkgs[@]} -gt 0 ]]; then
+    echo "  Installing via dnf: ${pkgs[*]}"
+    sudo dnf install -y "${pkgs[@]}"
+  fi
+}
+
+install_arch_packages() {
+  local official=() aur=()
+  for pkg in "$@"; do
+    if is_aur_pkg "$pkg"; then
+      aur+=("$pkg")
+    else
+      official+=("$pkg")
+    fi
+  done
+
+  if [[ ${#official[@]} -gt 0 ]]; then
+    echo "  Installing from official repos: ${official[*]}"
+    sudo pacman -S --needed --noconfirm "${official[@]}"
+  fi
+
+  if [[ ${#aur[@]} -gt 0 ]]; then
+    local aur_helper
+    aur_helper=$(detect_aur_helper)
+    if [[ -z "$aur_helper" ]]; then
+      echo "  AUR packages needed but no AUR helper (yay/paru) found."
+      echo "  Please install one of: yay, paru — then re-run setup."
+      echo "  AUR packages: ${aur[*]}"
+      return 1
+    fi
+    echo "  Installing from AUR (via $aur_helper): ${aur[*]}"
+    "$aur_helper" -S --needed --noconfirm "${aur[@]}"
+  fi
+}
+
+CORE_CMDS=(jq python3 quickshell)
+CLI_CMDS=(matugen ffmpeg playerctl cava notify-send awww mpvpaper grim parallel)
+OPTIONAL_CMDS=(ollama linux-wallpaperengine)
+
 echo "Checking dependencies..."
 missing=()
-for cmd in jq python3 quickshell; do
+for cmd in "${CORE_CMDS[@]}"; do
   command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
 done
 
-if [ ${#missing[@]} -gt 0 ]; then
-  echo "  MISSING: ${missing[*]}"
-  echo "  Install these packages before continuing."
-  echo ""
-fi
-
-# Check optional dependencies
 optional_missing=()
-for cmd in matugen ffmpeg mpvpaper grim notify-send parallel; do
+for cmd in "${CLI_CMDS[@]}" "${OPTIONAL_CMDS[@]}"; do
   command -v "$cmd" >/dev/null 2>&1 || optional_missing+=("$cmd")
 done
-if [ ${#optional_missing[@]} -gt 0 ]; then
-  echo "  Optional (for full features): ${optional_missing[*]}"
+
+if [[ ${#missing[@]} -eq 0 && ${#optional_missing[@]} -eq 0 ]]; then
+  echo "  All dependencies found!"
   echo ""
+else
+  # Pick the right package map and installer for the distro
+  installer=""
+  declare -A PKG_MAP
+  if is_arch; then
+    installer="arch"
+    for k in "${!ARCH_PKG[@]}"; do PKG_MAP[$k]="${ARCH_PKG[$k]}"; done
+  elif is_fedora; then
+    installer="fedora"
+    for k in "${!FEDORA_PKG[@]}"; do PKG_MAP[$k]="${FEDORA_PKG[$k]}"; done
+  fi
+
+  if [[ -n "$installer" ]]; then
+    echo ""
+    read -rp "  Attempt automatic dependency installation? [Y/n] " auto_ans
+    if [[ "$auto_ans" == "n" || "$auto_ans" == "N" ]]; then
+      if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "  MISSING (required): ${missing[*]}"
+        echo "  Install these packages before continuing."
+      fi
+      if [[ ${#optional_missing[@]} -gt 0 ]]; then
+        echo "  Optional (for full features): ${optional_missing[*]}"
+      fi
+      echo ""
+    else
+
+    missing_pkgs=()
+    optional_pkgs=()
+    for cmd in "${missing[@]}"; do
+      [[ -n "${PKG_MAP[$cmd]:-}" ]] && missing_pkgs+=("${PKG_MAP[$cmd]}")
+    done
+    for cmd in "${optional_missing[@]}"; do
+      [[ -n "${PKG_MAP[$cmd]:-}" ]] && optional_pkgs+=("${PKG_MAP[$cmd]}")
+    done
+
+    if [[ ${#missing_pkgs[@]} -gt 0 ]]; then
+      echo "  MISSING (required): ${missing[*]}"
+      echo ""
+      read -rp "  Install required packages now? [Y/n] " ans
+      if [[ "$ans" != "n" && "$ans" != "N" ]]; then
+        install_${installer}_packages "${missing_pkgs[@]}"
+        echo ""
+      else
+        echo "  Skipped. Install these before running piixident: ${missing_pkgs[*]}"
+        echo ""
+      fi
+    fi
+
+    if [[ ${#optional_pkgs[@]} -gt 0 ]]; then
+      echo "  MISSING (optional/CLI): ${optional_missing[*]}"
+      echo ""
+      read -rp "  Install optional packages now? [y/N] " ans
+      if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
+        install_${installer}_packages "${optional_pkgs[@]}"
+        echo ""
+      else
+        echo "  Skipped optional packages."
+        echo ""
+      fi
+    fi
+
+    fi
+  else
+    # Unsupported distro — just report what's missing
+    if [[ ${#missing[@]} -gt 0 ]]; then
+      echo "  MISSING: ${missing[*]}"
+      echo "  Install these packages before continuing."
+      echo ""
+    fi
+    if [[ ${#optional_missing[@]} -gt 0 ]]; then
+      echo "  Optional (for full features): ${optional_missing[*]}"
+      echo ""
+    fi
+  fi
 fi
 
 # Auto-detect compositor (niri, hyprland, sway)
