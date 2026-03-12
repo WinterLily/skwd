@@ -14,6 +14,7 @@ matugen_scheme=$(cfg_get '.matugen.schemeType // "scheme-fidelity"')
 kde_scheme=$(cfg_get '.matugen.kdeColorScheme // "PiixidentMatugen"')
 lockscreen_video="$wall_dir/lockscreen-video.mp4"
 wm="$(dirname "$0")/wm-action"
+wp_mute=$(cfg_get '.wallpaperMute // true')
 
 # Save wallpaper state for restore on next boot
 echo '{"type":"we","we_id":"'"$we_id"'"}' > "$PIIXIDENT_CACHE/last-wallpaper.json"
@@ -51,7 +52,9 @@ fi
 # WE scene subtypes use wallpaper engine
 if [ "$we_type" = "video" ] && [ -n "$we_file" ] && [ -f "$we_dir/$we_id/$we_file" ]; then
   require_cmd mpvpaper
-  nohup mpvpaper -o "loop" "*" "$we_dir/$we_id/$we_file" </dev/null >/dev/null 2>&1 &
+  mpv_opts="loop"
+  [ "$wp_mute" = "true" ] && mpv_opts="loop --mute=yes"
+  nohup mpvpaper -o "$mpv_opts" "*" "$we_dir/$we_id/$we_file" </dev/null >/dev/null 2>&1 &
 else
   require_cmd linux-wallpaperengine
   old_pids=$(pgrep -f linux-wallpaperengine | tr '\n' ' ')
@@ -59,9 +62,12 @@ else
   # Build screen-root args
   screen_roots=$("$wm" list-outputs 2>/dev/null | jq -r 'to_entries[] | .key' | sed 's/^/--screen-root /' | tr '\n' ' ')
 
+  we_audio_flag="--silent"
+  [ "$wp_mute" = "false" ] && we_audio_flag=""
+
   cat > "$PIIXIDENT_RUNTIME/start-we.sh" << INNEREOF
 #!/bin/bash
-linux-wallpaperengine --silent --no-fullscreen-pause --noautomute $screen_roots --assets-dir "$we_assets" "$we_id" &
+linux-wallpaperengine $we_audio_flag --no-fullscreen-pause --noautomute $screen_roots --assets-dir "$we_assets" "$we_id" &
 sleep 3
 for pid in $old_pids; do
   kill -9 "\$pid" 2>/dev/null

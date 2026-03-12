@@ -7,6 +7,7 @@ require_cmd jq ffmpeg mpvpaper
 _wall_dir=$(cfg_get '.paths.wallpaper')
 _matugen_scheme=$(cfg_get '.matugen.schemeType // "scheme-fidelity"')
 _kde_scheme=$(cfg_get '.matugen.kdeColorScheme // "PiixidentMatugen"')
+_wp_mute=$(cfg_get '.wallpaperMute // true')
 
 # Save wallpaper state for restore on next boot
 echo '{"type":"video","path":"'"$1"'"}' > "$PIIXIDENT_CACHE/last-wallpaper.json"
@@ -17,6 +18,7 @@ video_path="$1"
 wall_dir="$2"
 matugen_scheme="$3"
 kde_scheme="$4"
+wp_mute="$5"
 video_cache="$HOME/.cache/piixident/wallpaper/video-thumbs"
 
 pkill -9 linux-wallpaper 2>/dev/null
@@ -33,7 +35,9 @@ if [ ! -f "$thumb_path" ]; then
   ffmpeg -y -ss 1 -i "$video_path" -vframes 1 -vf "scale=640:360:force_original_aspect_ratio=increase,crop=640:360" "$thumb_path" 2>/dev/null
 fi
 
-mpvpaper -o "loop" "*" "$video_path" &
+mpv_opts="loop"
+[ "$wp_mute" = "true" ] && mpv_opts="loop --mute=yes"
+mpvpaper -o "$mpv_opts" "*" "$video_path" &
 mpv_pid=$!
 
 sleep 1.5
@@ -56,4 +60,4 @@ pkill -USR1 kitty 2>/dev/null
 command -v spicetify >/dev/null && spicetify refresh &>/dev/null &
 
 command -v notify-send >/dev/null && notify-send "Video Wallpaper" "Applied: $(basename "$video_path")"
-' _ "$1" "$_wall_dir" "$_matugen_scheme" "$_kde_scheme" </dev/null >/dev/null 2>&1 &
+' _ "$1" "$_wall_dir" "$_matugen_scheme" "$_kde_scheme" "$_wp_mute" </dev/null >/dev/null 2>&1 &

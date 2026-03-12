@@ -54,6 +54,16 @@ QtObject {
     readonly property int notificationExpireMs: _data.intervals?.notificationExpireMs ?? 0
 
 
+    // Preferred MPRIS player for music info and lyrics.
+    readonly property string preferredPlayer: _data.preferredPlayer ?? "spotify"
+
+    // Audio visualizer theme: wave, bars, blocks, dots, line
+    readonly property string visualizerTheme: _data.visualizerTheme ?? "wave"
+
+    // Audio visualizer visibility: top (inside bar) and bottom (hanging reflection)
+    readonly property bool visualizerTop: _data.visualizerTop !== false
+    readonly property bool visualizerBottom: _data.visualizerBottom !== false
+
     // Component enable/disable flags
     property var _components: _data.components ?? {}
     readonly property bool barEnabled: _components.bar !== false
