@@ -437,21 +437,22 @@ Scope {
 
   // Filter and sort wallpapers by type, color, tags, and sort mode
   function updateFilteredModel() {
-    function baseName(filename) {
-      var dot = filename.lastIndexOf('.')
-      return dot > 0 ? filename.substring(0, dot) : filename
+    function thumbKey(thumbPath) {
+      var fname = thumbPath.split("/").pop()
+      var dot = fname.lastIndexOf('.')
+      return dot > 0 ? fname.substring(0, dot) : fname
     }
 
     var items = []
     for (var i = 0; i < wallpaperModel.count; i++) {
       var item = wallpaperModel.get(i)
-      var itemBaseName = baseName(item.name)
-      var lookupKey = item.weId ? item.weId : itemBaseName
+      var lookupKey = item.weId ? item.weId : thumbKey(item.thumb)
 
       var hue = item.hue
       var saturation = item.saturation || 0
 
-      if (selectedTypeFilter !== "" && item.type !== selectedTypeFilter) continue
+      var effectiveType = (item.type === "we" && item.videoFile) ? "video" : item.type
+      if (selectedTypeFilter !== "" && effectiveType !== selectedTypeFilter) continue
       if (selectedColorFilter !== -1 && hue !== selectedColorFilter) continue
 
       if (selectedTags.length > 0) {
@@ -1838,7 +1839,7 @@ Scope {
           Text {
             id: typeBadgeText
             anchors.centerIn: parent
-            text: model.type === "static" ? "PIC" : (model.type === "video" ? "VID" : "WE")
+            text: model.type === "static" ? "PIC" : ((model.type === "video" || model.videoFile) ? "VID" : "WE")
             font.family: Style.fontFamily
             font.pixelSize: 9
             font.weight: Font.Bold
@@ -1856,7 +1857,7 @@ Scope {
           spacing: 6
           visible: delegateItem.isCurrent && wallpaperColors !== undefined
           property var wallpaperColors: {
-            var key = model.weId ? model.weId : model.name.replace(/\.[^/.]+$/, "")
+            var key = model.weId ? model.weId : model.thumb.split("/").pop().replace(/\.[^/.]+$/, "")
             return wallpaperSelector.matugenDb[key]
           }
           Rectangle {

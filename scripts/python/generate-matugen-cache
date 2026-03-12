@@ -48,17 +48,17 @@ def get_matugen_colors(image_path: Path) -> dict | None:
         return None
 
 # Process single wallpaper (skip if cached)
-def process_wallpaper(wall_path: Path, existing_cache: dict) -> tuple[str, dict | None]:
-    """Process a single wallpaper, return (name, colors)"""
-    name = wall_path.stem
+def process_wallpaper(item: tuple[Path, str], existing_cache: dict) -> tuple[str, dict | None]:
+    """Process a single wallpaper, return (key, colors)"""
+    wall_path, key = item
 
-    if name in existing_cache:
-        return name, None
+    if key in existing_cache:
+        return key, None
 
     colors = get_matugen_colors(wall_path)
     if colors:
-        print(f"  Generated: {name}")
-    return name, colors
+        print(f"  Generated: {key}")
+    return key, colors
 
 # Load cache, collect wallpapers, parallel generation
 def main():
@@ -71,31 +71,45 @@ def main():
         except:
             cache = {}
 
-    wallpapers = []
+    wallpapers = []  # list of (path, key) tuples
+
+    def wall_key(path: Path) -> str:
+        """Compute cache key matching thumbnail naming: relative path with / replaced by --"""
+        rel = str(path.relative_to(WALL_DIR))
+        return rel.rsplit('.', 1)[0].replace('/', '--')
 
     if WALL_DIR.exists():
         for ext in ['*.jpg', '*.jpeg', '*.png', '*.webp']:
-            wallpapers.extend(WALL_DIR.glob(ext))
-            wallpapers.extend(WALL_DIR.glob(ext.upper()))
+            for p in WALL_DIR.rglob(ext):
+                if p.name == 'wallpaper.jpg':
+                    continue
+                wallpapers.append((p, wall_key(p)))
+            for p in WALL_DIR.rglob(ext.upper()):
+                if p.name == 'wallpaper.jpg':
+                    continue
+                wallpapers.append((p, wall_key(p)))
 
     import re
     frame_pattern = re.compile(r'-\d+$')
+    seen_keys = set(k for _, k in wallpapers)
 
     if WE_THUMB_DIR.exists():
         for thumb in WE_THUMB_DIR.glob("*.jpg"):
-            name = thumb.stem
-            if frame_pattern.search(name):
+            key = thumb.stem
+            if frame_pattern.search(key):
                 continue
-            if name not in cache and name not in [w.stem for w in wallpapers]:
-                wallpapers.append(thumb)
+            if key not in cache and key not in seen_keys:
+                wallpapers.append((thumb, key))
+                seen_keys.add(key)
 
     if THUMB_DIR.exists():
         for thumb in THUMB_DIR.glob("*.jpg"):
-            name = thumb.stem
-            if name not in cache and name not in [w.stem for w in wallpapers]:
-                wallpapers.append(thumb)
+            key = thumb.stem
+            if key not in cache and key not in seen_keys:
+                wallpapers.append((thumb, key))
+                seen_keys.add(key)
 
-    to_process = [w for w in wallpapers if w.stem not in cache]
+    to_process = [(p, k) for p, k in wallpapers if k not in cache]
 
     if not to_process:
         print("All wallpapers already cached")
@@ -116,12 +130,12 @@ def main():
     total = len(to_process)
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(process_wallpaper, wp, cache): wp for wp in to_process}
+        futures = {executor.submit(process_wallpaper, item, cache): item for item in to_process}
 
         for i, future in enumerate(as_completed(futures), 1):
-            name, colors = future.result()
+            key, colors = future.result()
             if colors:
-                cache[name] = colors
+                cache[key] = colors
                 new_count += 1
 
                 if new_count % 50 == 0:

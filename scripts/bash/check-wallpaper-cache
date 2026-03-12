@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build wallpaper list cache: scan dirs, generate thumbnails, extract hues, output JSONL
-CACHE_VERSION=28
+CACHE_VERSION=29
 
 . "$(dirname "$0")/lib.sh"
 require_cmd jq ffmpeg parallel
@@ -33,8 +33,8 @@ if [ "$stored_version" != "$CACHE_VERSION" ]; then
   echo "$CACHE_VERSION" > "$version_file"
 fi
 # Compute file checksums (detect new/changed/removed wallpapers)
-static_check=$(find "$wall_dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) ! -name 'wallpaper.jpg' -printf '%f %T@\n' 2>/dev/null | sort)
-video_check=$(find "$wall_dir" -maxdepth 1 -type f \( -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mkv' -o -iname '*.avi' -o -iname '*.mov' \) -printf '%f %T@\n' 2>/dev/null | sort)
+static_check=$(find "$wall_dir" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) ! -name 'wallpaper.jpg' -printf '%P %T@\n' 2>/dev/null | sort)
+video_check=$(find "$wall_dir" -type f \( -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mkv' -o -iname '*.avi' -o -iname '*.mov' \) -printf '%P %T@\n' 2>/dev/null | sort)
 we_check=$(find "$we_dir" -maxdepth 1 -mindepth 1 -type d -printf '%f %T@\n' 2>/dev/null | sort)
 # Early exit if checksums match and cache is fresh
 current_checksum=$(echo "$static_check$video_check$we_check" | md5sum | cut -d' ' -f1)
@@ -57,18 +57,18 @@ tmp_cached=$(mktemp)
 tmp_work=$(mktemp)
 tmp_results=$(mktemp)
 # Collect static images (skip unchanged entries with valid thumbs)
-shopt -s nullglob
-static_files=("$wall_dir"/*.jpg "$wall_dir"/*.jpeg "$wall_dir"/*.png "$wall_dir"/*.webp "$wall_dir"/*.JPG "$wall_dir"/*.JPEG "$wall_dir"/*.PNG "$wall_dir"/*.WEBP)
-video_files=("$wall_dir"/*.mp4 "$wall_dir"/*.webm "$wall_dir"/*.mkv "$wall_dir"/*.avi "$wall_dir"/*.mov)
+mapfile -d '' static_files < <(find "$wall_dir" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) ! -name 'wallpaper.jpg' -print0 2>/dev/null | sort -z)
+mapfile -d '' video_files < <(find "$wall_dir" -type f \( -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mkv' -o -iname '*.avi' -o -iname '*.mov' \) -print0 2>/dev/null | sort -z)
 we_dirs=("$we_dir"/*/)
 total=$((${#static_files[@]} + ${#video_files[@]} + ${#we_dirs[@]}))
 cached_count=0
 for img in "${static_files[@]}"; do
   [ -f "$img" ] || continue
-  name=$(basename "$img")
-  [[ "$name" == "wallpaper.jpg" ]] && continue
+  name="${img#$wall_dir/}"
+  [[ "$(basename "$name")" == "wallpaper.jpg" ]] && continue
   mtime=$(stat -c '%Y' "$img" 2>/dev/null || echo "0")
-  thumb_name="${name%.*}.jpg"
+  thumb_name="${name//\//--}"
+  thumb_name="${thumb_name%.*}.jpg"
   thumb_path="$cache_dir/$thumb_name"
   key="static:$name"
   if [ -n "${existing_cache[$key]}" ] && [ "${existing_cache[$key]}" = "$mtime" ] && [ -f "$thumb_path" ]; then
@@ -81,9 +81,10 @@ done
 # Collect video files
 for video in "${video_files[@]}"; do
   [ -f "$video" ] || continue
-  name=$(basename "$video")
+  name="${video#$wall_dir/}"
   mtime=$(stat -c '%Y' "$video" 2>/dev/null || echo "0")
-  thumb_name="${name%.*}.jpg"
+  thumb_name="${name//\//--}"
+  thumb_name="${thumb_name%.*}.jpg"
   thumb_path="$video_cache/$thumb_name"
   key="video:$name"
   if [ -n "${existing_cache[$key]}" ] && [ "${existing_cache[$key]}" = "$mtime" ] && [ -f "$thumb_path" ]; then
