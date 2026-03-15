@@ -102,7 +102,7 @@ ShellRoot {
 
       var app = (notification.appName || "").toLowerCase()
       var summary = (notification.summary || "").toLowerCase()
-      if ((app === "niri" || app === "hyprland" || app === "sway") && summary.indexOf("screenshot") !== -1) {
+      if ((app === "niri" || app === "hyprland" || app === "sway" || app === "kwin") && summary.indexOf("screenshot") !== -1) {
         notification.dismiss()
         return
       }

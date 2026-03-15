@@ -421,7 +421,7 @@ PanelWindow {
               color: bar.colors.primary
             }
             Text {
-              text: "PANIC AT THE CISCO"
+              text: wifiInfo.ssid
               font.pixelSize: 12
               font.weight: Font.Medium
               font.family: Style.fontFamily

@@ -63,6 +63,8 @@ detect_compositor() {
     echo "hyprland"
   elif [ -n "$SWAYSOCK" ]; then
     echo "sway"
+  elif pgrep -x kwin_wayland >/dev/null 2>&1 || pgrep -x kwin_x11 >/dev/null 2>&1; then
+    echo "kwin"
   else
     echo "unknown"
   fi

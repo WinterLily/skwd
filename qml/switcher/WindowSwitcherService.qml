@@ -146,6 +146,14 @@ QtObject {
             w.is_focused = w.focused || false
             w.is_floating = w.type === "floating_con"
           }
+        } else if (comp === "kwin") {
+          // wm-action already outputs normalized field names for kwin
+          // Just ensure focused window is sorted first for Alt+Tab ordering
+          windows.sort(function(a, b) {
+            if (a.is_focused && !b.is_focused) return -1
+            if (!a.is_focused && b.is_focused) return 1
+            return 0
+          })
         } else {
           windows.sort(function(a, b) {
             var aTime = a.focus_timestamp ? (a.focus_timestamp.secs * 1e9 + a.focus_timestamp.nanos) : 0
