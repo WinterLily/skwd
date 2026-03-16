@@ -21,7 +21,7 @@ That means working on:
 However it should work just fine on NixOS after some adaptations and I will specifically support NixOS when I find time for it.
 
 ### Supported compositors
-Tested functional on Niri, Hyprland and Kwin (KDE Plasma).
+Tested functional on Niri, Hyprland and KWin (KDE Plasma).
 
 ### Components
 - **Top Bar** - System bar with clock, weather, Wi-Fi, Bluetooth, volume, calendar, and a music player with synced lyrics and audio visualizer. Each module is able to be enabled or disabled to suit your needs.
@@ -111,7 +111,7 @@ After that I would like to resume work on the Smarthome component and finalise t
 
 You'll need Linux and a Wayland compositor - I recommend Niri.
 
-### AUR (Arch Linux)
+### Arch Linux (AUR)
 
 ```bash
 yay -S skwd-git
@@ -135,7 +135,7 @@ skwd &
 
 Note that the setup script isn't strictly necessary and is provided as a convenience, but you will have to do some manual work to get the system running if you don't run it.
 
-### IPC (keybindings) & Niri and Hyprland configuration
+### IPC (keybindings) & Niri/Hyprland/KWin (KDE Plasma) examples
 
 The shell reads commands from a FIFO:
 
@@ -144,6 +144,7 @@ echo "launcher" > "${XDG_RUNTIME_DIR}/skwd/cmd"
 ```
 
 You'll want to wire this up in your compositor config.
+
 On Niri that looks like:
 ```
 Mod+R { spawn-sh "echo applauncher > ${XDG_RUNTIME_DIR}/skwd/cmd"; }
@@ -154,7 +155,7 @@ on Hyprland it looks like:
 bind = $mainMod, R, exec, echo applauncher > ${XDG_RUNTIME_DIR}/skwd/cmd
 ```
 
-On KDE Plasma (Kwin) you can use the Shortcut widget to add keybinds & corresponding commands like so:
+On KWin (KDE Plasma) you can modify the shortcut file directly, but KDE Plasma is designed to use the Shortcut widget to add keybinds & corresponding commands like so:
 ```
 bash -c 'echo launcher > ${XDG_RUNTIME_DIR}/skwd/cmd'
 ```
@@ -248,8 +249,8 @@ bind = ALT, escape, exec, echo switcherCancel > ${XDG_RUNTIME_DIR}/skwd/cmd
 bind = ALT, C, exec, echo switcherClose > ${XDG_RUNTIME_DIR}/skwd/cmd
 ```
 
-### KDE Plasma (Kwin) support is experimental but tested as functional
-# Open the shortcuts app, edit and add a keybind with the following:
+### KWin (KDE Plasma) support is experimental but tested as functional
+Open the shortcuts app, edit and add a keybind with the following:
 ```
 bash -c 'echo launcher > ${XDG_RUNTIME_DIR}/skwd/cmd'
 ```
@@ -263,8 +264,8 @@ Every major component can be turned off in `data/config.json` under `components`
 "components": {
     "bar": {
         "enabled": true,
-        "weather": { "city": "YOUR_CITY" },
-        "wifi": { "interface": "wlan0" },
+        "weather": { "enabled": true, "city": "YOUR_CITY" },
+        "wifi": { "enabled": true, "interface": "wlan0" },
         "bluetooth": true,
         "volume": true,
         "calendar": true,
@@ -278,7 +279,10 @@ Every major component can be turned off in `data/config.json` under `components`
     },
     "lockscreen": false,
     "appLauncher": true,
-    "wallpaperSelector": true,
+    "wallpaperSelector": {
+        "enabled": true,
+        "showColorDots": false
+    },
     "windowSwitcher": true,
     "powerMenu": {
         "enabled": true,
