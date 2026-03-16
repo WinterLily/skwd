@@ -6,6 +6,7 @@
 ![App launcher](screenshots/image-4.png)
 
 ## What is Skwd?
+
 Skwd is a platform-agnostic aesthetics-first modular group of parallelogram desktop widgets with full support for colour theming based on your wallpaper powered by Matugen replicating common Desktop Shell functionality.
 
 If you don't speak nerd that means that it is a collection of things like wallpaper switchers, app launchers and bar that has support for large splash art for high aesthetic styling that you can select which ones you use and which ones you don't and the colours update automatically as you change your wallpaper to match.
@@ -13,6 +14,7 @@ If you don't speak nerd that means that it is a collection of things like wallpa
 Skwd is also built with high customisability in mind where you can configure many things extremely granularly like custom naming, icons, search groups, splash art and more.
 
 ### Supported OS:es
+
 Support tested specifically for Arch Linux & Fedora, where fully automated Fedora support is still WIP but manual install is available.
 That means working on:
 - **Arch Linux** and Arch Linux-derivatives like CachyOS and EndeavourOS.
@@ -21,9 +23,11 @@ That means working on:
 However it should work just fine on NixOS after some adaptations and I will specifically support NixOS when I find time for it.
 
 ### Supported compositors
+
 Tested functional on Niri, Hyprland and KWin (KDE Plasma).
 
 ### Components
+
 - **Top Bar** - System bar with clock, weather, Wi-Fi, Bluetooth, volume, calendar, and a music player with synced lyrics and audio visualizer. Each module is able to be enabled or disabled to suit your needs.
 - **App Launcher** - Parallelogram-tiled application launcher supporting tag search. Also has frequency-based searching meaning the order of apps is based on which one you selected on that keyword the most.
 - **Window Switcher** - Alt+Tab window switcher with thumbnail previews (only using Niri)
@@ -32,9 +36,18 @@ Tested functional on Niri, Hyprland and KWin (KDE Plasma).
 - **Notifications** - Desktop notification display and history
 
 ### Work in progress - Coming soon:
+
 - **Lockscreen** - PAM-authenticated lockscreen
 - **Smart Home** - Home Assistant panel for those that want to control their lights or blinds through a QML widget (I know I do!)
 - **Greeter** - Quickshell greeter for sddm
+
+## What is this not?
+
+This is not a plug'n'play solution. The software will run just fine out of the box but it assumes that you will set up your keybinds the way you like them and do baseline system configuration in both apps.json and config.json. There is information about what that looks like for various systems below.
+
+This software is also under heavy development and almost every single day I commit some change aimed to improve, fix or add something. That is not to discourage you from installing and using Skwd, just be aware that I am actively involved in improving and fixing things for Skwd to be a better experience for me personally but also other people that might want to use it.
+
+If you have any suggestions or issues, feel free to create a GitHub issue :)
 
 ## The long story - Personal motivation and development practices
 
@@ -57,13 +70,13 @@ The only compositor that has images in the app switcher is Niri as I use Niri's 
 A lot of nice looking stuff relies on the functionality of your compositor such as blur so you'll have to set that up as your heart desires - I make no assumptions about your compositor or how you want things to work for it.
 
 ## Roadmap / TODO
+
 I am currently in the process of standardising this project to be automatically installable for Arch Linux, Fedora and NixOS through their respective package repositories.
 Arch is done and fully functional, but Fedora and NixOS remains.
 
 However it is a lot of work and testing and I have other things to do than to customise Linux like working 😭
 
-After that I would like to resume work on the Smarthome component and finalise the lockscreen & greeter.
-
+After that I would like to resume work on the Smarthome component and finalise the lockscreen & greeter. I am also planning on maybe creating a widget that reads the json files and allows for a more convenient form of editing. Unsure though as I feel the configuration is very set it and forget it making slightly inconvenient data editing not a big deal. Like how often do you really install new programs that need splash art and search tags?
 
 ## Dependencies
 
