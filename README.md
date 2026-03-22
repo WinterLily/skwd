@@ -173,7 +173,7 @@ On KWin (KDE Plasma) you can modify the shortcut file directly, but KDE Plasma i
 bash -c 'echo launcher > ${XDG_RUNTIME_DIR}/skwd/cmd'
 ```
 
-Commands: `lock`, `powermenu`, `launcher` (alias: `applauncher`), `toggleBar`, `wallpaper`, `smarthome`, `notifications`, `switcherOpen`, `switcherNext`, `switcherPrev`, `switcherConfirm`, `switcherCancel`, `switcherClose`.
+Commands: `lock`, `config`, `powermenu`, `launcher` (alias: `applauncher`), `toggleBar`, `wallpaper`, `smarthome`, `notifications`, `switcherOpen`, `switcherNext`, `switcherPrev`, `switcherConfirm`, `switcherCancel`, `switcherClose`.
 
 ### Provided for convenience is a full list of Niri keybinds as well as useful start configuration and layer rules:
 ```
