@@ -122,6 +122,7 @@ ShellRoot {
   Colors {
     id: colors
   }
+  property var colorsRef: colors
 
 
   // MPRIS music player detection - uses preferred player if active
@@ -264,6 +265,7 @@ ShellRoot {
     id: clock
     precision: SystemClock.Seconds
   }
+  property var clockRef: clock
 
   PwObjectTracker {
     objects: [Pipewire.defaultAudioSink]
@@ -385,21 +387,39 @@ ShellRoot {
   // Top bar instantiation
   property string barTheme: "minimal"
 
-  TopBar {
-    id: minimalBar
-    visible: Config.barEnabled && root.barTheme === "minimal" && !(root.lockscreenInstance && root.lockscreenInstance.showing)
-    colors: colors
-    clock: clock
-    barVisible: root.barVisible
-    activePlayer: root.activePlayer
-    cpuUsage: root.cpuUsage
-    memUsage: root.memUsage
-    gpuUsage: root.gpuUsage
-    cpuTemp: root.cpuTemp
-    gpuTemp: root.gpuTemp
-    weatherDesc: root.weatherDesc
-    weatherTemp: root.weatherTemp
-    weatherCity: root.weatherCity
-    weatherForecast: root.weatherForecast
+  Variants {
+    model: {
+      if (!Config.barEnabled || root.barTheme !== "minimal") return []
+      var indices = []
+      var count = Quickshell.screens.length
+      if (Config.allMonitors || Config.monitorList.length === 0) {
+        for (var i = 0; i < count; i++) indices.push(i)
+      } else {
+        for (var i = 0; i < count; i++) {
+          if (Config.monitorList.indexOf(Quickshell.screens[i].name) !== -1) indices.push(i)
+        }
+        if (indices.length === 0) indices.push(0)
+      }
+      return indices
+    }
+
+    TopBar {
+      property var modelData
+      screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
+      visible: !(root.lockscreenInstance && root.lockscreenInstance.showing)
+      colors: root.colorsRef
+      clock: root.clockRef
+      barVisible: root.barVisible
+      activePlayer: root.activePlayer
+      cpuUsage: root.cpuUsage
+      memUsage: root.memUsage
+      gpuUsage: root.gpuUsage
+      cpuTemp: root.cpuTemp
+      gpuTemp: root.gpuTemp
+      weatherDesc: root.weatherDesc
+      weatherTemp: root.weatherTemp
+      weatherCity: root.weatherCity
+      weatherForecast: root.weatherForecast
+    }
   }
 }

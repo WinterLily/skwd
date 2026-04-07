@@ -46,6 +46,13 @@ QtObject {
     readonly property string compositor: _data.compositor ?? "niri"
 
     // General settings (monitor, polling intervals)
+    // monitor can be "all", a single name string, or an array of names
+    readonly property bool allMonitors: _data.monitor === "all"
+    readonly property var monitorList: {
+        if (!_data.monitor || _data.monitor === "all") return []
+        if (Array.isArray(_data.monitor)) return _data.monitor
+        return [_data.monitor]
+    }
     readonly property string mainMonitor: _data.monitor ?? ""
     readonly property string ollamaUrl: Quickshell.env("SKWD_OLLAMA_URL") || (_data.ollama?.url ?? "")
     readonly property string ollamaModel: _data.ollama?.model ?? ""
