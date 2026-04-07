@@ -1,3 +1,13 @@
+![Stars](https://img.shields.io/github/stars/liixini/skwd?style=flat-square)
+![License](https://img.shields.io/github/license/liixini/skwd?style=flat-square)
+![Last Commit](https://img.shields.io/github/last-commit/liixini/skwd?style=flat-square)
+![Repo Size](https://img.shields.io/github/repo-size/liixini/skwd?style=flat-square)
+![Issues](https://img.shields.io/github/issues/liixini/skwd?style=flat-square)
+
+![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)
+![Fedora](https://img.shields.io/badge/Fedora-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
+![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=for-the-badge&logo=nixos&logoColor=white)
+
 # Skwd - A skewed take on shells
 
 ### Work in progress! I have a major refactoring underway that vastly improves the functionality and removes all of the python and most of the scripts.
@@ -6,6 +16,7 @@
 <img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/3cf58a9b-e8f5-4bb8-8e36-ba974e08ed9d" />
 ![Window switcher](screenshots/image-2.png)
 ![App launcher](screenshots/image-4.png)
+<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/3c1552cf-25e5-4808-b367-5835fbeaa082" />
 
 ## What is Skwd?
 
