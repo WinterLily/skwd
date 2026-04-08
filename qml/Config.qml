@@ -36,6 +36,7 @@ QtObject {
     readonly property string cacheDir: _resolve(_data.paths?.cache)
         || Quickshell.env("SKWD_CACHE")
         || (Quickshell.env("XDG_CACHE_HOME") || (homeDir + "/.cache")) + "/skwd"
+    readonly property string colorFilePath: _resolve(_data.paths?.colorsFile) || (cacheDir + "/colors.json")
     readonly property string wallpaperDir: _resolve(_data.paths?.wallpaper)
     readonly property string weDir: _resolve(_data.paths?.steamWorkshop)
     readonly property string weAssetsDir: _resolve(_data.paths?.steamWeAssets)

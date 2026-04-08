@@ -17,6 +17,21 @@ Scope {
   property bool showing: false
 
   property string mainMonitor: Config.mainMonitor
+  property string activeMonitor: mainMonitor
+
+  // Process to get the active monitor when launcher opens
+  property var _activeMonitorProcess: Process {
+    command: [Config.scriptsDir + "/bash/wm-action", "active-monitor"]
+    running: false
+    stdout: SplitParser {
+      onRead: line => {
+        var name = line.trim()
+        if (name && name !== "?") {
+          appLauncher.activeMonitor = name
+        }
+      }
+    }
+  }
 
   // Service handles all data, search, caching, and launch logic
   AppLauncherService {
@@ -43,6 +58,8 @@ Scope {
   // Show/hide lifecycle
   onShowingChanged: {
     if (showing) {
+      // Get the currently active monitor before showing
+      _activeMonitorProcess.running = true
       service.searchText = ""
       searchInput.text = ""
       service.loadFreqData()
@@ -97,7 +114,7 @@ Scope {
   PanelWindow {
     id: launcherPanel
 
-    screen: Quickshell.screens.find(s => s.name === appLauncher.mainMonitor) ?? Quickshell.screens[0]
+    screen: Quickshell.screens.find(s => s.name === appLauncher.activeMonitor) ?? Quickshell.screens[0]
 
     anchors {
       top: true
@@ -825,7 +842,7 @@ Scope {
       id: secondaryLauncherPanel
 
       property var modelData
-      property bool isMainMonitor: modelData.name === appLauncher.mainMonitor || (Quickshell.screens.length === 1)
+      property bool isMainMonitor: modelData.name === appLauncher.activeMonitor || (Quickshell.screens.length === 1)
 
       screen: modelData
       visible: appLauncher.showing && !isMainMonitor

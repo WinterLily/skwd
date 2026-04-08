@@ -14,6 +14,8 @@ import QtQuick.Shapes
 import Qt.labs.platform
 import "qml"
 import "qml/bar"
+import "qml/bar/lyrics"
+
 
 ShellRoot {
   id: root
@@ -284,6 +286,13 @@ ShellRoot {
   property string storageTotal: "0G"
   property string storageAvail: "0G"
 
+  property var lyricsServiceRef: lyricsService
+
+  LyricsIslandService {
+    id: lyricsService
+    installDir: Config.installDir
+  }
+
   Process {
     id: sysStatsProcess
     command: [Config.scriptsDir + "/bash/system-stats"]
@@ -420,6 +429,7 @@ ShellRoot {
       weatherTemp: root.weatherTemp
       weatherCity: root.weatherCity
       weatherForecast: root.weatherForecast
+      lyricsService: root.lyricsServiceRef
     }
   }
 }

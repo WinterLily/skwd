@@ -8,7 +8,7 @@ QtObject {
     id: colors
 
     // Color file watcher (hot-reloads on wallpaper change)
-    property string colorFilePath: Config.cacheDir + "/colors.json"
+    property string colorFilePath: Config.colorFilePath
 
     property var colorFileView: FileView {
         path: colors.colorFilePath

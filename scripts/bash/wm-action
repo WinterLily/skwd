@@ -17,6 +17,7 @@ case "$SKWD_COMPOSITOR" in
       list-windows)     niri msg --json windows ;;
       list-workspaces)  niri msg --json workspaces ;;
       list-outputs)     niri msg --json outputs ;;
+      active-monitor)   niri msg --json outputs | jq -r '[.[] | select(.focused == true)] | .[0].name // "?"' ;;
       event-stream)     exec niri msg --json event-stream ;;
       screenshot-window) niri msg action screenshot-window --id "$1" --path "$2" ;;
       screenshot-output) grim -o "$1" "$2" ;;
@@ -35,6 +36,7 @@ case "$SKWD_COMPOSITOR" in
       list-windows)     hyprctl -j clients ;;
       list-workspaces)  hyprctl -j workspaces ;;
       list-outputs)     hyprctl -j monitors | jq '[.[] | {key: .name, value: .}] | from_entries' ;;
+      active-monitor)   hyprctl -j monitors | jq -r '.[] | select(.active == true) | .name' ;;
       event-stream)     exec socat -U - "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ;;
       screenshot-window) grim -g "$(hyprctl -j clients | jq -r --arg addr "$1" '.[] | select(.address == $addr) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')" "$2" ;;
       screenshot-output) grim -o "$1" "$2" ;;
@@ -53,6 +55,7 @@ case "$SKWD_COMPOSITOR" in
       list-windows)     swaymsg -t get_tree | jq '[.. | objects | select(.pid? > 0 and .type? == "con")]' ;;
       list-workspaces)  swaymsg -t get_workspaces ;;
       list-outputs)     swaymsg -t get_outputs | jq '[.[] | {key: .name, value: .}] | from_entries' ;;
+      active-monitor)   swaymsg -t get_outputs | jq -r '.[] | select(.active == true) | .name' ;;
       event-stream)     exec swaymsg -t subscribe -m '["workspace","window"]' ;;
       screenshot-window) swaymsg "[con_id=$1] focus" && grim -g "$(swaymsg -t get_tree | jq -r '.. | objects | select(.focused?) | .rect | "\(.x),\(.y) \(.width)x\(.height)"')" "$2" ;;
       screenshot-output) grim -o "$1" "$2" ;;
@@ -107,6 +110,7 @@ case "$SKWD_COMPOSITOR" in
           '[range(1;$n+1) | {id:., name:("Desktop "+tostring), is_active:(.==$c)}]'
         ;;
       list-outputs)     echo "{}" ;;
+      active-monitor)   kdotool getmouselocation 2>/dev/null | jq -Rr 'split(" ") | .[2]' || echo "?" ;;
       event-stream)     echo "wm-action: event-stream not supported on kwin" >&2; exit 1 ;;
       screenshot-window) spectacle -w -b -n -o "$2" 2>/dev/null ;;
       screenshot-output) spectacle -f -b -n -o "$2" 2>/dev/null ;;

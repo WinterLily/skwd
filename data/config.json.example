@@ -4,6 +4,7 @@
   "paths": {
     "scripts": "",
     "cache": "~/.cache/skwd",
+    "colorsFile": "~/.cache/skwd-wall/colors.json",
     "wallpaper": "~/wallpaper",
     "steamWorkshop": "~/.local/share/Steam/steamapps/workshop/content/431960",
     "steamWeAssets": "~/.local/share/Steam/steamapps/common/wallpaper_engine/assets",
