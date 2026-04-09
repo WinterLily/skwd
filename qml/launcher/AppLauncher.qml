@@ -598,7 +598,7 @@ Scope {
                 GradientStop { position: 0.0; color: appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceContainer.r, appLauncher.colors.surfaceContainer.g, appLauncher.colors.surfaceContainer.b, 1) : "#1a1c2e" }
                 GradientStop { position: 1.0; color: appLauncher.colors ? Qt.rgba(appLauncher.colors.surface.r, appLauncher.colors.surface.g, appLauncher.colors.surface.b, 1) : "#0e1018" }
               }
-              visible: !bgImage.visible && (!thumbImage.visible || thumbImage.status !== Image.Ready)
+              visible: !bgImage.visible
             }
 
             Text {
