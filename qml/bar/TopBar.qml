@@ -176,6 +176,17 @@ PanelWindow {
           ctx.closePath()
           ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
           ctx.fill()
+
+          if (Config.accentEdges) {
+            ctx.beginPath()
+            ctx.moveTo(0, height)
+            ctx.lineTo(width - bar.diagSlant, height)
+            ctx.lineTo(width, 0)
+            ctx.strokeStyle = Qt.rgba(bar.colors.primary.r, bar.colors.primary.g, bar.colors.primary.b, 1.0)
+            ctx.lineWidth = 1.5
+            ctx.lineJoin = "miter"
+            ctx.stroke()
+          }
         }
         Connections {
           target: bar.colors
@@ -308,6 +319,17 @@ PanelWindow {
           ctx.closePath()
           ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
           ctx.fill()
+
+          if (Config.accentEdges) {
+            ctx.beginPath()
+            ctx.moveTo(0, 0)
+            ctx.lineTo(bar.diagSlant, height)
+            ctx.lineTo(width, height)
+            ctx.strokeStyle = Qt.rgba(bar.colors.primary.r, bar.colors.primary.g, bar.colors.primary.b, 1.0)
+            ctx.lineWidth = 1.5
+            ctx.lineJoin = "miter"
+            ctx.stroke()
+          }
         }
         Connections {
           target: bar.colors

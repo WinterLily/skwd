@@ -41,10 +41,20 @@ Rectangle {
       ctx.closePath()
       ctx.fillStyle = Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
       ctx.fill()
+
+      if (Config.accentEdges) {
+        ctx.beginPath()
+        ctx.moveTo(0, height - root.diagSlant)
+        ctx.lineTo(root.diagSlant, height)
+        ctx.strokeStyle = Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 1.0)
+        ctx.lineWidth = 1.5
+        ctx.stroke()
+      }
     }
     Connections {
       target: root.colors
       function onSurfaceChanged() { dropdownBg.requestPaint() }
+      function onPrimaryChanged() { dropdownBg.requestPaint() }
     }
   }
 

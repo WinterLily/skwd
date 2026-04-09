@@ -83,6 +83,7 @@ QtObject {
     readonly property bool visualizerTop: (_bar.music?.visualizerTop !== false)
     readonly property bool visualizerBottom: (_bar.music?.visualizerBottom !== false)
     readonly property bool musicAutohide: (_bar.music?.autohide !== false)
+    readonly property bool accentEdges: _bar.accentEdges !== false
 
     // Standalone component enable/disable flags
     property var _components: _data.components ?? {}

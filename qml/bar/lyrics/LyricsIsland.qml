@@ -168,10 +168,23 @@ Item {
       ctx.closePath()
       ctx.fillStyle = Qt.rgba(lyricsIsland.colors.surface.r, lyricsIsland.colors.surface.g, lyricsIsland.colors.surface.b, 0.88)
       ctx.fill()
+
+      if (Config.accentEdges) {
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.lineTo(lyricsIsland.diagSlant, height)
+        ctx.lineTo(width - lyricsIsland.diagSlant, height)
+        ctx.lineTo(width, 0)
+        ctx.strokeStyle = Qt.rgba(lyricsIsland.colors.primary.r, lyricsIsland.colors.primary.g, lyricsIsland.colors.primary.b, 1.0)
+        ctx.lineWidth = 1.5
+        ctx.lineJoin = "miter"
+        ctx.stroke()
+      }
     }
     Connections {
       target: lyricsIsland.colors
       function onSurfaceChanged() { centerBg.requestPaint() }
+      function onPrimaryChanged() { centerBg.requestPaint() }
     }
   }
 
