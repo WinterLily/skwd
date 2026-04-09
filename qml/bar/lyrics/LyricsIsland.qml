@@ -177,10 +177,7 @@ Item {
 
   // Artist / track title
   Item {
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.top: parent.top
-    height: lyricsIsland.barHeight - lyricsIsland.waveformHeight
+    anchors.fill: parent
 
     Text {
       anchors.left: parent.left
