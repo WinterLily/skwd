@@ -41,7 +41,7 @@ Rectangle {
       ctx.lineTo(root.diagSlant, height)
       ctx.lineTo(0, height - root.diagSlant)
       ctx.closePath()
-      ctx.fillStyle = Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
+      ctx.fillStyle = Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 1.0)
       ctx.fill()
 
       if (Config.accentEdges) {

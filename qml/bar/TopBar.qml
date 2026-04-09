@@ -174,7 +174,7 @@ PanelWindow {
           ctx.lineTo(width - bar.diagSlant, height)
           ctx.lineTo(0, height)
           ctx.closePath()
-          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
+          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 1.0)
           ctx.fill()
 
           if (Config.accentEdges) {
@@ -317,7 +317,7 @@ PanelWindow {
           ctx.lineTo(width, height)
           ctx.lineTo(0 + bar.diagSlant, height)
           ctx.closePath()
-          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 0.88)
+          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 1.0)
           ctx.fill()
 
           if (Config.accentEdges) {

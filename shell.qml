@@ -44,13 +44,10 @@ ShellRoot {
         } else if (cmd === "toggleBar") {
           root.barVisible = !root.barVisible
         } else if (cmd === "wallpaper") {
-          if (root.wallpaperSelectorInstance) {
-            if (!root.wallpaperSelectorInstance.showing) {
-              root.wallpaperSelectorInstance.selectedColorFilter = -1
-              root.wallpaperSelectorInstance.resetScroll()
-            }
-            root.wallpaperSelectorInstance.showing = !root.wallpaperSelectorInstance.showing
-          }
+          if (wallpaperShellProc.running)
+            wallpaperShellProc.running = false
+          else
+            wallpaperShellProc.running = true
         } else if (cmd === "smarthome") {
           if (root.smartHomeInstance) root.smartHomeInstance.toggle()
         } else if (cmd === "switcherOpen") {
@@ -153,10 +150,6 @@ ShellRoot {
   }
 
 
-  // Bar appearance
-  property color barBackground: Qt.rgba(colors.background.r, colors.background.g, colors.background.b, 0.4)
-  property color pillBackground: Qt.rgba(colors.surfaceVariant.r, colors.surfaceVariant.g, colors.surfaceVariant.b, 0.4)
-
   // Bar visibility state (persisted to cache file)
   property bool barVisible: true
   property bool stateLoaded: false
@@ -191,14 +184,47 @@ ShellRoot {
     }
   }
 
-  // Lazy-loaded UI components (activated by Config flags)
-  Loader {
-    id: wallpaperSelectorLoader
-    active: Config.wallpaperSelectorEnabled
-    source: "qml/wallpaper/WallpaperSelector.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
+  // Resolve the shell directory from the parent quickshell process cmdline.
+  // Qt.resolvedUrl() returns qs:@/qs/... virtual paths inside a running shell,
+  // so we must read /proc/$PPID/cmdline to get the real filesystem path.
+  property string _shellDir: ""
+  property string _wallpaperDaemonPath: _shellDir ? (_shellDir + "/wallpaper-daemon.qml") : ""
+  property string _wallpaperShellPath: _shellDir ? (_shellDir + "/wallpaper-shell.qml") : ""
+
+  Process {
+    id: _shellDirResolver
+    running: true
+    command: ["bash", "-c",
+      "p=$(tr '\\0' '\\n' < /proc/$PPID/cmdline | grep '\\.qml$' | head -1); " +
+      "if [ -n \"$p\" ]; then realpath \"$(dirname \"$p\")\"; " +
+      "else tr '\\0' '\\n' < /proc/$PPID/cmdline | tail -1 | xargs realpath; fi"
+    ]
+    stdout: SplitParser { onRead: data => root._shellDir = data.trim() }
+    onExited: {
+      if (root._shellDir && Config.wallpaperSelectorEnabled)
+        wallpaperDaemonProc.running = true
+    }
   }
 
+  // Wallpaper picker (daemon for cache/restore, shell for UI)
+  Process {
+    id: wallpaperDaemonProc
+    command: ["quickshell", "-p", root._wallpaperDaemonPath]
+    running: false
+    stdout: SplitParser { onRead: line => console.log("[wallpaper-daemon]", line) }
+    stderr: SplitParser { onRead: line => console.log("[wallpaper-daemon ERR]", line) }
+    onExited: (code) => { if (code !== 0) console.warn("[wallpaper-daemon] exited with code", code) }
+  }
+  Process {
+    id: wallpaperShellProc
+    command: ["quickshell", "-p", root._wallpaperShellPath]
+    running: false
+    stdout: SplitParser { onRead: line => console.log("[wallpaper-shell]", line) }
+    stderr: SplitParser { onRead: line => console.log("[wallpaper-shell ERR]", line) }
+    onExited: (code) => { if (code !== 0) console.warn("[wallpaper-shell] exited with code", code) }
+  }
+
+  // Lazy-loaded UI components (activated by Config flags)
   Loader {
     id: appLauncherLoader
     active: Config.appLauncherEnabled
@@ -253,7 +279,6 @@ ShellRoot {
   }
 
   // Component instance references (null until loaded)
-  property var wallpaperSelectorInstance: wallpaperSelectorLoader.item ?? null
   property var appLauncherInstance: appLauncherLoader.item ?? null
   property var lockscreenInstance: lockscreenLoader.item ?? null
   property var powerMenuInstance: powerMenuLoader.item ?? null

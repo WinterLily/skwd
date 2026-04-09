@@ -37,11 +37,6 @@ QtObject {
         || Quickshell.env("SKWD_CACHE")
         || (Quickshell.env("XDG_CACHE_HOME") || (homeDir + "/.cache")) + "/skwd"
     readonly property string colorFilePath: _resolve(_data.paths?.colorsFile) || (cacheDir + "/colors.json")
-    readonly property string wallpaperDir: _resolve(_data.paths?.wallpaper)
-    readonly property string weDir: _resolve(_data.paths?.steamWorkshop)
-    readonly property string weAssetsDir: _resolve(_data.paths?.steamWeAssets)
-    readonly property string steamDir: _resolve(_data.paths?.steam)
-
 
     // Compositor
     readonly property string compositor: _data.compositor ?? "niri"
@@ -89,8 +84,6 @@ QtObject {
     property var _components: _data.components ?? {}
     readonly property bool appLauncherEnabled: _components.appLauncher !== false
     readonly property bool wallpaperSelectorEnabled: _components.wallpaperSelector !== false && _components.wallpaperSelector?.enabled !== false
-    property var _wallpaperSelector: (typeof _components.wallpaperSelector === "object" && _components.wallpaperSelector !== null) ? _components.wallpaperSelector : {}
-    readonly property bool wallpaperColorDots: _wallpaperSelector.showColorDots !== false
     readonly property bool windowSwitcherEnabled: _components.windowSwitcher !== false
     readonly property bool powerMenuEnabled: _components.powerMenu !== false && _components.powerMenu?.enabled !== false
     readonly property var powerMenuOptions: _components.powerMenu?.items ?? (Array.isArray(_components.powerMenu) ? _components.powerMenu : [])

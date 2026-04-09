@@ -293,7 +293,7 @@ Scope {
       Rectangle {
         anchors.fill: parent
         radius: 20
-        color: configPanel.colors ? Qt.rgba(configPanel.colors.surface.r, configPanel.colors.surface.g, configPanel.colors.surface.b, 0.88) : Qt.rgba(0.1, 0.06, 0.05, 0.88)
+        color: configPanel.colors ? Qt.rgba(configPanel.colors.surface.r, configPanel.colors.surface.g, configPanel.colors.surface.b, 1.0) : Qt.rgba(0.1, 0.06, 0.05, 1.0)
         border.width: 1
         border.color: configPanel.colors ? Qt.rgba(configPanel.colors.primary.r, configPanel.colors.primary.g, configPanel.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)
       }

@@ -132,8 +132,8 @@ Scope {
           ctx.closePath()
           var c = notifScope.colors
           ctx.fillStyle = c
-            ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 0.88)
-            : Qt.rgba(0.1, 0.12, 0.18, 0.88)
+            ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 1.0)
+            : Qt.rgba(0.1, 0.12, 0.18, 1.0)
           ctx.fill()
         }
         Connections {
@@ -440,8 +440,8 @@ Scope {
         ctx.closePath()
         var c = card.colors
         ctx.fillStyle = c
-          ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 0.88)
-          : Qt.rgba(0.1, 0.12, 0.18, 0.88)
+          ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 1.0)
+          : Qt.rgba(0.1, 0.12, 0.18, 1.0)
         ctx.fill()
       }
       Connections {

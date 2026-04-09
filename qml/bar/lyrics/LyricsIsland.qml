@@ -166,7 +166,7 @@ Item {
       ctx.lineTo(width - lyricsIsland.diagSlant, height)
       ctx.lineTo(lyricsIsland.diagSlant, height)
       ctx.closePath()
-      ctx.fillStyle = Qt.rgba(lyricsIsland.colors.surface.r, lyricsIsland.colors.surface.g, lyricsIsland.colors.surface.b, 0.88)
+      ctx.fillStyle = Qt.rgba(lyricsIsland.colors.surface.r, lyricsIsland.colors.surface.g, lyricsIsland.colors.surface.b, 1.0)
       ctx.fill()
 
       if (Config.accentEdges) {
@@ -372,15 +372,15 @@ Item {
 
       if (theme === "bars") {
         var grad = ctx.createLinearGradient(0, 0, 0, height)
-        grad.addColorStop(0, Qt.rgba(sur.r, sur.g, sur.b, 0.88))
+        grad.addColorStop(0, Qt.rgba(sur.r, sur.g, sur.b, 1.0))
         grad.addColorStop(1, Qt.rgba(sur.r, sur.g, sur.b, 0.0))
         ctx.fillStyle = grad
         lyricsIsland._vizDrawBars(ctx, raw, baseY, maxAmp, 1, slant, width)
       } else if (theme === "blocks") {
-        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 1.0)
         lyricsIsland._vizDrawBlocks(ctx, raw, baseY, maxAmp, 1, slant, width)
       } else if (theme === "dots") {
-        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
+        ctx.fillStyle = Qt.rgba(sur.r, sur.g, sur.b, 1.0)
         ctx.strokeStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.4)
         ctx.lineWidth = 1
         lyricsIsland._vizDrawDots(ctx, raw, baseY, maxAmp, 1, slant, width)
@@ -394,7 +394,7 @@ Item {
         ctx.stroke()
         ctx.beginPath()
         lyricsIsland._vizDrawLine(ctx, vals, step, baseY, maxAmp, 1)
-        ctx.strokeStyle = Qt.rgba(sur.r, sur.g, sur.b, 0.88)
+        ctx.strokeStyle = Qt.rgba(sur.r, sur.g, sur.b, 1.0)
         ctx.lineWidth = 1.5
         ctx.stroke()
       } else {
@@ -405,8 +405,8 @@ Item {
         lyricsIsland._vizDrawWave(ctx, vals, step, baseY, maxAmp, 1)
         ctx.closePath()
         var grad = ctx.createLinearGradient(0, 0, 0, maxAmp)
-        grad.addColorStop(0, Qt.rgba(sur.r, sur.g, sur.b, 0.88))
-        grad.addColorStop(0.7, Qt.rgba(sur.r, sur.g, sur.b, 0.88))
+        grad.addColorStop(0, Qt.rgba(sur.r, sur.g, sur.b, 1.0))
+        grad.addColorStop(0.7, Qt.rgba(sur.r, sur.g, sur.b, 1.0))
         grad.addColorStop(0.9, Qt.rgba(sur.r, sur.g, sur.b, 0.35))
         grad.addColorStop(1, Qt.rgba(sur.r, sur.g, sur.b, 0.0))
         ctx.fillStyle = grad
