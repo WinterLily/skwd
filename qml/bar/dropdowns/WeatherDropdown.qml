@@ -14,6 +14,7 @@ Rectangle {
 
   readonly property real animatedHeight: _animatedHeight
   readonly property real windowHeight: _windowHeight
+  property real diagSlant: 28
 
   property real _targetHeight: 0
   property real _animatedHeight: _targetHeight
@@ -24,7 +25,30 @@ Rectangle {
 
   height: _animatedHeight
   visible: _animatedHeight > 0
-  color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
+  color: "transparent"
+
+  Canvas {
+    id: dropdownBg
+    anchors.fill: parent
+    onHeightChanged: requestPaint()
+    onPaint: {
+      var ctx = getContext("2d")
+      ctx.clearRect(0, 0, width, height)
+      ctx.beginPath()
+      ctx.moveTo(0, 0)
+      ctx.lineTo(width, 0)
+      ctx.lineTo(width, height)
+      ctx.lineTo(root.diagSlant, height)
+      ctx.lineTo(0, height - root.diagSlant)
+      ctx.closePath()
+      ctx.fillStyle = Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
+      ctx.fill()
+    }
+    Connections {
+      target: root.colors
+      function onSurfaceChanged() { dropdownBg.requestPaint() }
+    }
+  }
 
   onAnimatedHeightChanged: {
     if (animatedHeight === 0 && !active) _windowHeight = 0
@@ -33,7 +57,7 @@ Rectangle {
   // Expand/collapse on toggle
   onActiveChanged: {
     if (active) {
-      _targetHeight = forecastColumn.implicitHeight + 24
+      _targetHeight = forecastColumn.implicitHeight + 46
       _windowHeight = _targetHeight
     } else {
       _targetHeight = 0
@@ -43,11 +67,10 @@ Rectangle {
   // Bottom accent bar
   Rectangle {
     anchors.bottom: parent.bottom
-    anchors.left: parent.left
     anchors.right: parent.right
     height: 2
     color: root.colors.primary
-    property real animatedWidth: root.visible ? parent.width : 0
+    property real animatedWidth: root.visible ? parent.width - root.diagSlant : 0
     width: animatedWidth
     Behavior on animatedWidth {
       NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
@@ -60,13 +83,13 @@ Rectangle {
     anchors.right: parent.right
     anchors.rightMargin: 12
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: 12
+    anchors.bottomMargin: 34
     spacing: 10
     width: parent.width - 24
 
     onImplicitHeightChanged: {
       if (root.active) {
-        root._targetHeight = implicitHeight + 24
+        root._targetHeight = implicitHeight + 46
         root._windowHeight = root._targetHeight
       }
     }

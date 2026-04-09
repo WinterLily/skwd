@@ -77,6 +77,7 @@ PanelWindow {
   property real _bluetoothH: Config.bluetoothEnabled ? bluetoothDropdown.animatedHeight : 0
   property real _weatherH: Config.weatherEnabled ? weatherDropdown.animatedHeight : 0
   property real totalDropdownHeight: _wifiH + _volumeH + _calendarH + _bluetoothH + _weatherH
+  property real dropdownGap: 6
 
   // Window height calculations (non-animated — jumps to final size immediately to avoid per-frame surface resize)
   property real _wifiWH: Config.wifiEnabled ? wifiDropdown.windowHeight : 0
@@ -288,7 +289,7 @@ PanelWindow {
       id: rightPanel
       z: 1
       anchors.right: parent.right
-      y: bar.slideOffset + bar.topMargin + bar.totalDropdownHeight
+      anchors.top: parent.top
       height: bar.barHeight
       width: rightContent.implicitWidth + bar.diagSlant + 24
 
@@ -576,7 +577,7 @@ PanelWindow {
   WiFiDropdown {
     id: wifiDropdown
     anchors.right: parent.right
-    y: bar.slideOffset + bar.topMargin
+    y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap
     width: rightPanel.width
     colors: bar.colors
     active: Config.wifiEnabled && bar.activeDropdown === "wifi"
@@ -587,7 +588,7 @@ PanelWindow {
   VolumeDropdown {
     id: volumeDropdown
     anchors.right: parent.right
-    y: bar.slideOffset + bar.topMargin + bar._wifiH
+    y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH
     width: rightPanel.width
     colors: bar.colors
     active: Config.volumeEnabled && bar.activeDropdown === "volume"
@@ -596,8 +597,8 @@ PanelWindow {
   CalendarDropdown {
     id: calendarDropdown
     anchors.right: parent.right
-    y: bar.slideOffset + bar.topMargin + bar._wifiH + bar._volumeH
-    width: rightPanel.width
+    y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH
+    width: Math.max(rightPanel.width, 256)
     colors: bar.colors
     active: Config.calendarEnabled && bar.activeDropdown === "clock"
     clock: bar.clock
@@ -606,7 +607,7 @@ PanelWindow {
   BluetoothDropdown {
     id: bluetoothDropdown
     anchors.right: parent.right
-    y: bar.slideOffset + bar.topMargin + bar._wifiH + bar._volumeH + bar._calendarH
+    y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH + bar._calendarH
     width: rightPanel.width
     colors: bar.colors
     active: Config.bluetoothEnabled && bar.activeDropdown === "bluetooth"
@@ -616,7 +617,7 @@ PanelWindow {
   WeatherDropdown {
     id: weatherDropdown
     anchors.right: parent.right
-    y: bar.slideOffset + bar.topMargin + bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH
+    y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH
     width: rightPanel.width
     colors: bar.colors
     active: Config.weatherEnabled && bar.activeDropdown === "weather"
