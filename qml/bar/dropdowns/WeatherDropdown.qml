@@ -13,9 +13,11 @@ Rectangle {
   property var weatherForecast: []
 
   readonly property real animatedHeight: _animatedHeight
+  readonly property real windowHeight: _windowHeight
 
   property real _targetHeight: 0
   property real _animatedHeight: _targetHeight
+  property real _windowHeight: 0
   Behavior on _animatedHeight {
     NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
   }
@@ -24,10 +26,15 @@ Rectangle {
   visible: _animatedHeight > 0
   color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.88)
 
+  onAnimatedHeightChanged: {
+    if (animatedHeight === 0 && !active) _windowHeight = 0
+  }
+
   // Expand/collapse on toggle
   onActiveChanged: {
     if (active) {
       _targetHeight = forecastColumn.implicitHeight + 24
+      _windowHeight = _targetHeight
     } else {
       _targetHeight = 0
     }
@@ -60,6 +67,7 @@ Rectangle {
     onImplicitHeightChanged: {
       if (root.active) {
         root._targetHeight = implicitHeight + 24
+        root._windowHeight = root._targetHeight
       }
     }
 

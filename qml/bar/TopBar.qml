@@ -70,15 +70,24 @@ PanelWindow {
 
   property real animatedBarHeight: barHeight + topMargin + slideOffset
 
-  // Dropdown height calculations for stacking
+  // Dropdown height calculations for stacking (animated — used for visuals, mask, and y positions)
   property real _wifiH: Config.wifiEnabled ? wifiDropdown.animatedHeight : 0
   property real _volumeH: Config.volumeEnabled ? volumeDropdown.animatedHeight : 0
   property real _calendarH: Config.calendarEnabled ? calendarDropdown.animatedHeight : 0
   property real _bluetoothH: Config.bluetoothEnabled ? bluetoothDropdown.animatedHeight : 0
   property real _weatherH: Config.weatherEnabled ? weatherDropdown.animatedHeight : 0
   property real totalDropdownHeight: _wifiH + _volumeH + _calendarH + _bluetoothH + _weatherH
+
+  // Window height calculations (non-animated — jumps to final size immediately to avoid per-frame surface resize)
+  property real _wifiWH: Config.wifiEnabled ? wifiDropdown.windowHeight : 0
+  property real _volumeWH: Config.volumeEnabled ? volumeDropdown.windowHeight : 0
+  property real _calendarWH: Config.calendarEnabled ? calendarDropdown.windowHeight : 0
+  property real _bluetoothWH: Config.bluetoothEnabled ? bluetoothDropdown.windowHeight : 0
+  property real _weatherWH: Config.weatherEnabled ? weatherDropdown.windowHeight : 0
+  property real totalWindowDropdownHeight: _wifiWH + _volumeWH + _calendarWH + _bluetoothWH + _weatherWH
+
   property bool _lyricsPlaying: Config.musicEnabled ? lyricsIsland.musicPlaying : false
-  implicitHeight: Math.max(1, animatedBarHeight) + totalDropdownHeight + (_lyricsPlaying ? waveformHeight : 0)
+  implicitHeight: Math.max(1, animatedBarHeight) + totalWindowDropdownHeight + (_lyricsPlaying ? waveformHeight : 0)
   exclusiveZone: barVisible ? barHeight + topMargin : 0
   color: "transparent"
 
