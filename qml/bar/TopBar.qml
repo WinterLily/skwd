@@ -269,6 +269,7 @@ PanelWindow {
       barHeight: bar.barHeight
       waveformHeight: bar.waveformHeight
       service: bar.lyricsService
+      activePlayer: bar.activePlayer
     }
   }
 

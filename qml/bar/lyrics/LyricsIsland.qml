@@ -10,8 +10,22 @@ Item {
   required property real barHeight
   required property real waveformHeight
   required property var service
+  required property var activePlayer
 
   width: 700
+
+  property bool musicPlaying: activePlayer !== null && activePlayer !== undefined && (activePlayer.isPlaying ?? false)
+
+  property string _artistName: {
+    if (!activePlayer) return ""
+    var a = activePlayer.trackArtists
+    if (!a || a.length === 0) return ""
+    if (typeof a === "string") return a.trim()
+    var parts = []
+    for (var i = 0; i < a.length; i++) parts.push(String(a[i]))
+    return parts.join(", ")
+  }
+  property string _trackTitle: activePlayer ? (activePlayer.trackTitle ?? "") : ""
 
   property string vizTheme: Config.visualizerTheme
   property bool vizTop: Config.visualizerTop
@@ -132,6 +146,61 @@ Item {
         var cpX = ((i - 1) * step + x) / 2
         ctx.quadraticCurveTo(cpX, baseY + dir * (vals[i-1] / 100) * maxAmp, x, y)
       }
+    }
+  }
+
+
+  // Background parallelogram panel
+  Canvas {
+    id: centerBg
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: lyricsIsland.barHeight
+    onPaint: {
+      var ctx = getContext("2d")
+      ctx.clearRect(0, 0, width, height)
+      ctx.beginPath()
+      ctx.moveTo(0, 0)
+      ctx.lineTo(width, 0)
+      ctx.lineTo(width - lyricsIsland.diagSlant, height)
+      ctx.lineTo(lyricsIsland.diagSlant, height)
+      ctx.closePath()
+      ctx.fillStyle = Qt.rgba(lyricsIsland.colors.surface.r, lyricsIsland.colors.surface.g, lyricsIsland.colors.surface.b, 0.88)
+      ctx.fill()
+    }
+    Connections {
+      target: lyricsIsland.colors
+      function onSurfaceChanged() { centerBg.requestPaint() }
+    }
+  }
+
+  // Artist / track title
+  Item {
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: lyricsIsland.barHeight - lyricsIsland.waveformHeight
+
+    Text {
+      anchors.left: parent.left
+      anchors.leftMargin: lyricsIsland.diagSlant + 8
+      anchors.verticalCenter: parent.verticalCenter
+      text: lyricsIsland._artistName
+      color: lyricsIsland.colors.primary
+      font.pixelSize: 12
+      font.weight: Font.Medium
+      font.family: Style.fontFamily
+    }
+
+    Text {
+      anchors.right: parent.right
+      anchors.rightMargin: lyricsIsland.diagSlant + 8
+      anchors.verticalCenter: parent.verticalCenter
+      text: lyricsIsland._trackTitle
+      color: lyricsIsland.colors.tertiary
+      font.pixelSize: 12
+      font.family: Style.fontFamily
     }
   }
 
