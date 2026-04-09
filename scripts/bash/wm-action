@@ -17,7 +17,7 @@ case "$SKWD_COMPOSITOR" in
       list-windows)     niri msg --json windows ;;
       list-workspaces)  niri msg --json workspaces ;;
       list-outputs)     niri msg --json outputs ;;
-      active-monitor)   niri msg --json outputs | jq -r '[.[] | select(.focused == true)] | .[0].name // "?"' ;;
+      active-monitor)   niri msg --json focused-output | jq -r '.name // "?"' ;;
       event-stream)     exec niri msg --json event-stream ;;
       screenshot-window) niri msg action screenshot-window --id "$1" --path "$2" ;;
       screenshot-output) grim -o "$1" "$2" ;;

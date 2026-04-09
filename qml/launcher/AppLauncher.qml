@@ -135,7 +135,7 @@ Scope {
       Timer {
         id: focusTimer
         interval: 50
-        onTriggered: sliceListView.forceActiveFocus()
+        onTriggered: searchInput.forceActiveFocus()
       }
 
 
@@ -297,6 +297,20 @@ Scope {
                 }
               }
               Keys.onEscapePressed: appLauncher.showing = false
+              Keys.onLeftPressed: {
+                if (sliceListView.currentIndex > 0) {
+                  sliceListView.keyboardNavActive = true
+                  sliceListView.currentIndex--
+                }
+                event.accepted = true
+              }
+              Keys.onRightPressed: {
+                if (sliceListView.currentIndex < service.filteredModel.count - 1) {
+                  sliceListView.keyboardNavActive = true
+                  sliceListView.currentIndex++
+                }
+                event.accepted = true
+              }
 
               Text {
                 anchors.fill: parent
@@ -403,16 +417,15 @@ Scope {
         header: Item { width: (sliceListView.width - appLauncher.expandedWidth) / 2; height: 1 }
         footer: Item { width: (sliceListView.width - appLauncher.expandedWidth) / 2; height: 1 }
 
-        focus: appLauncher.showing
         onVisibleChanged: {
-          if (visible) forceActiveFocus()
+          if (visible) searchInput.forceActiveFocus()
         }
 
         Connections {
           target: appLauncher
           function onShowingChanged() {
             if (appLauncher.showing)
-              sliceListView.forceActiveFocus()
+              searchInput.forceActiveFocus()
           }
         }
 
