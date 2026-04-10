@@ -225,7 +225,7 @@ Item {
 
             Canvas {
                 anchors.fill: parent
-                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)
+                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1.0) : Qt.rgba(0.1, 0.12, 0.18, 1.0)
                 property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
                 onFillColorChanged: requestPaint()
                 onStrokeColorChanged: requestPaint()
@@ -272,7 +272,7 @@ Item {
             Canvas {
                 anchors.fill: parent
                 visible: parent.visible
-                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)
+                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1.0) : Qt.rgba(0.1, 0.12, 0.18, 1.0)
                 property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
                 onFillColorChanged: requestPaint()
                 onStrokeColorChanged: requestPaint()
@@ -367,7 +367,7 @@ Item {
             Canvas {
                 anchors.fill: parent
                 visible: parent.visible
-                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)
+                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1.0) : Qt.rgba(0.1, 0.12, 0.18, 1.0)
                 property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
                 onFillColorChanged: requestPaint()
                 onStrokeColorChanged: requestPaint()
@@ -413,7 +413,7 @@ Item {
             Canvas {
                 anchors.fill: parent
                 visible: parent.visible
-                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)
+                property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1.0) : Qt.rgba(0.1, 0.12, 0.18, 1.0)
                 property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
                 onFillColorChanged: requestPaint()
                 onStrokeColorChanged: requestPaint()

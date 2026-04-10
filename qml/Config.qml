@@ -77,6 +77,11 @@ QtObject {
 
     property var _components: _data.components ?? {}
     readonly property bool appLauncherEnabled: _components.appLauncher !== false
+    property var _appLauncher: (typeof _components.appLauncher === "object" && _components.appLauncher !== null) ? _components.appLauncher : {}
+    readonly property string launcherDisplayMode: _appLauncher.displayMode ?? "slices"
+    readonly property int launcherHexRadius: _appLauncher.hexRadius ?? 56
+    readonly property int launcherHexRows: _appLauncher.hexRows ?? 4
+    readonly property int launcherHexCols: _appLauncher.hexCols ?? 9
     readonly property bool wallpaperSelectorEnabled: _components.wallpaperSelector !== false && _components.wallpaperSelector?.enabled !== false
     readonly property bool windowSwitcherEnabled: _components.windowSwitcher !== false
     readonly property bool powerMenuEnabled: _components.powerMenu !== false && _components.powerMenu?.enabled !== false

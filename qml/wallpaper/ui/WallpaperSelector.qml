@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Io
 import QtQuick
 import QtQuick.Shapes
 import QtQuick.Effects
@@ -18,8 +19,35 @@ Scope {
   property alias selectorService: service
   property alias swService: swService
   property string mainMonitor: Config.mainMonitor
+  property string activeMonitor: mainMonitor
+  property bool _panelVisible: false
   signal wallpaperChanged()
   signal uiReady()
+
+  property var _activeMonitorProcess: Process {
+    command: [Config.scriptsDir + "/bash/wm-action", "active-monitor"]
+    running: false
+    stdout: SplitParser {
+      onRead: line => {
+        var name = line.trim()
+        if (name && name !== "?")
+          wallpaperSelector.activeMonitor = name
+      }
+    }
+    onExited: (code, status) => {
+      if (wallpaperSelector.showing) {
+        var screens = Quickshell.screens
+        var matched = false
+        for (var i = 0; i < screens.length; i++) {
+          if (screens[i].name === wallpaperSelector.activeMonitor) { matched = true; break }
+        }
+        if (!matched && screens.length > 0)
+          wallpaperSelector.activeMonitor = screens[0].name
+        wallpaperSelector._panelVisible = true
+        cardShowTimer.restart()
+      }
+    }
+  }
 
   function _setSelectedTags(tags) {
     service.selectedTags = tags
@@ -81,6 +109,9 @@ Scope {
 
   onShowingChanged: {
     if (showing) {
+      _panelVisible = false
+      activeMonitor = mainMonitor
+      _activeMonitorProcess.running = true
       _restorePending = true
       sliceListView.model = Qt.binding(function() { return service.filteredModel })
       thumbGridView.model = Qt.binding(function() { return service.filteredModel })
@@ -88,8 +119,8 @@ Scope {
       sliceListView.cacheBuffer = 300
       thumbGridView.cacheBuffer = 300
       service.startCacheCheck()
-      cardShowTimer.restart()
     } else {
+      _panelVisible = false
       cardShowTimer.stop()
       cardVisible = false
       settingsOpen = false
@@ -267,7 +298,7 @@ Scope {
   PanelWindow {
     id: selectorPanel
 
-    screen: Quickshell.screens.find(s => s.name === wallpaperSelector.mainMonitor) ?? Quickshell.screens[0]
+    screen: Quickshell.screens.find(s => s.name === wallpaperSelector.activeMonitor) ?? Quickshell.screens[0]
 
     anchors {
       top: true
@@ -282,7 +313,7 @@ Scope {
       right: 0
     }
 
-    visible: wallpaperSelector.showing
+    visible: wallpaperSelector._panelVisible
     color: "transparent"
 
     WlrLayershell.namespace: "wallpaper-selector-parallel"
