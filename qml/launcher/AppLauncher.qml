@@ -96,7 +96,7 @@ Scope {
 
   // Hex mode
   property bool isHexMode: Config.launcherDisplayMode === "hex"
-  property int hexRadius: Config.launcherHexRadius
+  property int hexRadius: Config.hexRadius
   property int hexRows: Config.launcherHexRows
   property int hexCols: Config.launcherHexCols
 
@@ -105,11 +105,11 @@ Scope {
   property int cardWidth: isHexMode ? _hexCardWidth : 1600
   property int cardHeight: isHexMode ? _hexCardHeight : (sliceHeight + topBarHeight + 60)
   property int _hexCardWidth: {
-    var r = hexRadius; var spacing = 6
+    var r = hexRadius; var spacing = 14
     return Math.round((hexCols + 1) * (1.5 * r + spacing) + 2 * r)
   }
   property int _hexCardHeight: {
-    var r = hexRadius; var rows = hexRows; var spacing = 6
+    var r = hexRadius; var rows = hexRows; var spacing = 14
     var hexH = Math.ceil(r * 1.73205); var stepY = hexH + spacing
     return (rows - 1) * stepY + hexH + Math.ceil(stepY / 2) + topBarHeight + 60
   }
@@ -911,7 +911,7 @@ Scope {
 
         property int _rows: appLauncher.hexRows
         property real _r: appLauncher.hexRadius
-        property real _gridSpacing: 6
+        property real _gridSpacing: 14
         property real _hexW: _r * 2
         property real _hexH: Math.ceil(_r * 1.73205)
         property real _stepX: 1.5 * _r + _gridSpacing
@@ -1128,6 +1128,23 @@ Scope {
                   PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                   PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                   PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
+                }
+              }
+
+              // Accent colour rim: bottom-left and bottom edges
+              Shape {
+                anchors.fill: parent
+                antialiasing: true
+                preferredRendererType: Shape.CurveRenderer
+                ShapePath {
+                  fillColor: "transparent"
+                  strokeColor: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
+                  strokeWidth: 3
+                  capStyle: ShapePath.RoundCap
+                  joinStyle: ShapePath.RoundJoin
+                  startX: hexItem._cx - hexItem._r;               startY: hexItem._cy
+                  PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                  PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                 }
               }
 

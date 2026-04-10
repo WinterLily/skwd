@@ -190,6 +190,23 @@ Item {
         }
     }
 
+    // Accent colour rim: bottom-left and bottom edges
+    Shape {
+        anchors.fill: parent
+        antialiasing: true
+        preferredRendererType: Shape.CurveRenderer
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: hexItem.colors ? hexItem.colors.primary : Style.fallbackAccent
+            strokeWidth: 3
+            capStyle: ShapePath.RoundCap
+            joinStyle: ShapePath.RoundJoin
+            startX: hexItem._cx - hexItem._r;                          startY: hexItem._cy
+            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30;  y: hexItem._cy + hexItem._r * hexItem._cos30 }
+            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30;  y: hexItem._cy + hexItem._r * hexItem._cos30 }
+        }
+    }
+
     Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom

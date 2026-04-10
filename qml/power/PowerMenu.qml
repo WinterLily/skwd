@@ -165,10 +165,10 @@ Scope {
         id: powerCard
         visible: isActive && powerMenuScope.cardVisible
 
-        readonly property int   _r:      90
+        readonly property int   _r:      Config.hexRadius
         readonly property real  _hexH:   Math.ceil(_r * 1.73205)
         readonly property real  _hexW:   _r * 2
-        readonly property real  _gap:    6
+        readonly property real  _gap:    14
         readonly property real  _stepX:  1.5 * _r + _gap
         readonly property real  _stepY:  _hexH + _gap
         readonly property int   _rows:   2
@@ -309,6 +309,23 @@ Scope {
                 PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                 PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                 PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
+              }
+            }
+
+            // Accent colour rim: bottom-left and bottom edges
+            Shape {
+              anchors.fill: parent
+              antialiasing: true
+              preferredRendererType: Shape.CurveRenderer
+              ShapePath {
+                fillColor: "transparent"
+                strokeColor: powerMenuScope.colors ? powerMenuScope.colors.primary : "#ffb4ab"
+                strokeWidth: 3
+                capStyle: ShapePath.RoundCap
+                joinStyle: ShapePath.RoundJoin
+                startX: hexItem._cx - hexItem._r;                        startY: hexItem._cy
+                PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
               }
             }
 

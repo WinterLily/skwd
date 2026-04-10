@@ -258,7 +258,7 @@ Scope {
   property int cardHeight: anyBrowserOpen ? 0 : (isHexMode ? hexGridHeight : (isGridMode ? _gridTotalH + topBarHeight + 35 : sliceHeight + topBarHeight + 60))
   property int hexCardWidth: {
     var r = hexRadius
-    var spacing = 6
+    var spacing = 14
     var stepX = 1.5 * r + spacing
     var cellW = 2 * r
     return Math.round((hexCols + 1) * stepX + cellW)
@@ -269,7 +269,7 @@ Scope {
   property int hexGridHeight: {
     var rows = hexRows
     var r = hexRadius
-    var spacing = 6
+    var spacing = 14
     var hexH = Math.ceil(r * 1.73205)
     var stepY = hexH + spacing
     var contentH = (rows - 1) * stepY + hexH + stepY / 2
@@ -696,7 +696,7 @@ Scope {
       clip: false
       property int _rows: wallpaperSelector.hexRows
       property real _r: wallpaperSelector.hexRadius
-      property real _gridSpacing: 6
+      property real _gridSpacing: 14
       property real _hexW: _r * 2
       property real _hexH: Math.ceil(_r * 1.73205)
       property real _stepX: 1.5 * _r + _gridSpacing
