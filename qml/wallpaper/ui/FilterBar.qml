@@ -39,15 +39,61 @@ Item {
     signal steamWorkshopToggled()
     signal tagCloudToggled()
 
-    readonly property int _skew: 10
+    readonly property int _skew: 14
+    readonly property int _padH: 15
+    readonly property int _padV: 7
     property real maxWidth: 99999
 
-    width: Math.min(filterRow.width, maxWidth)
-    height: filterRow.height + (filterFlick.contentWidth > filterFlick.width ? 10 : 0)
+    width: Math.min(filterRow.width + _padH * 2, maxWidth)
+    height: filterRow.height + _padV * 2 + (filterFlick.contentWidth > filterFlick.width ? 10 : 0)
+
+    Canvas {
+        id: _bgCanvas
+        x: 0; y: 0
+        width: parent.width
+        height: filterRow.height + filterBar._padV * 2
+        z: -1
+        readonly property int _sk: 14
+        property color fillColor: filterBar.colors
+            ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1.0)
+            : Qt.rgba(0.1, 0.12, 0.18, 1.0)
+        property color accentColor: filterBar.colors
+            ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.6)
+            : Qt.rgba(1, 1, 1, 0.3)
+        onFillColorChanged: requestPaint()
+        onAccentColorChanged: requestPaint()
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.clearRect(0, 0, width, height)
+            var sk = _sk
+            ctx.fillStyle = fillColor
+            ctx.beginPath()
+            ctx.moveTo(sk, 0)
+            ctx.lineTo(width, 0)
+            ctx.lineTo(width - sk, height)
+            ctx.lineTo(0, height)
+            ctx.closePath()
+            ctx.fill()
+            ctx.strokeStyle = accentColor
+            ctx.lineWidth = 1.5
+            ctx.beginPath()
+            ctx.moveTo(sk, 0)
+            ctx.lineTo(0, height)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.moveTo(width, 0)
+            ctx.lineTo(width - sk, height)
+            ctx.stroke()
+        }
+    }
 
     Flickable {
         id: filterFlick
-        width: filterBar.width
+        x: filterBar._padH
+        y: filterBar._padV
+        width: filterBar.width - filterBar._padH * 2
         height: filterRow.height
         contentWidth: filterRow.width
         contentHeight: filterRow.height
@@ -88,6 +134,7 @@ Item {
             FilterButton {
                 colors: filterBar.colors
                 label: modelData.label
+                skew: filterBar._skew
                 isActive: filterBar.service ? filterBar.service.selectedTypeFilter === modelData.type : false
                 onClicked: {
                     if (isActive) filterBar.service.selectedTypeFilter = ""
@@ -106,6 +153,7 @@ Item {
                 colors: filterBar.colors
                 icon: modelData.icon
                 tooltip: modelData.label
+                skew: filterBar._skew
                 isActive: filterBar.service ? filterBar.service.sortMode === modelData.mode : false
                 onClicked: {
                     filterBar.service.sortMode = modelData.mode
@@ -118,6 +166,7 @@ Item {
             colors: filterBar.colors
             icon: "󰋑"
             tooltip: "Favourites"
+            skew: filterBar._skew
             isActive: filterBar.service ? filterBar.service.favouriteFilterActive : false
             onClicked: filterBar.service.favouriteFilterActive = !filterBar.service.favouriteFilterActive
         }
@@ -189,6 +238,7 @@ Item {
             colors: filterBar.colors
             icon: "\u{f0349}"
             tooltip: "Tags"
+            skew: filterBar._skew
             isActive: filterBar.tagCloudOpen
             onClicked: filterBar.tagCloudToggled()
         }
@@ -198,6 +248,7 @@ Item {
             colors: filterBar.colors
             icon: "\u{f01da}"
             tooltip: "Browse wallhaven.cc"
+            skew: filterBar._skew
             isActive: filterBar.wallhavenBrowserOpen
             onClicked: filterBar.wallhavenToggled()
         }
@@ -207,6 +258,7 @@ Item {
             colors: filterBar.colors
             icon: "󰓓"
             tooltip: "Browse Steam Workshop"
+            skew: filterBar._skew
             isActive: filterBar.steamWorkshopBrowserOpen
             onClicked: filterBar.steamWorkshopToggled()
         }
@@ -215,6 +267,7 @@ Item {
             colors: filterBar.colors
             icon: "\u{f0493}"
             tooltip: "Settings"
+            skew: filterBar._skew
             isActive: filterBar.settingsOpen
             onClicked: filterBar.settingsToggled()
         }
@@ -455,6 +508,7 @@ Item {
             colors: filterBar.colors
             label: "O"
             tooltip: filterBar.ollamaActive ? "Stop Ollama scan" : "Start Ollama scan"
+            skew: filterBar._skew
             isActive: filterBar.ollamaActive
             onClicked: {
                 if (filterBar.ollamaActive) WallpaperAnalysisService.stop()

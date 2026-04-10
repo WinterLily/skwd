@@ -33,11 +33,13 @@ Item {
         property color fillColor: btn.isActive
             ? btn._resolvedActiveColor
             : (btn.isHovered
-                ? (btn.colors ? Qt.rgba(btn.colors.surfaceVariant.r, btn.colors.surfaceVariant.g, btn.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15))
-                : (btn.colors ? Qt.rgba(btn.colors.surfaceContainer.r, btn.colors.surfaceContainer.g, btn.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)))
+                ? (btn.colors ? Qt.rgba(btn.colors.surfaceVariant.r, btn.colors.surfaceVariant.g, btn.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15))
+                : "transparent")
         property color strokeColor: btn.isActive
             ? Qt.rgba(btn._resolvedActiveColor.r, btn._resolvedActiveColor.g, btn._resolvedActiveColor.b, 0.6)
-            : (btn.colors ? Qt.rgba(btn.colors.primary.r, btn.colors.primary.g, btn.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08))
+            : (btn.isHovered
+                ? (btn.colors ? Qt.rgba(btn.colors.primary.r, btn.colors.primary.g, btn.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2))
+                : "transparent")
 
         onFillColorChanged: requestPaint()
         onStrokeColorChanged: requestPaint()

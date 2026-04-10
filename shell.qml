@@ -15,7 +15,6 @@ import Qt.labs.platform
 import "qml"
 import "qml/bar"
 import "qml/bar/lyrics"
-import "qml/wallpaper" as Wallpaper
 import "qml/wallpaper/services"
 
 
@@ -187,10 +186,6 @@ ShellRoot {
   // Wallpaper subsystem
   // ---------------------------------------------------------------------------
 
-  Wallpaper.Colors {
-    id: wallpaperColors
-  }
-
   // Restore last wallpaper once bootstrap has created the config dir
   Connections {
     target: BootstrapService
@@ -286,7 +281,7 @@ ShellRoot {
     active: false
     source: "qml/wallpaper/ui/WallpaperSelector.qml"
     onLoaded: {
-      item.colors = Qt.binding(() => wallpaperColors)
+      item.colors = Qt.binding(() => colors)
       item.showing = true
     }
   }

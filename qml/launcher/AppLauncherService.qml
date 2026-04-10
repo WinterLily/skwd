@@ -80,6 +80,7 @@ QtObject {
     for (var i = 0; i < appModel.count; i++) {
       var item = appModel.get(i)
       if (item.hidden) continue
+      if (!item.iconPath && !item.thumb && !item.customIcon) continue
       if (query !== "" &&
           item.name.toLowerCase().indexOf(query) === -1 &&
           item.categories.toLowerCase().indexOf(query) === -1 &&
