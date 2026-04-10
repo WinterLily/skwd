@@ -16,6 +16,7 @@ Scope {
 
   property var colors
   property bool showing: false
+  property bool hideLockOption: false
 
   // _panelVisible gates window visibility — stays false until the active-monitor
   // query completes, so we never show on the wrong screen.
@@ -45,6 +46,7 @@ Scope {
     var result = []
     for (var i = 0; i < src.length; i++) {
       var opt = src[i]
+      if (powerMenuScope.hideLockOption && opt.action === "lock") continue
       var cmd = _commands[opt.action] || ""
       if (cmd) result.push({ label: opt.label || "", icon: opt.icon || "", command: cmd })
     }

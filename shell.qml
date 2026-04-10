@@ -334,7 +334,10 @@ ShellRoot {
     id: powerMenuLoader
     active: Config.powerMenuEnabled
     source: "qml/power/PowerMenu.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
+    onLoaded: {
+      item.colors = Qt.binding(() => colors)
+      item.hideLockOption = Qt.binding(() => !!(root.lockscreenInstance && root.lockscreenInstance.showing))
+    }
   }
 
   Loader {
