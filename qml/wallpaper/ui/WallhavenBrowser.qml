@@ -2,6 +2,7 @@ import Quickshell.Io
 import QtQuick
 import QtQuick.Controls
 import ".."
+import "../.."
 import "../services"
 
 Item {

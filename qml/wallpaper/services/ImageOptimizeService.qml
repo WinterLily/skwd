@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
-import ".."
+import "../.."
 
 QtObject {
     id: svc
@@ -28,8 +28,8 @@ QtObject {
 
     signal finished(int optimized, int skippedCount, int failed)
 
-    readonly property string _trashDir: Config.cacheDir + "/wallpaper/trash/images"
-    readonly property string _stagingDir: Config.cacheDir + "/wallpaper/staging"
+    readonly property string _trashDir: Config.wallCacheDir + "/wallpaper/trash/images"
+    readonly property string _stagingDir: Config.wallCacheDir + "/wallpaper/staging"
 
     property var _queue: []
     property int _activeJobs: 0

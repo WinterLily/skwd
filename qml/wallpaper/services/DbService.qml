@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import QtQuick.LocalStorage
-import ".."
+import "../.."
 
 QtObject {
     id: db

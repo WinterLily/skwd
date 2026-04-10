@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import ".."
+import "../.."
 
 QtObject {
     id: service
@@ -11,7 +11,7 @@ QtObject {
     readonly property string videoDir: Config.videoDir
     readonly property string weDir: Config.weDir
     readonly property string weAssetsDir: Config.weAssetsDir
-    readonly property string cacheDir: Config.cacheDir
+    readonly property string cacheDir: Config.wallCacheDir
     readonly property string mainMonitor: Config.mainMonitor
     readonly property string ollamaUrl: Config.ollamaUrl
     readonly property string ollamaModel: Config.ollamaModel
@@ -362,7 +362,7 @@ QtObject {
         for (var i = 0; i < ints.length; i++) {
             var o = ints[i].output
             if (!o) continue
-            files.push(o.indexOf("/") >= 0 ? Config._resolve(o) : Config.cacheDir + "/" + o)
+            files.push(o.indexOf("/") >= 0 ? Config._resolve(o) : Config.wallCacheDir + "/" + o)
         }
         return files
     }

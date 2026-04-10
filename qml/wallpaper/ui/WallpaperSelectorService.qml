@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import ".."
+import "../.."
 import "../services"
 
 QtObject {

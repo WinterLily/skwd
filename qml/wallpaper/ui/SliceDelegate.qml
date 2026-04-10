@@ -4,6 +4,7 @@ import QtQuick.Effects
 import QtQuick.Controls
 import QtMultimedia
 import ".."
+import "../.."
 import "../services"
 
 Item {

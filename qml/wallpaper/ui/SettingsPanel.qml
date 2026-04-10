@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Shapes
 import Quickshell.Io
 import ".."
+import "../.."
 import "../services"
 
 Item {
@@ -102,7 +103,7 @@ Item {
 
   FileView {
     id: _selectorConfigFile
-    path: Config.configDir + "/config.json"
+    path: Config.configDir + "/data/config.json"
     preload: true
   }
 

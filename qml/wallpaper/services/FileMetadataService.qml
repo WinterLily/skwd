@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
-import ".."
+import "../.."
 
 QtObject {
     id: service

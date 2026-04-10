@@ -1,12 +1,13 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import ".."
 import "services"
 
 QtObject {
     id: colors
 
-    property string colorFilePath: Config.cacheDir + "/colors.json"
+    property string colorFilePath: Config.wallCacheDir + "/colors.json"
 
     property var colorFileView: FileView {
         path: BootstrapService.ready ? colors.colorFilePath : ""

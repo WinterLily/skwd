@@ -3,6 +3,7 @@ import QtQuick.Shapes
 import QtQuick.Effects
 import QtMultimedia
 import ".."
+import "../.."
 import "../services"
 
 Item {

@@ -2,12 +2,12 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import ".."
+import "../.."
 
 QtObject {
   id: svc
 
-  readonly property string _statusFilePath: Config.cacheDir + "/wallpaper/steam-dl-status.json"
+  readonly property string _statusFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-status.json"
 
   property var downloadStatus: ({})
   property var downloadProgress: ({})
@@ -57,7 +57,7 @@ QtObject {
     _recoverProc.running = true
   }
 
-  readonly property string _requestFilePath: Config.cacheDir + "/wallpaper/steam-dl-request"
+  readonly property string _requestFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-request"
 
   property string _readResult: ""
 

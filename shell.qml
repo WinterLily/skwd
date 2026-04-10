@@ -203,9 +203,9 @@ ShellRoot {
   // Start cache/optimize services once the wallpaper config file is readable
   property bool _wallServicesStarted: false
   Connections {
-    target: Wallpaper.Config
+    target: Config
     function onConfigLoadedChanged() {
-      if (Wallpaper.Config.configLoaded && !root._wallServicesStarted)
+      if (Config.configLoaded && !root._wallServicesStarted)
         Qt.callLater(root._startWallServices)
     }
   }
@@ -267,7 +267,7 @@ ShellRoot {
         wallpaperSelectorLoader.item.swService.refreshDownloadStatus()
     }
     function onDownloadFinished(workshopId) {
-      WallpaperCacheService.processWeItem(workshopId, Wallpaper.Config.weDir + "/" + workshopId)
+      WallpaperCacheService.processWeItem(workshopId, Config.weDir + "/" + workshopId)
     }
   }
 
@@ -275,8 +275,8 @@ ShellRoot {
     id: _wallAutoOptimizeTimer
     interval: 5000
     onTriggered: {
-      if (Wallpaper.Config.autoOptimizeImages && !ImageOptimizeService.running)
-        ImageOptimizeService.optimize(Wallpaper.Config.imageOptimizePreset, Wallpaper.Config.imageOptimizeResolution)
+      if (Config.autoOptimizeImages && !ImageOptimizeService.running)
+        ImageOptimizeService.optimize(Config.imageOptimizePreset, Config.imageOptimizeResolution)
     }
   }
 

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import ".."
+import "../.."
 
 Rectangle {
     id: tagCloud

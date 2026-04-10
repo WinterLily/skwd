@@ -2,12 +2,12 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import ".."
+import "../.."
 
 QtObject {
     id: service
 
-    readonly property string cacheDir: Config.cacheDir + "/wallpaper"
+    readonly property string cacheDir: Config.wallCacheDir + "/wallpaper"
     readonly property string thumbsDir: cacheDir + "/thumbs"
     readonly property string weThumbsDir: cacheDir + "/we-thumbs"
     readonly property string wallpaperDir: Config.wallpaperDir

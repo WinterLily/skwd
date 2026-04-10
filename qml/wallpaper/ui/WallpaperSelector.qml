@@ -6,6 +6,7 @@ import QtQuick.Effects
 import QtQuick.Controls
 import QtMultimedia
 import ".."
+import "../.."
 import "../services"
 
 Scope {
@@ -45,11 +46,11 @@ Scope {
   }
   WallpaperSelectorService {
     id: service
-    scriptsDir: Config.scriptsDir
+    scriptsDir: Config.wallScriptsDir
     homeDir: Config.homeDir
     wallpaperDir: Config.wallpaperDir
     videoDir: Config.videoDir
-    cacheBaseDir: Config.cacheDir
+    cacheBaseDir: Config.wallCacheDir
     weDir: Config.weDir
     weAssetsDir: Config.weAssetsDir
     showing: wallpaperSelector.showing

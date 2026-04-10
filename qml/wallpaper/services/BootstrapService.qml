@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
-import ".."
+import "../.."
 
 QtObject {
     id: bootstrap
@@ -9,7 +9,7 @@ QtObject {
     readonly property bool ready: _done
     property bool _done: false
 
-    readonly property string _markerFile: Config.configDir + "/.bootstrapped"
+    readonly property string _markerFile: Config.wallCacheDir + "/.bootstrapped"
 
     readonly property string _sourceDataDir: {
         var url = Qt.resolvedUrl("../../data")
@@ -46,27 +46,19 @@ QtObject {
 
     function _run() {
         var src = _sourceDataDir
-        var configDir = Config.configDir
-        var cacheDir = Config.cacheDir
+        var cacheDir = Config.wallCacheDir
         var wpDir = Config.wallpaperDir
-        var scriptsDir = Config.scriptsDir
-        var templateDir = Config.templateDir
+        var scriptsDir = Config.wallScriptsDir
+        var templateDir = Config.wallTemplateDir
 
         var script = [
             "set -e",
             "",
             "# Create required directories",
-            "mkdir -p " + _q(configDir),
-            "mkdir -p " + _q(cacheDir + "/wallpaper"),
+            "mkdir -p " + _q(cacheDir),
             "mkdir -p " + _q(wpDir),
             "mkdir -p " + _q(scriptsDir),
             "mkdir -p " + _q(templateDir),
-            "",
-            "# Seed config.json if missing",
-            "if [ ! -f " + _q(configDir + "/config.json") + " ]; then",
-            "  cp " + _q(src + "/config.json.example") + " " + _q(configDir + "/config.json"),
-            "  echo 'Bootstrap created default config.json'",
-            "fi",
             "",
             "# Seed reload scripts (skip existing - user may have customized)",
             "for f in " + _q(src + "/scripts") + "/*.sh; do",
@@ -80,8 +72,8 @@ QtObject {
             "done",
             "",
             "# Seed default colors.json if missing",
-            "if [ ! -f " + _q(cacheDir + "/colors.json") + " ]; then",
-            "  echo '{}' > " + _q(cacheDir + "/colors.json"),
+            "if [ ! -f " + _q(Config.colorFilePath) + " ]; then",
+            "  echo '{}' > " + _q(Config.colorFilePath),
             "  echo 'Bootstrap created default colors.json'",
             "fi",
             "",
@@ -96,7 +88,7 @@ QtObject {
             "done",
             "",
             "# Mark bootstrap as done",
-            "date -Iseconds > " + _q(configDir + "/.bootstrapped"),
+            "date -Iseconds > " + _q(cacheDir + "/.bootstrapped"),
         ].join("\n")
 
         proc.command = ["bash", "-c", script]

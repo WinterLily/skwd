@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import ".."
+import "../.."
 QtObject {
   id: swService
 
@@ -61,7 +62,7 @@ QtObject {
     }
   }
 
-  readonly property string _requestFilePath: Config.cacheDir + "/wallpaper/steam-dl-request"
+  readonly property string _requestFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-request"
   property var _requestWriter: FileView { id: requestWriter }
 
   function downloadWorkshop(workshopId, fileSize) {
@@ -85,7 +86,7 @@ QtObject {
     _ipcProc.running = true
   }
 
-  readonly property string _statusFilePath: Config.cacheDir + "/wallpaper/steam-dl-status.json"
+  readonly property string _statusFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-status.json"
 
   property var _statusFileView: FileView {
     path: swService._statusFilePath

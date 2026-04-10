@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
-import ".."
+import "../.."
 
 QtObject {
     id: service
@@ -9,7 +9,7 @@ QtObject {
     readonly property string wallpaperDir: Config.wallpaperDir
     readonly property string videoDir: Config.videoDir
     readonly property string weDir: Config.weDir
-    readonly property string cacheDir: Config.cacheDir
+    readonly property string cacheDir: Config.wallCacheDir
     readonly property string thumbsDir: cacheDir + "/wallpaper/thumbs"
     readonly property string thumbsSmDir: cacheDir + "/wallpaper/thumbs-sm"
     readonly property string weCacheDir: cacheDir + "/wallpaper/we-thumbs"
