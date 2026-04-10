@@ -15,6 +15,8 @@ import Qt.labs.platform
 import "qml"
 import "qml/bar"
 import "qml/bar/lyrics"
+import "qml/wallpaper" as Wallpaper
+import "qml/wallpaper/services"
 
 
 ShellRoot {
@@ -44,10 +46,7 @@ ShellRoot {
         } else if (cmd === "toggleBar") {
           root.barVisible = !root.barVisible
         } else if (cmd === "wallpaper") {
-          if (wallpaperShellProc.running)
-            wallpaperShellProc.running = false
-          else
-            wallpaperShellProc.running = true
+          wallpaperSelectorLoader.active = !wallpaperSelectorLoader.active
         } else if (cmd === "smarthome") {
           if (root.smartHomeInstance) root.smartHomeInstance.toggle()
         } else if (cmd === "switcherOpen") {
@@ -184,47 +183,139 @@ ShellRoot {
     }
   }
 
-  // Resolve the shell directory from the parent quickshell process cmdline.
-  // Qt.resolvedUrl() returns qs:@/qs/... virtual paths inside a running shell,
-  // so we must read /proc/$PPID/cmdline to get the real filesystem path.
-  property string _shellDir: ""
-  property string _wallpaperDaemonPath: _shellDir ? (_shellDir + "/wallpaper-daemon.qml") : ""
-  property string _wallpaperShellPath: _shellDir ? (_shellDir + "/wallpaper-shell.qml") : ""
+  // ---------------------------------------------------------------------------
+  // Wallpaper subsystem
+  // ---------------------------------------------------------------------------
 
-  Process {
-    id: _shellDirResolver
-    running: true
-    command: ["bash", "-c",
-      "p=$(tr '\\0' '\\n' < /proc/$PPID/cmdline | grep '\\.qml$' | head -1); " +
-      "if [ -n \"$p\" ]; then realpath \"$(dirname \"$p\")\"; " +
-      "else tr '\\0' '\\n' < /proc/$PPID/cmdline | tail -1 | xargs realpath; fi"
-    ]
-    stdout: SplitParser { onRead: data => root._shellDir = data.trim() }
-    onExited: {
-      if (root._shellDir && Config.wallpaperSelectorEnabled)
-        wallpaperDaemonProc.running = true
+  Wallpaper.Colors {
+    id: wallpaperColors
+  }
+
+  // Restore last wallpaper once bootstrap has created the config dir
+  Connections {
+    target: BootstrapService
+    function onReadyChanged() {
+      if (BootstrapService.ready && Config.wallpaperSelectorEnabled)
+        WallpaperApplyService.restore()
     }
   }
 
-  // Wallpaper picker (daemon for cache/restore, shell for UI)
-  Process {
-    id: wallpaperDaemonProc
-    command: ["quickshell", "-p", root._wallpaperDaemonPath]
-    running: false
-    stdout: SplitParser { onRead: line => console.log("[wallpaper-daemon]", line) }
-    stderr: SplitParser { onRead: line => console.log("[wallpaper-daemon ERR]", line) }
-    onExited: (code) => { if (code !== 0) console.warn("[wallpaper-daemon] exited with code", code) }
+  // Start cache/optimize services once the wallpaper config file is readable
+  property bool _wallServicesStarted: false
+  Connections {
+    target: Wallpaper.Config
+    function onConfigLoadedChanged() {
+      if (Wallpaper.Config.configLoaded && !root._wallServicesStarted)
+        Qt.callLater(root._startWallServices)
+    }
   }
-  Process {
-    id: wallpaperShellProc
-    command: ["quickshell", "-p", root._wallpaperShellPath]
-    running: false
-    stdout: SplitParser { onRead: line => console.log("[wallpaper-shell]", line) }
-    stderr: SplitParser { onRead: line => console.log("[wallpaper-shell ERR]", line) }
-    onExited: (code) => { if (code !== 0) console.warn("[wallpaper-shell] exited with code", code) }
+  function _startWallServices() {
+    if (!Config.wallpaperSelectorEnabled || _wallServicesStarted) return
+    _wallServicesStarted = true
+    WallpaperCacheService.rebuild()
+    ImageOptimizeService.cleanTrash()
+    VideoConvertService.cleanTrash()
   }
 
+  // Wire watcher → cache
+  Connections {
+    target: WatcherService
+    function onFileAdded(name, path, type) {
+      WallpaperCacheService.processFiles([{name: name, src: path, type: type}])
+    }
+    function onFileRemoved(name, type) {
+      WallpaperCacheService.removeFiles([{name: name, type: type}])
+    }
+    function onWeItemAdded(weId, weDir) {
+      WallpaperCacheService.processWeItem(weId, weDir)
+    }
+    function onWeItemRemoved(weId) {
+      WallpaperCacheService.removeFiles([{name: weId, type: "we"}])
+    }
+  }
+
+  // Wire cache updates → selector UI + auto-optimize trigger
+  Connections {
+    target: WallpaperCacheService
+    function onCacheReady(result) {
+      WatcherService.start()
+      _wallAutoOptimizeTimer.restart()
+    }
+    function onFileProcessed(key, entry) {
+      if (wallpaperSelectorLoader.item?.selectorService)
+        wallpaperSelectorLoader.item.selectorService.refreshFromDb()
+      _wallAutoOptimizeTimer.restart()
+    }
+    function onFileRemoved(key) {
+      if (wallpaperSelectorLoader.item?.selectorService)
+        wallpaperSelectorLoader.item.selectorService.refreshFromDb()
+    }
+  }
+
+  Connections {
+    target: ImageOptimizeService
+    function onFinished(optimized, skippedCount, failed) {
+      if (optimized > 0 && wallpaperSelectorLoader.item?.selectorService)
+        wallpaperSelectorLoader.item.selectorService.refreshFromDb()
+    }
+  }
+
+  Connections {
+    target: SteamDownloadService
+    function onStateChanged() {
+      if (wallpaperSelectorLoader.item?.swService)
+        wallpaperSelectorLoader.item.swService.refreshDownloadStatus()
+    }
+    function onDownloadFinished(workshopId) {
+      WallpaperCacheService.processWeItem(workshopId, Wallpaper.Config.weDir + "/" + workshopId)
+    }
+  }
+
+  Timer {
+    id: _wallAutoOptimizeTimer
+    interval: 5000
+    onTriggered: {
+      if (Wallpaper.Config.autoOptimizeImages && !ImageOptimizeService.running)
+        ImageOptimizeService.optimize(Wallpaper.Config.imageOptimizePreset, Wallpaper.Config.imageOptimizeResolution)
+    }
+  }
+
+  // Wallpaper selector UI — loaded on demand, unloaded when closed
+  Loader {
+    id: wallpaperSelectorLoader
+    active: false
+    source: "qml/wallpaper/ui/WallpaperSelector.qml"
+    onLoaded: {
+      item.colors = Qt.binding(() => wallpaperColors)
+      item.showing = true
+    }
+  }
+  Connections {
+    target: wallpaperSelectorLoader.item
+    function onShowingChanged() {
+      if (wallpaperSelectorLoader.item && !wallpaperSelectorLoader.item.showing)
+        wallpaperSelectorLoader.active = false
+    }
+  }
+
+  // quickshell-ipc handlers (for external scripts targeting this instance)
+  IpcHandler {
+    target: "wallpaper"
+    function toggle() { wallpaperSelectorLoader.active = !wallpaperSelectorLoader.active }
+    function open()   { wallpaperSelectorLoader.active = true }
+    function close()  { wallpaperSelectorLoader.active = false }
+  }
+
+  IpcHandler {
+    target: "steam-download"
+    function download() { SteamDownloadService.pickUpRequest() }
+    function retry()    { SteamDownloadService.retryAuthFailed() }
+  }
+
+  // ---------------------------------------------------------------------------
   // Lazy-loaded UI components (activated by Config flags)
+  // ---------------------------------------------------------------------------
+
   Loader {
     id: appLauncherLoader
     active: Config.appLauncherEnabled
