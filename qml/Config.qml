@@ -87,7 +87,7 @@ QtObject {
     readonly property bool powerMenuEnabled: _components.powerMenu !== false && _components.powerMenu?.enabled !== false
     readonly property var powerMenuOptions: _components.powerMenu?.items ?? (Array.isArray(_components.powerMenu) ? _components.powerMenu : [])
     readonly property bool notificationsEnabled: _components.notifications !== false
-    readonly property bool lockscreenEnabled: _components.lockscreen === true
+    readonly property bool lockscreenEnabled: _components.lockscreen !== false
     readonly property bool smartHomeEnabled: _components.smartHome === true
 
     // ---------------------------------------------------------------------------

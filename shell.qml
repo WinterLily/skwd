@@ -515,17 +515,7 @@ ShellRoot {
   Variants {
     model: {
       if (!Config.barEnabled || root.barTheme !== "minimal") return []
-      var indices = []
-      var count = Quickshell.screens.length
-      if (Config.allMonitors || Config.monitorList.length === 0) {
-        for (var i = 0; i < count; i++) indices.push(i)
-      } else {
-        for (var i = 0; i < count; i++) {
-          if (Config.monitorList.indexOf(Quickshell.screens[i].name) !== -1) indices.push(i)
-        }
-        if (indices.length === 0) indices.push(0)
-      }
-      return indices
+      return Array.from({length: Quickshell.screens.length}, (_, i) => i)
     }
 
     TopBar {
