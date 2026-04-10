@@ -1,3 +1,4 @@
+import Quickshell
 import Quickshell.Io
 import QtQuick
 
@@ -148,14 +149,11 @@ QtObject {
   onSourceFilterChanged: updateFilteredModel()
 
   // Launch an app, record selection for search ranking
-  property var _appRunner: Process { command: ["true"] }
-
   function launchApp(appExec, isTerminal, appName) {
     if (appName) recordSelection(appName)
     var cmd = appExec
     if (isTerminal) cmd = service.terminal + " " + cmd
-    _appRunner.command = ["setsid", "-f", "sh", "-c", cmd]
-    _appRunner.running = true
+    Quickshell.execDetached(["sh", "-c", cmd])
   }
 
   // Cache builder process

@@ -31,6 +31,8 @@ DESKTOP_DIRS = [
 # Icon search directories and size priority
 ICON_DIRS = [
     Path.home() / ".local/share/icons",
+    Path.home() / ".local/share/flatpak/exports/share/icons",
+    Path("/var/lib/flatpak/exports/share/icons"),
     Path("/usr/share/icons/hicolor"),
     Path("/usr/share/icons/Adwaita"),
     Path("/usr/share/icons/breeze"),
