@@ -201,7 +201,15 @@ QtObject {
               colors: item.colors || []
             }
           })
-          whService.results = whService.results.concat(newItems)
+          // Filter out duplicates before concatenating
+          var existingIds = {}
+          for (var e = 0; e < whService.results.length; e++) {
+            existingIds[whService.results[e].id] = true
+          }
+          var uniqueNewItems = newItems.filter(function(item) {
+            return !existingIds[item.id]
+          })
+          whService.results = whService.results.concat(uniqueNewItems)
           whService.lastPage = (json.meta && json.meta.last_page) ? json.meta.last_page : 1
           whService.currentPage = (json.meta && json.meta.current_page) ? json.meta.current_page : 1
           whService.errorText = ""

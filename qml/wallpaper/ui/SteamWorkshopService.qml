@@ -284,7 +284,15 @@ QtObject {
           }
         })
 
-        swService.results = swService.results.concat(newItems)
+        // Filter out duplicates before concatenating
+        var existingIds = {}
+        for (var e = 0; e < swService.results.length; e++) {
+          existingIds[swService.results[e].id] = true
+        }
+        var uniqueNewItems = newItems.filter(function(item) {
+          return !existingIds[item.id]
+        })
+        swService.results = swService.results.concat(uniqueNewItems)
         swService.lastPage = Math.max(1, Math.ceil(total / swService.numPerPage))
         swService.errorText = ""
       } catch (e) {
