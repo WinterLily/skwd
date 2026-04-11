@@ -12,6 +12,6 @@ layout {
         inactive-color "#{{colors.primary_container.default.hex_stripped}}"
     }
     insert-hint {
-        color "#{{colors.primary.default.hex_stripped}}80"
+        color "#{{colors.primary.default.hex_stripped}}"
     }
 }

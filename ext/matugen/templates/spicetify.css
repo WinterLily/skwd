@@ -37,7 +37,7 @@ html, body {
 
 
 .main-view-container {
-  background: rgba({{colors.surface.default.red}}, {{colors.surface.default.green}}, {{colors.surface.default.blue}}, 0.85) !important;
+  background: rgb({{colors.surface.default.red}}, {{colors.surface.default.green}}, {{colors.surface.default.blue}}) !important;
 }
 
 .main-view-container__scroll-node,
@@ -47,11 +47,11 @@ html, body {
 
 
 .Root__nav-bar {
-  background: rgba({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}, 0.80) !important;
+  background: rgb({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}) !important;
 }
 
 .main-yourLibraryX-entryPoints {
-  background: rgba({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}, 0.80) !important;
+  background: rgb({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}) !important;
 }
 
 .main-yourLibraryX-libraryContainer {
@@ -60,7 +60,7 @@ html, body {
 
 
 .Root__now-playing-bar {
-  background: rgba({{colors.surface_container_low.default.red}}, {{colors.surface_container_low.default.green}}, {{colors.surface_container_low.default.blue}}, 0.90) !important;
+  background: rgb({{colors.surface_container_low.default.red}}, {{colors.surface_container_low.default.green}}, {{colors.surface_container_low.default.blue}}) !important;
 }
 
 .main-nowPlayingBar-nowPlayingBar {
@@ -82,7 +82,7 @@ html, body {
 
 
 .Root__right-sidebar {
-  background: rgba({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}, 0.80) !important;
+  background: rgb({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}) !important;
 }
 
 
@@ -158,33 +158,33 @@ html, body {
 
 
 .main-card-card {
-  background: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.60) !important;
+  background: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}) !important;
   border-radius: var(--border-radius-cards) !important;
   backdrop-filter: blur(10px);
 }
 
 .main-card-card:hover {
-  background: rgba({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}, 0.75) !important;
+  background: rgb({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}) !important;
 }
 
 
 .view-homeShortcutsGrid-shortcut {
-  background: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.60) !important;
+  background: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}) !important;
   border-radius: var(--border-radius-cards) !important;
   backdrop-filter: blur(10px);
 }
 
 .view-homeShortcutsGrid-shortcut:hover {
-  background: rgba({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}, 0.75) !important;
+  background: rgb({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}) !important;
 }
 
 
 .main-trackList-trackListRow:hover {
-  background: rgba({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}, 0.40) !important;
+  background: rgb({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}) !important;
 }
 
 .main-trackList-trackListRow.main-trackList-selected {
-  background: rgba({{colors.primary.default.red}}, {{colors.primary.default.green}}, {{colors.primary.default.blue}}, 0.85) !important;
+  background: rgb({{colors.primary.default.red}}, {{colors.primary.default.green}}, {{colors.primary.default.blue}}) !important;
 }
 
 .main-trackList-trackListRow.main-trackList-selected span,
@@ -194,7 +194,7 @@ html, body {
 
 
 .main-trackList-trackListHeaderStuck {
-  background: rgba({{colors.surface.default.red}}, {{colors.surface.default.green}}, {{colors.surface.default.blue}}, 0.95) !important;
+  background: rgb({{colors.surface.default.red}}, {{colors.surface.default.green}}, {{colors.surface.default.blue}}) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -218,17 +218,17 @@ html, body {
 
 
 .main-contextMenu-menu {
-  background: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.95) !important;
+  background: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}) !important;
   backdrop-filter: blur(20px);
   border-radius: 8px !important;
 }
 
 .main-contextMenu-menuItemButton:hover {
-  background: rgba({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}, 0.80) !important;
+  background: rgb({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}) !important;
 }
 
 .main-dropDown-dropDown {
-  background: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.95) !important;
+  background: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}) !important;
   backdrop-filter: blur(20px);
 }
 
@@ -255,7 +255,7 @@ html, body {
 
 .main-navBar-navBarLinkActive,
 .main-yourLibraryX-navLinkActive {
-  background: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.80) !important;
+  background: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}) !important;
   color: var(--spice-text) !important;
   border-radius: 8px;
 }
@@ -268,7 +268,7 @@ html, body {
 
 
 .x-searchInput-searchInputInput {
-  background: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.70) !important;
+  background: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}) !important;
   color: var(--spice-text) !important;
   border-radius: 20px !important;
 }
@@ -292,7 +292,7 @@ html, body {
 .main-trackCreditsModal-container,
 .main-keyboardShortcutsHelpModal-container,
 .GenericModal {
-  background: rgba({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}, 0.95) !important;
+  background: rgb({{colors.surface_container.default.red}}, {{colors.surface_container.default.green}}, {{colors.surface_container.default.blue}}) !important;
   backdrop-filter: blur(20px);
   border-radius: 12px !important;
 }
@@ -302,11 +302,11 @@ html, body {
 .encore-dark-theme .encore-base-set {
   --text-subdued: var(--spice-subtext);
   --background-base: transparent;
-  --background-highlight: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.50);
-  --background-press: rgba({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}, 0.60);
-  --background-elevated-base: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.85);
-  --background-elevated-highlight: rgba({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}}, 0.90);
-  --background-elevated-press: rgba({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}}, 0.80);
+  --background-highlight: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}});
+  --background-press: rgb({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}});
+  --background-elevated-base: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}});
+  --background-elevated-highlight: rgb({{colors.surface_container_high.default.red}}, {{colors.surface_container_high.default.green}}, {{colors.surface_container_high.default.blue}});
+  --background-elevated-press: rgb({{colors.surface_container_highest.default.red}}, {{colors.surface_container_highest.default.green}}, {{colors.surface_container_highest.default.blue}});
 }
 
 .encore-dark-theme .encore-bright-accent-set {
