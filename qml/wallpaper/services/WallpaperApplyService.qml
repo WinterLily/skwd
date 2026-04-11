@@ -362,7 +362,7 @@ QtObject {
         for (var i = 0; i < ints.length; i++) {
             var o = ints[i].output
             if (!o) continue
-            files.push(o.indexOf("/") >= 0 ? Config._resolve(o) : Config.wallCacheDir + "/" + o)
+            files.push(o.indexOf("/") >= 0 ? Config._resolve(o) : Config.cacheDir + "/" + o)
         }
         return files
     }

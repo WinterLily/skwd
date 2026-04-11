@@ -12,7 +12,7 @@ QtObject {
     readonly property string _markerFile: Config.wallCacheDir + "/.bootstrapped"
 
     readonly property string _sourceDataDir: {
-        var url = Qt.resolvedUrl("../../data")
+        var url = Qt.resolvedUrl("../../../ext")
         return url.toString().replace("file://", "")
     }
 

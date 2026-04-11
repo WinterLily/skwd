@@ -6,7 +6,7 @@ import Quickshell.Io
 QtObject {
     id: config
 
-    function _resolve(path) { return path ? path.replace("~", homeDir) : "" }
+    function _resolve(path) { return path ? path.replace("~", homeDir).replace(/\/+$/, "") : "" }
 
     readonly property string homeDir: Quickshell.env("HOME")
 
@@ -96,7 +96,7 @@ QtObject {
 
     readonly property string wallCacheDir: cacheDir + "/wallpaper"
     readonly property string wallScriptsDir: scriptsDir
-    readonly property string wallTemplateDir: installDir + "/data/matugen/templates"
+    readonly property string wallTemplateDir: installDir + "/ext/matugen/templates"
 
     readonly property string wallpaperDir: _resolve(_data.paths?.wallpaper) || (homeDir + "/Pictures/Wallpapers")
     readonly property string videoDir: _resolve(_data.paths?.videoWallpaper) || wallpaperDir
@@ -148,7 +148,7 @@ QtObject {
             var outputPath = integ.output
                 ? (integ.output.indexOf("/") >= 0
                     ? _resolve(integ.output)
-                    : wallCacheDir + "/" + integ.output)
+                    : cacheDir + "/" + integ.output)
                 : ""
             if (!outputPath) continue
             var safe = (integ.name || "integration_" + i).replace(/[^a-zA-Z0-9_-]/g, "_")

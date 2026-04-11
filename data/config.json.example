@@ -4,8 +4,7 @@
   "paths": {
     "scripts": "",
     "cache": "~/.cache/skwd",
-    "colorsFile": "~/.cache/skwd-wall/colors.json",
-    "wallpaper": "~/wallpaper",
+    "wallpaper": "~/Pictures/Wallpapers",
     "steamWorkshop": "~/.local/share/Steam/steamapps/workshop/content/431960",
     "steamWeAssets": "~/.local/share/Steam/steamapps/common/wallpaper_engine/assets",
     "steam": "~/.local/share/Steam"
@@ -19,17 +18,73 @@
     "schemeType": "scheme-fidelity",
     "kdeColorScheme": "SkwdMatugen"
   },
-  "integrations": {
-    "kitty": "~/.config/kitty/skwd-theme.conf",
-    "kde": "~/.local/share/color-schemes/SkwdMatugen.colors",
-    "vscode": "~/.vscode/extensions/matugen.matugen-theme-1.0.0/themes/matugen-color-theme.json",
-    "vesktop": "~/.config/vesktop/themes/kitty-match.css",
-    "zen": "",
-    "spicetify": "~/.config/spicetify/Themes/Matugen/color.ini",
-    "spicetifyCss": "~/.config/spicetify/Themes/Matugen/user.css",
-    "yazi": "~/.config/yazi/theme.toml",
-    "qt6ct": "~/.config/qt6ct/colors/matugen.conf"
-  },
+  "integrations": [
+    {
+      "_comment": "Built-in: MD3 colors for the shell UI (always keep this first)",
+      "name": "skwd",
+      "template": "quickshell-colors.json",
+      "output": "colors.json"
+    },
+    {
+      "name": "kitty",
+      "template": "kitty.conf",
+      "output": "~/.config/kitty/skwd-theme.conf",
+      "reload": "pkill -USR1 kitty"
+    },
+    {
+      "name": "ghostty",
+      "template": "ghostty.conf",
+      "output": "~/.config/ghostty/skwd-theme",
+      "reload": "pkill -USR1 ghostty"
+    },
+    {
+      "name": "niri",
+      "template": "niri-colors.kdl",
+      "output": "~/.config/niri/skwd-colors.kdl",
+      "reload": "~/.config/skwd/scripts/reload-niri.sh"
+    },
+    {
+      "name": "kde",
+      "template": "kde-colors.colors",
+      "output": "~/.local/share/color-schemes/SkwdMatugen.colors",
+      "reload": "~/.config/skwd/scripts/reload-kde.sh"
+    },
+    {
+      "name": "vscode",
+      "template": "vscode-theme.json",
+      "output": "~/.vscode/extensions/matugen.matugen-theme-1.0.0/themes/matugen-color-theme.json"
+    },
+    {
+      "name": "vesktop",
+      "template": "vesktop.css",
+      "output": "~/.config/vesktop/themes/kitty-match.css"
+    },
+    {
+      "name": "spicetify",
+      "template": "spicetify.ini",
+      "output": "~/.config/spicetify/Themes/Matugen/color.ini",
+      "reload": "~/.config/skwd/scripts/reload-spicetify.sh"
+    },
+    {
+      "name": "spicetify-css",
+      "template": "spicetify.css",
+      "output": "~/.config/spicetify/Themes/Matugen/user.css"
+    },
+    {
+      "name": "yazi",
+      "template": "yazi-theme.toml",
+      "output": "~/.config/yazi/theme.toml"
+    },
+    {
+      "name": "qt6ct",
+      "template": "qt6ct-colors.conf",
+      "output": "~/.config/qt6ct/colors/matugen.conf"
+    },
+    {
+      "name": "omp",
+      "reload": "~/.config/skwd/scripts/reload-omp.sh"
+    }
+  ],
   "intervals": {
     "weatherPollMs": 600000,
     "wifiPollMs": 10000,
