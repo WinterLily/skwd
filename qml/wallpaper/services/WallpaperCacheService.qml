@@ -175,7 +175,19 @@ QtObject {
             var weD = DbService.shellQuote(item.src.replace(/\/preview\.[^/]+$/, ""))
             thumbCmd =
                 "we_dir=" + weD + "; " +
-                "video_file=$(find \"$we_dir\" -maxdepth 1 \\( -iname '*.mp4' -o -iname '*.webm' \\) ! -iname 'preview.*' -print -quit 2>/dev/null); " +
+                "video_file=\"\"; " +
+                "if [ -f \"$we_dir/project.json\" ]; then " +
+                "  we_type=$(jq -r '.type // \"scene\"' \"$we_dir/project.json\" 2>/dev/null | tr '[:upper:]' '[:lower:]'); " +
+                "  if [ \"$we_type\" = \"video\" ]; then " +
+                "    proj_file=$(jq -r '.file // \"\"' \"$we_dir/project.json\" 2>/dev/null); " +
+                "    if [ -n \"$proj_file\" ] && [ -f \"$we_dir/$proj_file\" ]; then " +
+                "      video_file=\"$we_dir/$proj_file\"; " +
+                "    fi; " +
+                "  fi; " +
+                "fi; " +
+                "if [ -z \"$video_file\" ]; then " +
+                "  video_file=$(find \"$we_dir\" -type f \\( -iname '*.mp4' -o -iname '*.webm' \\) ! -iname 'preview.*' -print -quit 2>/dev/null); " +
+                "fi; " +
                 "if [ -n \"$video_file\" ]; then " +
                 "  " + ImageService.videoThumbnailCmd('"$video_file"', thumb, 2) + "; " +
                 "fi; " +
@@ -452,7 +464,19 @@ QtObject {
             var weD = DbService.shellQuote(item.src.replace(/\/preview\.[^/]+$/, ""))
             return ["sh", "-c",
                 "we_dir=" + weD + "; " +
-                "video_file=$(find \"$we_dir\" -maxdepth 1 \\( -iname '*.mp4' -o -iname '*.webm' \\) ! -iname 'preview.*' -print -quit 2>/dev/null); " +
+                "video_file=\"\"; " +
+                "if [ -f \"$we_dir/project.json\" ]; then " +
+                "  we_type=$(jq -r '.type // \"scene\"' \"$we_dir/project.json\" 2>/dev/null | tr '[:upper:]' '[:lower:]'); " +
+                "  if [ \"$we_type\" = \"video\" ]; then " +
+                "    proj_file=$(jq -r '.file // \"\"' \"$we_dir/project.json\" 2>/dev/null); " +
+                "    if [ -n \"$proj_file\" ] && [ -f \"$we_dir/$proj_file\" ]; then " +
+                "      video_file=\"$we_dir/$proj_file\"; " +
+                "    fi; " +
+                "  fi; " +
+                "fi; " +
+                "if [ -z \"$video_file\" ]; then " +
+                "  video_file=$(find \"$we_dir\" -type f \\( -iname '*.mp4' -o -iname '*.webm' \\) ! -iname 'preview.*' -print -quit 2>/dev/null); " +
+                "fi; " +
                 "if [ -n \"$video_file\" ]; then " +
                 "  " + ImageService.videoThumbnailCmd('"$video_file"', thumb, 2) + "; " +
                 "fi; " +

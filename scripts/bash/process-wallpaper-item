@@ -22,7 +22,7 @@ case "$type" in
     fi
     video_file=""
     for ext in mp4 webm; do
-      found=$(find "$we_dir" -maxdepth 1 -iname "*.$ext" ! -iname "preview.*" -print -quit 2>/dev/null)
+      found=$(find "$we_dir" -type f -iname "*.$ext" ! -iname "preview.*" -print -quit 2>/dev/null)
       [ -n "$found" ] && video_file="$found" && break
     done
     if [ -n "$video_file" ]; then

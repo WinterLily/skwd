@@ -971,18 +971,16 @@ Item {
           id: _videoOptCol
           width: parent.width
           spacing: 6
-          opacity: 0.35
-          enabled: false
 
           Text {
-            text: "VIDEO OPTIMIZATION  ·  WIP"
+            text: "VIDEO OPTIMIZATION"
             font.family: Style.fontFamily; font.pixelSize: 13; font.weight: Font.Bold; font.letterSpacing: 1.5
             color: settingsPanel.colors ? settingsPanel.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
           }
 
           Text {
             width: parent.width
-            text: "Re-encodes video wallpapers to HEVC (H.265) for significantly smaller sizes. This feature is currently under development."
+            text: "Re-encodes video wallpapers to HEVC (H.265) for significantly smaller file sizes. Originals are moved to trash for recovery."
             font.family: Style.fontFamily; font.pixelSize: 11; font.letterSpacing: 0.2
             color: settingsPanel.colors ? Qt.rgba(settingsPanel.colors.surfaceVariantText.r, settingsPanel.colors.surfaceVariantText.g, settingsPanel.colors.surfaceVariantText.b, 0.8) : Qt.rgba(1, 1, 1, 0.5)
             wrapMode: Text.WordWrap
@@ -992,21 +990,24 @@ Item {
           SettingsToggle {
             colors: settingsPanel.colors
             label: "Auto-convert new videos"
-            checked: false
+            checked: Config.autoConvertVideos
+            onToggle: function(v) { settingsPanel._saveConfigKey("performance.autoConvertVideos", v) }
           }
 
           SettingsCombo {
             colors: settingsPanel.colors
             label: "Quality"
-            model: ["light", "balanced", "quality"]
+            model: ["light", "balanced", "quality", "lossless"]
             value: Config.videoConvertPreset
+            onSelect: function(v) { settingsPanel._saveConfigKey("performance.videoConvertPreset", v) }
           }
 
           Repeater {
             model: [
               { key: "light",    desc: "CRF 28 · 6 Mbps" },
               { key: "balanced", desc: "CRF 26 · 10 Mbps" },
-              { key: "quality",  desc: "CRF 23 · 16 Mbps" }
+              { key: "quality",  desc: "CRF 23 · 16 Mbps" },
+              { key: "lossless", desc: "CRF 18 · 40 Mbps · visually lossless" }
             ]
             Text {
               text: (Config.videoConvertPreset === modelData.key ? "▸ " : "  ") + modelData.key.toUpperCase() + ":  " + modelData.desc
@@ -1020,6 +1021,7 @@ Item {
             label: "Max resolution"
             model: ["1080p", "2k", "4k"]
             value: Config.videoConvertResolution
+            onSelect: function(v) { settingsPanel._saveConfigKey("performance.videoConvertResolution", v) }
           }
 
           Item { width: 1; height: 2 }
@@ -1032,6 +1034,7 @@ Item {
               label: "OPTIMIZE ALL"
               skew: 8
               height: 28
+              onClicked: _convertConfirmPopup.open()
             }
           }
         }
@@ -1145,8 +1148,6 @@ Item {
         Item {
           width: parent.width
           height: _videoTrashCol.implicitHeight
-          opacity: 0.35
-          enabled: false
 
           Column {
             id: _videoTrashCol
@@ -1154,7 +1155,7 @@ Item {
             spacing: 6
 
             Text {
-              text: "VIDEOS  ·  WIP"
+              text: "VIDEOS"
               font.family: Style.fontFamily; font.pixelSize: 11; font.weight: Font.Bold; font.letterSpacing: 1.2
               color: settingsPanel.colors ? settingsPanel.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
             }
@@ -1164,12 +1165,14 @@ Item {
               label: "Retention (days)"
               value: Config.videoTrashDays
               min: 1; max: 365
+              onCommit: function(v) { settingsPanel._saveConfigKey("performance.videoTrashDays", v) }
             }
 
             SettingsToggle {
               colors: settingsPanel.colors
               label: "Auto-delete after retention"
-              checked: false
+              checked: Config.autoDeleteVideoTrash
+              onToggle: function(v) { settingsPanel._saveConfigKey("performance.autoDeleteVideoTrash", v) }
             }
           }
         }
@@ -1911,9 +1914,11 @@ Item {
           colors: settingsPanel.colors
           label: "CONVERT"
           skew: 8; height: 26
-          isActive: false
-          enabled: false
-          opacity: 0.35
+          isActive: true
+          onClicked: {
+            _convertConfirmPopup.close()
+            VideoConvertService.convert(Config.videoConvertPreset, Config.videoConvertResolution)
+          }
         }
       }
     }

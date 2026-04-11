@@ -388,6 +388,15 @@ QtObject {
       var matugenPath = (entry.type === "static") ? service.wallpaperDir + "/" + entry.name : entry.thumb
       service._pendingMatugenItems.push({ path: matugenPath, key: key })
       service._batchUpdateTimer.restart()
+
+      // Auto-convert videos if enabled
+      if (Config.autoConvertVideos) {
+        if (entry.type === "video" && entry.videoFile) {
+          VideoConvertService.autoConvertFile(entry.videoFile)
+        } else if (entry.type === "we" && entry.videoFile) {
+          VideoConvertService.autoConvertFile(entry.videoFile)
+        }
+      }
     }
     function onFileRemoved(key) {
       MatugenCacheService.removeOne(key)

@@ -11,7 +11,8 @@ QtObject {
     readonly property var presets: ({
         "light":    { label: "Light",    crf: 28, maxrate: "6M",  bufsize: "12M" },
         "balanced": { label: "Balanced", crf: 26, maxrate: "10M", bufsize: "20M" },
-        "quality":  { label: "Quality",  crf: 23, maxrate: "16M", bufsize: "32M" }
+        "quality":  { label: "Quality",  crf: 23, maxrate: "16M", bufsize: "32M" },
+        "lossless": { label: "Lossless", crf: 18, maxrate: "40M", bufsize: "80M" }
     })
 
     readonly property var resolutions: ({
@@ -64,6 +65,145 @@ QtObject {
         // Active jobs will finish but no new ones will start
     }
 
+    // Auto-convert a single file (called when autoConvertVideos is enabled)
+    function autoConvertFile(src) {
+        if (!Config.autoConvertVideos) return
+        if (running) {
+            // If a full conversion is running, the file will be picked up
+            return
+        }
+        // Check if already converted
+        var rows = DbService.query("SELECT src FROM video_convert WHERE src=" + DbService.sqlStr(src))
+        if (rows.length > 0) return
+
+        // Start auto-conversion in background
+        _autoConvertQueue.push(src)
+        if (!_autoConvertRunning) {
+            _startAutoConvert()
+        }
+    }
+
+    property var _autoConvertQueue: []
+    property bool _autoConvertRunning: false
+    property int _autoConvertTotal: 0
+
+    function _startAutoConvert() {
+        if (_autoConvertQueue.length === 0) {
+            _autoConvertRunning = false
+            _autoConvertTotal = 0
+            return
+        }
+        _autoConvertRunning = true
+        var preset = presets[Config.videoConvertPreset] || presets["balanced"]
+        var res = resolutions[Config.videoConvertResolution] || resolutions["2k"]
+        _currentPreset = Config.videoConvertPreset || "balanced"
+        _currentPresetData = preset
+        _currentResolution = res
+        _autoConvertTotal = _autoConvertQueue.length
+        _processAutoConvertQueue()
+    }
+
+    function _processAutoConvertQueue() {
+        while (_activeJobs < maxJobs && _autoConvertQueue.length > 0) {
+            var src = _autoConvertQueue.shift()
+            _activeJobs++
+            _launchAutoConvertWorker(src)
+        }
+        if (_activeJobs === 0) {
+            _autoConvertRunning = false
+            _autoConvertTotal = 0
+        }
+    }
+
+    function _launchAutoConvertWorker(src) {
+        var preset = _currentPresetData
+        var destName = src.split("/").pop().replace(/\.[^.]*$/, ".mp4")
+        var dest = _convertedDir + "/" + destName
+
+        // Avoid collisions by appending hash of source path
+        var hash = 0
+        for (var c = 0; c < src.length; c++) {
+            hash = ((hash << 5) - hash + src.charCodeAt(c)) | 0
+        }
+        var hashStr = Math.abs(hash).toString(36)
+        dest = _convertedDir + "/" + destName.replace(/\.mp4$/, "-" + hashStr + ".mp4")
+
+        var isWE = Config.weDir && src.indexOf(Config.weDir + "/") === 0
+        var finalDest = isWE
+            ? Config.videoDir + "/" + destName.replace(/\.mp4$/, "-" + hashStr + ".mp4")
+            : src
+
+        var vf = "scale='min(" + _currentResolution.maxW + "\\,iw)':'min(" + _currentResolution.maxH + "\\,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2"
+        var cmd =
+            "src=" + DbService.shellQuote(src) + "\n" +
+            "dest=" + DbService.shellQuote(dest) + "\n" +
+            "final_dest=" + DbService.shellQuote(finalDest) + "\n" +
+            "orig_size=$(stat -c '%s' \"$src\" 2>/dev/null || echo 0)\n" +
+            "width=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=width -of csv=p=0 \"$src\" 2>/dev/null || echo 0)\n" +
+            "height=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=height -of csv=p=0 \"$src\" 2>/dev/null || echo 0)\n" +
+            "codec=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 \"$src\" 2>/dev/null || echo unknown)\n" +
+            "if [ \"$codec\" = \"hevc\" ] && [ \"$width\" -le " + _currentResolution.maxW + " ] && [ \"$height\" -le " + _currentResolution.maxH + " ]; then\n" +
+            "  echo \"SKIP:$orig_size:$width:$height:$codec\"\n" +
+            "  exit 0\n" +
+            "fi\n" +
+            "ffmpeg -y -i \"$src\" " +
+            "-c:v libx265 -preset medium -crf " + preset.crf + " -maxrate " + preset.maxrate + " -bufsize " + preset.bufsize + " " +
+            "-vf '" + vf + "' " +
+            "-an -movflags +faststart -tag:v hvc1 " +
+            "\"$dest\" 2>/dev/null\n" +
+            "rc=$?\n" +
+            "if [ $rc -eq 0 ] && [ -f \"$dest\" ]; then\n" +
+            "  new_size=$(stat -c '%s' \"$dest\" 2>/dev/null || echo 0)\n" +
+            "  new_width=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=width -of csv=p=0 \"$dest\" 2>/dev/null || echo 0)\n" +
+            "  new_height=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=height -of csv=p=0 \"$dest\" 2>/dev/null || echo 0)\n" +
+            "  trash_name=$(echo \"$src\" | md5sum | cut -c1-8)_$(basename \"$src\")\n" +
+            "  mv \"$src\" " + DbService.shellQuote(svc._trashDir) + "/\"$trash_name\"\n" +
+            "  touch " + DbService.shellQuote(svc._trashDir) + "/\"$trash_name\"\n" +
+            "  mv \"$dest\" \"$final_dest\"\n" +
+            "  echo \"OK:$orig_size:$new_size:$new_width:$new_height:$codec\"\n" +
+            "else\n" +
+            "  rm -f \"$dest\" 2>/dev/null\n" +
+            "  echo \"FAIL:$orig_size:$width:$height:$codec\"\n" +
+            "fi\n"
+
+        var proc = _autoConvertWorkerComponent.createObject(svc, {
+            command: ["sh", "-c", cmd],
+            _src: src,
+            _finalDest: finalDest
+        })
+        proc.running = true
+    }
+
+    property var _autoConvertWorkerComponent: Component {
+        Process {
+            id: autoConvertWorker
+            property string _src
+            property string _finalDest: ""
+            property string _stdout: ""
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: data => autoConvertWorker._stdout += data
+            }
+            onExited: {
+                var output = autoConvertWorker._stdout.trim()
+                var lines = output.split("\n")
+                var resultLine = lines[lines.length - 1] || ""
+
+                if (resultLine.indexOf("OK:") === 0) {
+                    var p = resultLine.split(":")
+                    svc._recordConversion(autoConvertWorker._src, p, autoConvertWorker._finalDest)
+                } else if (resultLine.indexOf("SKIP:") === 0) {
+                    var sp = resultLine.split(":")
+                    svc._recordSkip(autoConvertWorker._src, sp)
+                }
+
+                svc._activeJobs--
+                svc._processAutoConvertQueue()
+                destroy()
+            }
+        }
+    }
+
     property string _currentPreset: "balanced"
     property var _currentPresetData: presets["balanced"]
     property var _currentResolution: resolutions["2k"]
@@ -81,7 +221,7 @@ QtObject {
         var script =
             'find ' + vidDir + ' -type f ' + ImageService.findExtPattern(ImageService.videoExtensions.filter(function(e) { return e !== "gif" })) + ' 2>/dev/null\n' +
             'if [ -d ' + weDir + ' ]; then\n' +
-            '  find ' + weDir + ' -maxdepth 2 -type f ' + ImageService.findExtPattern(ImageService.videoExtensions.filter(function(e) { return e !== "gif" })) + ' ! -iname "preview.*" 2>/dev/null\n' +
+            '  find ' + weDir + ' -type f ' + ImageService.findExtPattern(ImageService.videoExtensions.filter(function(e) { return e !== "gif" })) + ' ! -iname "preview.*" 2>/dev/null\n' +
             'fi\n'
 
         _scanProcess.command = ["sh", "-c", script]
