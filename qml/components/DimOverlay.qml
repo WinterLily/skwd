@@ -1,4 +1,5 @@
 import QtQuick
+import ".."
 
 // Full-screen dark overlay with click-to-dismiss
 Rectangle {
@@ -12,7 +13,7 @@ Rectangle {
   anchors.fill: parent
   color: Qt.rgba(0, 0, 0, root.dimOpacity)
   opacity: root.active ? 1 : 0
-  Behavior on opacity { NumberAnimation { duration: 300 } }
+  Behavior on opacity { NumberAnimation { duration: Style.animMedium } }
 
   MouseArea {
     anchors.fill: parent

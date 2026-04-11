@@ -255,14 +255,6 @@ if command -v linux-wallpaperengine >/dev/null 2>&1; then
   fi
 fi
 
-# Create IPC named pipe
-RUNTIME="${XDG_RUNTIME_DIR:-/tmp}/skwd"
-mkdir -p "$RUNTIME"
-if [ ! -p "$RUNTIME/cmd" ]; then
-  mkfifo -m 600 "$RUNTIME/cmd"
-  echo "Created IPC FIFO at $RUNTIME/cmd"
-fi
-
 echo ""
 echo "Initial setup complete, now you need to customise the settings in config.json and add some wallpapers to ~/wallpaper/"
 echo "Next steps:"
@@ -274,7 +266,5 @@ echo "Optional:"
 echo "  - Edit data/secrets.json for Home Assistant integration"
 echo "  - Install matugen for dynamic color schemes"
 echo ""
-echo "IPC commands: echo 'launcher' > ${RUNTIME}/cmd"
-echo "Supported: lock, powermenu, launcher, toggleBar, wallpaper,"
-echo "           smarthome, notifications, switcherOpen, switcherNext,"
-echo "           switcherPrev, switcherConfirm, switcherCancel, switcherClose"
+echo "IPC: qs ipc -p $PROJECT_DIR call <target> <function>"
+echo "Supported targets: lock, powermenu, launcher, bar, smarthome, switcher, notifications, config"
