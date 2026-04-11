@@ -7,6 +7,7 @@ import QtQuick.Effects
 import QtQuick.Controls
 import QtQuick.Shapes
 import ".."
+import "../components"
 
 // Full-screen app launcher with parallelogram slice UI
 Scope {
@@ -1012,16 +1013,13 @@ Scope {
           Repeater {
             model: Math.max(0, Math.min(hexListView._rows, service.filteredModel.count - hexCol.colIdx * hexListView._rows))
 
-            Item {
+            HexItem {
               id: hexItem
               property int rowIdx: index
               property int flatIdx: hexCol.colIdx * hexListView._rows + rowIdx
               property var appData: flatIdx < service.filteredModel.count ? service.filteredModel.get(flatIdx) : null
-              property bool isSelected: hexCol.colIdx === hexListView._selectedCol && rowIdx === hexListView._selectedRow
-              property bool isHovered: hexItemMouse.containsMouse
 
-              width: hexListView._hexW
-              height: hexListView._hexH
+              radius: hexListView._r
               x: 0
               y: hexListView._yOffset + rowIdx * hexListView._stepY + (hexCol.colIdx % 2 !== 0 ? hexListView._stepY / 2 : 0) + hexCol._arcOffset
 
@@ -1029,31 +1027,20 @@ Scope {
               transformOrigin: hexCol._nearLeft ? Item.Left : Item.Right
               opacity: hexCol._colScale < 0.01 ? 0 : 1
 
-              readonly property real _r: hexListView._r
-              readonly property real _cx: _r
-              readonly property real _cy: height / 2
-              readonly property real _cos30: 0.866025
-              readonly property real _sin30: 0.5
+              isSelected: hexCol.colIdx === hexListView._selectedCol && rowIdx === hexListView._selectedRow
 
-              Item {
-                id: hexItemMask
-                width: parent.width; height: parent.height
-                visible: false
-                layer.enabled: true
-                Shape {
-                  anchors.fill: parent
-                  antialiasing: true
-                  preferredRendererType: Shape.CurveRenderer
-                  ShapePath {
-                    fillColor: "white"; strokeColor: "transparent"
-                    startX: hexItem._cx + hexItem._r;               startY: hexItem._cy
-                    PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                    PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                    PathLine { x: hexItem._cx - hexItem._r;                  y: hexItem._cy }
-                    PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                    PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                    PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
-                  }
+              selectedBorderColor: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
+              borderColor: Qt.rgba(0, 0, 0, 0.5)
+              accentColor: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
+
+              onHovered: {
+                hexListView._selectedCol = hexCol.colIdx
+                hexListView._selectedRow = rowIdx
+              }
+              onClicked: {
+                if (hexItem.appData) {
+                  service.launchApp(hexItem.appData.exec, hexItem.appData.terminal, hexItem.appData.name)
+                  appLauncher.showing = false
                 }
               }
 
@@ -1068,7 +1055,7 @@ Scope {
                 Image {
                   id: hexIconImg
                   anchors.centerIn: parent
-                  width: hexItem._r * 1.1; height: hexItem._r * 1.1
+                  width: hexItem.radius * 1.1; height: hexItem.radius * 1.1
                   source: hexItem.appData && hexItem.appData.iconPath ? "file://" + hexItem.appData.iconPath : ""
                   fillMode: Image.PreserveAspectFit
                   smooth: true
@@ -1077,7 +1064,7 @@ Scope {
                 Text {
                   anchors.centerIn: parent
                   text: hexItem.appData ? hexItem.appData.name.substring(0, 1).toUpperCase() : "?"
-                  font.pixelSize: hexItem._r * 0.65
+                  font.pixelSize: hexItem.radius * 0.65
                   font.weight: Font.Bold
                   color: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
                   visible: hexIconImg.status !== Image.Ready
@@ -1086,7 +1073,7 @@ Scope {
                 layer.smooth: true
                 layer.effect: MultiEffect {
                   maskEnabled: true
-                  maskSource: hexItemMask
+                  maskSource: hexItem.mask
                   maskThresholdMin: 0.3
                   maskSpreadAtMin: 0.3
                 }
@@ -1104,47 +1091,9 @@ Scope {
                 layer.smooth: true
                 layer.effect: MultiEffect {
                   maskEnabled: true
-                  maskSource: hexItemMask
+                  maskSource: hexItem.mask
                   maskThresholdMin: 0.3
                   maskSpreadAtMin: 0.3
-                }
-              }
-
-              Shape {
-                anchors.fill: parent
-                antialiasing: true
-                preferredRendererType: Shape.CurveRenderer
-                ShapePath {
-                  fillColor: "transparent"
-                  strokeColor: hexItem.isSelected
-                    ? (appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7")
-                    : Qt.rgba(0, 0, 0, 0.5)
-                  Behavior on strokeColor { ColorAnimation { duration: 100 } }
-                  strokeWidth: hexItem.isSelected ? 3 : 1.5
-                  startX: hexItem._cx + hexItem._r;               startY: hexItem._cy
-                  PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                  PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                  PathLine { x: hexItem._cx - hexItem._r;                  y: hexItem._cy }
-                  PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                  PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                  PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
-                }
-              }
-
-              // Accent colour rim: bottom-left and bottom edges
-              Shape {
-                anchors.fill: parent
-                antialiasing: true
-                preferredRendererType: Shape.CurveRenderer
-                ShapePath {
-                  fillColor: "transparent"
-                  strokeColor: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
-                  strokeWidth: 3
-                  capStyle: ShapePath.RoundCap
-                  joinStyle: ShapePath.RoundJoin
-                  startX: hexItem._cx - hexItem._r;               startY: hexItem._cy
-                  PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                  PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                 }
               }
 
@@ -1163,30 +1112,6 @@ Scope {
                 elide: Text.ElideRight
                 width: hexListView._hexW + hexListView._gridSpacing
                 horizontalAlignment: Text.AlignHCenter
-              }
-
-              MouseArea {
-                id: hexItemMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                function contains(point) {
-                  var dx = Math.abs(point.x - hexItem._cx)
-                  var dy = Math.abs(point.y - hexItem._cy)
-                  return dy <= hexItem._cos30 * hexItem._r && dx <= hexItem._r - dy * 0.57735
-                }
-                onContainsMouseChanged: {
-                  if (containsMouse) {
-                    hexListView._selectedCol = hexCol.colIdx
-                    hexListView._selectedRow = rowIdx
-                  }
-                }
-                onClicked: {
-                  if (hexItem.appData) {
-                    service.launchApp(hexItem.appData.exec, hexItem.appData.terminal, hexItem.appData.name)
-                    appLauncher.showing = false
-                  }
-                }
               }
             }
           }
