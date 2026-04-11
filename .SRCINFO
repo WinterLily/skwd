@@ -22,7 +22,6 @@ pkgbase = skwd-git
 	optdepends = awww: static wallpaper with transitions
 	optdepends = mpvpaper: video wallpaper rendering
 	optdepends = linux-wallpaperengine: Steam Wallpaper Engine support
-	optdepends = ollama: local LLM for wallpaper analysis and tagging
 	optdepends = python-syncedlyrics: synced lyrics fetching
 	optdepends = grim: screenshot capture for window switcher
 	optdepends = niri: recommended Wayland compositor

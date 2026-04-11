@@ -1,9 +1,10 @@
-import QtQuick
 import ".."
 import "../.."
+import QtQuick
 
 Column {
     id: root
+
     property var colors
     property string label: ""
     property int value: 0
@@ -32,6 +33,7 @@ Column {
 
         TextInput {
             id: inputField
+
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
@@ -42,12 +44,20 @@ Column {
             clip: true
             selectByMouse: true
             text: root.value.toString()
-            validator: IntValidator { bottom: root.min; top: root.max }
             onTextEdited: {
-                var n = parseInt(text)
+                var n = parseInt(text);
                 if (!isNaN(n) && n >= root.min && root.onCommit)
-                    root.onCommit(n)
+                    root.onCommit(n);
+
             }
+
+            validator: IntValidator {
+                bottom: root.min
+                top: root.max
+            }
+
         }
+
     }
+
 }

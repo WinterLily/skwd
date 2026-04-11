@@ -1,306 +1,364 @@
-import Quickshell
-import Quickshell.Io
-import QtQuick
 import ".."
 import "../.."
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
 QtObject {
-  id: swService
+    id: swService
 
-  required property string weDir
-  property string query: ""
-  property string sorting: "trend"
-  property int trendDays: 7
-  property string requiredTag: ""
-  property string requiredResolution: ""
-  property string requiredType: "Video"
-  property bool nsfwEnabled: false
-  readonly property var _nsfwTags: ["Mature", "Questionable", "NSFW", "Partial Nudity", "Nudity", "Gore"]
-  property var excludedTags: nsfwEnabled ? [] : _nsfwTags
-  property int currentPage: 1
-  property int lastPage: 1
-  property string apiKey: ""
-  property int numPerPage: 24
+    required property string weDir
+    property string query: ""
+    property string sorting: "trend"
+    property int trendDays: 7
+    property string requiredTag: ""
+    property string requiredResolution: ""
+    property string requiredType: "Video"
+    property bool nsfwEnabled: false
+    readonly property var _nsfwTags: ["Mature", "Questionable", "NSFW", "Partial Nudity", "Nudity", "Gore"]
+    property var excludedTags: nsfwEnabled ? [] : _nsfwTags
+    property int currentPage: 1
+    property int lastPage: 1
+    property string apiKey: ""
+    property int numPerPage: 24
+    property var results: []
+    property bool loading: false
+    property string errorText: ""
+    property bool hasMore: currentPage < lastPage
+    property var downloadStatus: ({
+    })
+    property var downloadProgress: ({
+    })
+    property string activeDownloadId: ""
+    property string activeDownloadMessage: ""
+    property int downloadQueueLength: 0
+    property bool authPaused: false
+    property int authFailedCount: 0
+    property var localWorkshopIds: ({
+    })
+    readonly property int _appId: 431960
+    property string _daemonQmlPath: ""
+    property var _daemonPathResolver
 
-  property var results: []
-  property bool loading: false
-  property string errorText: ""
-  property bool hasMore: currentPage < lastPage
+    _daemonPathResolver: Process {
+        command: ["bash", "-c", "qml=$(tr '\\0' '\\n' < /proc/$PPID/cmdline | grep '\\.qml$' | head -1); " + "dir=$(dirname \"$(realpath \"$qml\")\"); " + "echo \"$dir/daemon.qml\""]
 
-  property var downloadStatus: ({})
-  property var downloadProgress: ({})
-  property string activeDownloadId: ""
-  property string activeDownloadMessage: ""
-  property int downloadQueueLength: 0
-  property bool authPaused: false
-  property int authFailedCount: 0
-  property var localWorkshopIds: ({})
-
-  readonly property int _appId: 431960
-
-  signal resultsUpdated()
-  signal downloadFinished(string workshopId)
-
-  property string _daemonQmlPath: ""
-
-  Component.onCompleted: _daemonPathResolver.running = true
-
-  property var _daemonPathResolver: Process {
-    command: ["bash", "-c",
-      "qml=$(tr '\\0' '\\n' < /proc/$PPID/cmdline | grep '\\.qml$' | head -1); " +
-      "dir=$(dirname \"$(realpath \"$qml\")\"); " +
-      "echo \"$dir/daemon.qml\""
-    ]
-    stdout: SplitParser {
-      onRead: data => swService._daemonQmlPath = data.trim()
-    }
-  }
-
-  property var _ipcProc: Process {
-    onExited: function(exitCode, exitStatus) {
-      if (exitCode !== 0)
-        console.log("[SteamWorkshopService] IPC call exited with code " + exitCode)
-    }
-  }
-
-  readonly property string _requestFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-request"
-  property var _requestWriter: FileView { id: requestWriter }
-
-  function downloadWorkshop(workshopId, fileSize) {
-    if (!workshopId || !_daemonQmlPath) {
-      console.log("[SteamWorkshopService] downloadWorkshop blocked: workshopId=" + workshopId + " daemonPath=" + _daemonQmlPath)
-      return
-    }
-    var safeId = workshopId.toString().replace(/[^0-9]/g, "")
-    if (!safeId) return
-    var sz = parseInt(fileSize) || 0
-    console.log("[SteamWorkshopService] requesting download " + safeId + " size=" + sz + " via IPC to " + _daemonQmlPath)
-    requestWriter.path = _requestFilePath
-    requestWriter.setText(safeId + "\n" + sz)
-    _ipcProc.command = ["quickshell", "ipc", "-p", _daemonQmlPath, "call", "steam-download", "download"]
-    _ipcProc.running = true
-  }
-
-  function retryDownloads() {
-    if (!_daemonQmlPath) return
-    _ipcProc.command = ["quickshell", "ipc", "-p", _daemonQmlPath, "call", "steam-download", "retry"]
-    _ipcProc.running = true
-  }
-
-  readonly property string _statusFilePath: Config.wallCacheDir + "/steam-dl-status.json"
-
-  property var _statusFileView: FileView {
-    path: swService._statusFilePath
-    watchChanges: true
-    onFileChanged: _statusFileView.reload()
-  }
-
-  property string _statusRaw: _statusFileView.__text ?? ""
-  on_StatusRawChanged: _parseStatusFile()
-
-  function refreshDownloadStatus() {
-    if (_statusFileView.path)
-      _statusFileView.reload()
-  }
-
-  function _parseStatusFile() {
-    if (!_statusRaw) return
-    try {
-      var obj = JSON.parse(_statusRaw)
-      var newStatus = {}
-      var newProgress = {}
-      var downloads = obj.downloads || {}
-      var ids = Object.keys(downloads)
-      for (var i = 0; i < ids.length; i++) {
-        var id = ids[i]
-        newStatus[id] = downloads[id].status || ""
-        newProgress[id] = downloads[id].progress || 0
-        if (downloads[id].status === "done" && !localWorkshopIds[id]) {
-          var loc = Object.assign({}, localWorkshopIds)
-          loc[id] = true
-          localWorkshopIds = loc
-          downloadFinished(id)
-        }
-      }
-      downloadStatus = newStatus
-      downloadProgress = newProgress
-      activeDownloadId = obj.activeId || ""
-      activeDownloadMessage = obj.activeMessage || ""
-      downloadQueueLength = obj.queueLength || 0
-      authPaused = obj.authPaused || false
-      authFailedCount = obj.authFailedCount || 0
-    } catch (e) {
-      // ignore parse errors on partial writes
-    }
-  }
-
-  function scanLocalDirs() {
-    _localScanOutput = ""
-    if (!weDir) return
-    _localScanProc.running = true
-  }
-
-  property string _localScanOutput: ""
-  property var _localScanProc: Process {
-    command: ["find", swService.weDir, "-mindepth", "1", "-maxdepth", "1", "-type", "d", "-printf", "%f\n"]
-    stdout: SplitParser {
-      onRead: data => { swService._localScanOutput += data + "\n" }
-    }
-    onExited: function(exitCode, exitStatus) {
-      var ids = {}
-      var lines = swService._localScanOutput.split("\n")
-      for (var i = 0; i < lines.length; i++) {
-        var id = lines[i].trim()
-        if (id && /^\d+$/.test(id)) ids[id] = true
-      }
-      swService.localWorkshopIds = ids
-    }
-  }
-
-  function search(page) {
-    if (loading) return
-    if (!apiKey) {
-      errorText = "Steam API key required. Set steam.apiKey in config.json"
-      resultsUpdated()
-      return
-    }
-    currentPage = page || 1
-    if (currentPage === 1) results = []
-    loading = true
-    errorText = ""
-    _searchOutput = ""
-    _searchProcess.command = ["curl", "-sSL", "--globoff", _buildUrl()]
-    _searchProcess.running = true
-  }
-
-  function loadMore() {
-    if (loading || !hasMore) return
-    search(currentPage + 1)
-  }
-
-  function clearCache() {
-    results = []
-    currentPage = 1
-    lastPage = 1
-    errorText = ""
-  }
-
-  function nextPage() {
-    loadMore()
-  }
-  function prevPage() {
-  }
-
-  function _buildUrl() {
-    var url = "https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/?"
-    var params = []
-    params.push("key=" + encodeURIComponent(apiKey))
-    params.push("appid=" + _appId)
-    params.push("return_previews=true")
-    params.push("return_tags=true")
-    params.push("return_metadata=true")
-    params.push("numperpage=" + numPerPage)
-    params.push("page=" + currentPage)
-
-    var queryType = 3
-    if (sorting === "trend") queryType = 3
-    else if (sorting === "new") queryType = 1
-    else if (sorting === "toprated") queryType = 0
-    else if (sorting === "popular") queryType = 9
-    else if (sorting === "favorited") queryType = 11
-
-    if (query) queryType = 12
-    params.push("query_type=" + queryType)
-
-    if (sorting === "trend" && !query)
-      params.push("days=" + trendDays)
-
-    if (query) params.push("search_text=" + encodeURIComponent(query))
-    var tagIdx = 0
-    if (requiredType) { params.push("requiredtags[" + tagIdx + "]=" + encodeURIComponent(requiredType)); tagIdx++ }
-    if (requiredTag) { params.push("requiredtags[" + tagIdx + "]=" + encodeURIComponent(requiredTag)); tagIdx++ }
-    if (requiredResolution) { params.push("requiredtags[" + tagIdx + "]=" + encodeURIComponent(requiredResolution)); tagIdx++ }
-
-    for (var e = 0; e < excludedTags.length; e++) {
-      params.push("excludedtags[" + e + "]=" + encodeURIComponent(excludedTags[e]))
-    }
-
-    return url + params.join("&")
-  }
-
-  property string _searchOutput: ""
-
-  property var _searchProcess: Process {
-    command: ["curl", "-fsSL", "about:blank"]
-    stdout: SplitParser {
-      splitMarker: ""
-      onRead: data => { swService._searchOutput += data }
-    }
-    onRunningChanged: {
-      if (running) swService._searchOutput = ""
-    }
-    onExited: function(exitCode, exitStatus) {
-      swService.loading = false
-      if (exitCode !== 0) {
-        swService.errorText = "Network error (curl exit " + exitCode + ")"
-        swService.results = []
-        swService.resultsUpdated()
-        return
-      }
-      try {
-        var json = JSON.parse(swService._searchOutput)
-        var response = json.response || {}
-        var total = response.total || 0
-        var items = response.publishedfiledetails || []
-
-        var newItems = items.map(function(item) {
-          var previewUrl = item.preview_url || ""
-          if (item.previews && item.previews.length > 0) {
-            for (var p = 0; p < item.previews.length; p++) {
-              if (item.previews[p].url) {
-                previewUrl = item.previews[p].url
-                break
-              }
+        stdout: SplitParser {
+            onRead: (data) => {
+                return swService._daemonQmlPath = data.trim();
             }
-          }
-
-          var tags = []
-          if (item.tags) {
-            for (var t = 0; t < item.tags.length; t++) {
-              if (item.tags[t].display_name) tags.push(item.tags[t].display_name)
-              else if (item.tags[t].tag) tags.push(item.tags[t].tag)
-            }
-          }
-
-          return {
-            id: item.publishedfileid || "",
-            title: item.title || "Untitled",
-            description: (item.short_description || item.file_description || "").substring(0, 120),
-            previewUrl: previewUrl,
-            subscriptions: item.subscriptions || 0,
-            favorited: item.favorited || 0,
-            fileSize: item.file_size ? parseInt(item.file_size) : 0,
-            tags: tags,
-            creator: item.creator || ""
-          }
-        })
-
-        // Filter out duplicates before concatenating
-        var existingIds = {}
-        for (var e = 0; e < swService.results.length; e++) {
-          existingIds[swService.results[e].id] = true
         }
-        var uniqueNewItems = newItems.filter(function(item) {
-          return !existingIds[item.id]
-        })
-        swService.results = swService.results.concat(uniqueNewItems)
-        swService.lastPage = Math.max(1, Math.ceil(total / swService.numPerPage))
-        swService.errorText = ""
-      } catch (e) {
-        swService.errorText = "Parse error: " + e.message
-        swService.results = []
-      }
-      swService.resultsUpdated()
-      swService.scanLocalDirs()
+
     }
-  }
+
+    property var _ipcProc
+
+    _ipcProc: Process {
+        onExited: function(exitCode, exitStatus) {
+            if (exitCode !== 0)
+                console.log("[SteamWorkshopService] IPC call exited with code " + exitCode);
+
+        }
+    }
+
+    readonly property string _requestFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-request"
+    property var _requestWriter
+
+    _requestWriter: FileView {
+        id: requestWriter
+    }
+
+    readonly property string _statusFilePath: Config.wallCacheDir + "/steam-dl-status.json"
+    property var _statusFileView
+
+    _statusFileView: FileView {
+        path: swService._statusFilePath
+        watchChanges: true
+        onFileChanged: _statusFileView.reload()
+    }
+
+    property string _statusRaw: _statusFileView.__text ?? ""
+    property string _localScanOutput: ""
+    property var _localScanProc
+
+    _localScanProc: Process {
+        command: ["find", swService.weDir, "-mindepth", "1", "-maxdepth", "1", "-type", "d", "-printf", "%f\n"]
+        onExited: function(exitCode, exitStatus) {
+            var ids = {
+            };
+            var lines = swService._localScanOutput.split("\n");
+            for (var i = 0; i < lines.length; i++) {
+                var id = lines[i].trim();
+                if (id && /^\d+$/.test(id))
+                    ids[id] = true;
+
+            }
+            swService.localWorkshopIds = ids;
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                swService._localScanOutput += data + "\n";
+            }
+        }
+
+    }
+
+    property string _searchOutput: ""
+    property var _searchProcess
+
+    _searchProcess: Process {
+        command: ["curl", "-fsSL", "about:blank"]
+        onRunningChanged: {
+            if (running)
+                swService._searchOutput = "";
+
+        }
+        onExited: function(exitCode, exitStatus) {
+            swService.loading = false;
+            if (exitCode !== 0) {
+                swService.errorText = "Network error (curl exit " + exitCode + ")";
+                swService.results = [];
+                swService.resultsUpdated();
+                return ;
+            }
+            try {
+                var json = JSON.parse(swService._searchOutput);
+                var response = json.response || {
+                };
+                var total = response.total || 0;
+                var items = response.publishedfiledetails || [];
+                var newItems = items.map(function(item) {
+                    var previewUrl = item.preview_url || "";
+                    if (item.previews && item.previews.length > 0) {
+                        for (var p = 0; p < item.previews.length; p++) {
+                            if (item.previews[p].url) {
+                                previewUrl = item.previews[p].url;
+                                break;
+                            }
+                        }
+                    }
+                    var tags = [];
+                    if (item.tags) {
+                        for (var t = 0; t < item.tags.length; t++) {
+                            if (item.tags[t].display_name)
+                                tags.push(item.tags[t].display_name);
+                            else if (item.tags[t].tag)
+                                tags.push(item.tags[t].tag);
+                        }
+                    }
+                    return {
+                        "id": item.publishedfileid || "",
+                        "title": item.title || "Untitled",
+                        "description": (item.short_description || item.file_description || "").substring(0, 120),
+                        "previewUrl": previewUrl,
+                        "subscriptions": item.subscriptions || 0,
+                        "favorited": item.favorited || 0,
+                        "fileSize": item.file_size ? parseInt(item.file_size) : 0,
+                        "tags": tags,
+                        "creator": item.creator || ""
+                    };
+                });
+                // Filter out duplicates before concatenating
+                var existingIds = {
+                };
+                for (var e = 0; e < swService.results.length; e++) {
+                    existingIds[swService.results[e].id] = true;
+                }
+                var uniqueNewItems = newItems.filter(function(item) {
+                    return !existingIds[item.id];
+                });
+                swService.results = swService.results.concat(uniqueNewItems);
+                swService.lastPage = Math.max(1, Math.ceil(total / swService.numPerPage));
+                swService.errorText = "";
+            } catch (e) {
+                swService.errorText = "Parse error: " + e.message;
+                swService.results = [];
+            }
+            swService.resultsUpdated();
+            swService.scanLocalDirs();
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                swService._searchOutput += data;
+            }
+        }
+
+    }
+
+    signal resultsUpdated()
+    signal downloadFinished(string workshopId)
+
+    function downloadWorkshop(workshopId, fileSize) {
+        if (!workshopId || !_daemonQmlPath) {
+            console.log("[SteamWorkshopService] downloadWorkshop blocked: workshopId=" + workshopId + " daemonPath=" + _daemonQmlPath);
+            return ;
+        }
+        var safeId = workshopId.toString().replace(/[^0-9]/g, "");
+        if (!safeId)
+            return ;
+
+        var sz = parseInt(fileSize) || 0;
+        console.log("[SteamWorkshopService] requesting download " + safeId + " size=" + sz + " via IPC to " + _daemonQmlPath);
+        requestWriter.path = _requestFilePath;
+        requestWriter.setText(safeId + "\n" + sz);
+        _ipcProc.command = ["quickshell", "ipc", "-p", _daemonQmlPath, "call", "steam-download", "download"];
+        _ipcProc.running = true;
+    }
+
+    function retryDownloads() {
+        if (!_daemonQmlPath)
+            return ;
+
+        _ipcProc.command = ["quickshell", "ipc", "-p", _daemonQmlPath, "call", "steam-download", "retry"];
+        _ipcProc.running = true;
+    }
+
+    function refreshDownloadStatus() {
+        if (_statusFileView.path)
+            _statusFileView.reload();
+
+    }
+
+    function _parseStatusFile() {
+        // ignore parse errors on partial writes
+
+        if (!_statusRaw)
+            return ;
+
+        try {
+            var obj = JSON.parse(_statusRaw);
+            var newStatus = {
+            };
+            var newProgress = {
+            };
+            var downloads = obj.downloads || {
+            };
+            var ids = Object.keys(downloads);
+            for (var i = 0; i < ids.length; i++) {
+                var id = ids[i];
+                newStatus[id] = downloads[id].status || "";
+                newProgress[id] = downloads[id].progress || 0;
+                if (downloads[id].status === "done" && !localWorkshopIds[id]) {
+                    var loc = Object.assign({
+                    }, localWorkshopIds);
+                    loc[id] = true;
+                    localWorkshopIds = loc;
+                    downloadFinished(id);
+                }
+            }
+            downloadStatus = newStatus;
+            downloadProgress = newProgress;
+            activeDownloadId = obj.activeId || "";
+            activeDownloadMessage = obj.activeMessage || "";
+            downloadQueueLength = obj.queueLength || 0;
+            authPaused = obj.authPaused || false;
+            authFailedCount = obj.authFailedCount || 0;
+        } catch (e) {
+        }
+    }
+
+    function scanLocalDirs() {
+        _localScanOutput = "";
+        if (!weDir)
+            return ;
+
+        _localScanProc.running = true;
+    }
+
+    function search(page) {
+        if (loading)
+            return ;
+
+        if (!apiKey) {
+            errorText = "Steam API key required. Set steam.apiKey in config.json";
+            resultsUpdated();
+            return ;
+        }
+        currentPage = page || 1;
+        if (currentPage === 1)
+            results = [];
+
+        loading = true;
+        errorText = "";
+        _searchOutput = "";
+        _searchProcess.command = ["curl", "-sSL", "--globoff", _buildUrl()];
+        _searchProcess.running = true;
+    }
+
+    function loadMore() {
+        if (loading || !hasMore)
+            return ;
+
+        search(currentPage + 1);
+    }
+
+    function clearCache() {
+        results = [];
+        currentPage = 1;
+        lastPage = 1;
+        errorText = "";
+    }
+
+    function nextPage() {
+        loadMore();
+    }
+
+    function prevPage() {
+    }
+
+    function _buildUrl() {
+        var url = "https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/?";
+        var params = [];
+        params.push("key=" + encodeURIComponent(apiKey));
+        params.push("appid=" + _appId);
+        params.push("return_previews=true");
+        params.push("return_tags=true");
+        params.push("return_metadata=true");
+        params.push("numperpage=" + numPerPage);
+        params.push("page=" + currentPage);
+        var queryType = 3;
+        if (sorting === "trend")
+            queryType = 3;
+        else if (sorting === "new")
+            queryType = 1;
+        else if (sorting === "toprated")
+            queryType = 0;
+        else if (sorting === "popular")
+            queryType = 9;
+        else if (sorting === "favorited")
+            queryType = 11;
+        if (query)
+            queryType = 12;
+
+        params.push("query_type=" + queryType);
+        if (sorting === "trend" && !query)
+            params.push("days=" + trendDays);
+
+        if (query)
+            params.push("search_text=" + encodeURIComponent(query));
+
+        var tagIdx = 0;
+        if (requiredType) {
+            params.push("requiredtags[" + tagIdx + "]=" + encodeURIComponent(requiredType));
+            tagIdx++;
+        }
+        if (requiredTag) {
+            params.push("requiredtags[" + tagIdx + "]=" + encodeURIComponent(requiredTag));
+            tagIdx++;
+        }
+        if (requiredResolution) {
+            params.push("requiredtags[" + tagIdx + "]=" + encodeURIComponent(requiredResolution));
+            tagIdx++;
+        }
+        for (var e = 0; e < excludedTags.length; e++) {
+            params.push("excludedtags[" + e + "]=" + encodeURIComponent(excludedTags[e]));
+        }
+        return url + params.join("&");
+    }
+
+    Component.onCompleted: _daemonPathResolver.running = true
+    on_StatusRawChanged: _parseStatusFile()
 }

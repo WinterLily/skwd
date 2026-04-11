@@ -6,13 +6,14 @@ ToolTip {
 
     property int maxWidth: 300
 
+    contentWidth: Math.min(Math.ceil(metrics.advanceWidth), maxWidth)
+
     TextMetrics {
         id: metrics
+
         text: root.text
         font: root.font
     }
-
-    contentWidth: Math.min(Math.ceil(metrics.advanceWidth), maxWidth)
 
     contentItem: Text {
         text: root.text
@@ -20,4 +21,5 @@ ToolTip {
         wrapMode: Text.WordWrap
         color: root.palette.toolTipText
     }
+
 }

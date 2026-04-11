@@ -1,7 +1,7 @@
-import QtQuick
-import QtQuick.Controls
 import ".."
 import "../.."
+import QtQuick
+import QtQuick.Controls
 
 Rectangle {
     id: tagCloud
@@ -9,184 +9,234 @@ Rectangle {
     property var colors
     property var service
     property bool tagCloudVisible: false
-
     readonly property bool searchFocused: tagSearchInput.activeFocus
-
-    signal escapePressed()
-    signal closeRequested()
-
-    function reset() {
-        tagSearchInput.text = ""
-        _tagSearchQuery = ""
-        if (service) {
-            service.selectedTags = []
-            service.updateFilteredModel(true)
-        }
-        _recomputeTags()
-    }
-
     property real parentWidth: 800
-    width: parentWidth
-    Behavior on width { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-
-    height: tagCloudVisible ? 154 : 0
-    visible: tagCloudVisible
-    radius: 16
-    clip: true
-    color: "transparent"
-
-    Behavior on height { NumberAnimation { duration: Style.animNormal; easing.type: Easing.OutCubic } }
-
-    Connections {
-        target: tagCloud.service
-        function onPopularTagsChanged() { tagCloud._recomputeTags() }
-        function onSelectedTagsChanged() { tagCloud._recomputeTags() }
-    }
-
-    onTagCloudVisibleChanged: {
-        if (tagCloudVisible) {
-            _recomputeTags()
-            tagSearchInput.forceActiveFocus()
-        }
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        z: -1
-        onClicked: function(mouse) { mouse.accepted = true }
-        onPressed: function(mouse) { mouse.accepted = true }
-    }
-
     property string _tagSearchQuery: ""
     property string _autoSuggestion: ""
     property var _visibleTagsCache: []
     property bool _syncingText: false
     property bool _tagsDirty: true
 
+    signal escapePressed()
+    signal closeRequested()
+
+    function reset() {
+        tagSearchInput.text = "";
+        _tagSearchQuery = "";
+        if (service) {
+            service.selectedTags = [];
+            service.updateFilteredModel(true);
+        }
+        _recomputeTags();
+    }
+
+    function _stem(w) {
+        if (w.length < 3)
+            return w;
+
+        if (w.endsWith("ies") && w.length > 4)
+            return w.slice(0, -3) + "y";
+
+        if (w.endsWith("ves") && w.length > 4)
+            return w.slice(0, -3) + "f";
+
+        if (w.endsWith("ses") || w.endsWith("xes") || w.endsWith("zes") || w.endsWith("ches") || w.endsWith("shes"))
+            return w.endsWith("ches") || w.endsWith("shes") ? w.slice(0, -2) : w.slice(0, -2);
+
+        if (w.endsWith("ness") && w.length > 5)
+            return w.slice(0, -4);
+
+        if (w.endsWith("ment") && w.length > 5)
+            return w.slice(0, -4);
+
+        if (w.endsWith("ing") && w.length > 4) {
+            var base = w.slice(0, -3);
+            if (base.length > 1 && base[base.length - 1] === base[base.length - 2])
+                return base.slice(0, -1);
+
+            return base;
+        }
+        if (w.endsWith("ed") && w.length > 3) {
+            var b = w.slice(0, -2);
+            if (b.length > 1 && b[b.length - 1] === b[b.length - 2])
+                return b.slice(0, -1);
+
+            return b;
+        }
+        if (w.endsWith("er") && w.length > 3)
+            return w.slice(0, -2);
+
+        if (w.endsWith("ly") && w.length > 3)
+            return w.slice(0, -2);
+
+        if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3)
+            return w.slice(0, -1);
+
+        return w;
+    }
+
+    function _editDist(a, b) {
+        if (a === b)
+            return 0;
+
+        var m = a.length, n = b.length;
+        if (!m)
+            return n;
+
+        if (!n)
+            return m;
+
+        var prev = new Array(n + 1), curr = new Array(n + 1);
+        for (var j = 0; j <= n; j++) prev[j] = j
+        for (var i = 1; i <= m; i++) {
+            curr[0] = i;
+            for (var j2 = 1; j2 <= n; j2++) {
+                curr[j2] = a[i - 1] === b[j2 - 1] ? prev[j2 - 1] : 1 + Math.min(prev[j2 - 1], prev[j2], curr[j2 - 1]);
+            }
+            var tmp = prev;
+            prev = curr;
+            curr = tmp;
+        }
+        return prev[n];
+    }
+
+    function _fuzzyMatch(tagName, query) {
+        if (tagName.indexOf(query) !== -1)
+            return true;
+
+        var st = _stem(tagName), sq = _stem(query);
+        if (st === sq || st.indexOf(sq) !== -1 || sq.indexOf(st) !== -1)
+            return true;
+
+        var maxDist = Math.min(sq.length, st.length) <= 4 ? 1 : 2;
+        return _editDist(st, sq) <= maxDist;
+    }
+
+    function _recomputeTags() {
+        var query = _tagSearchQuery;
+        var svc = service;
+        if (!svc) {
+            _visibleTagsCache = [];
+            _tagsDirty = false;
+            return ;
+        }
+        var selected = svc.selectedTags || [];
+        var tagCounts = {
+        };
+        if (selected.length > 0) {
+            var db = svc.tagsDb || {
+            };
+            for (var key in db) {
+                var wTags = db[key];
+                if (!wTags || !wTags.length)
+                    continue;
+
+                var hasAll = true;
+                for (var s = 0; s < selected.length; s++) {
+                    if (wTags.indexOf(selected[s]) === -1) {
+                        hasAll = false;
+                        break;
+                    }
+                }
+                if (!hasAll)
+                    continue;
+
+                for (var ti = 0; ti < wTags.length; ti++) {
+                    var tag = wTags[ti];
+                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                }
+            }
+        } else {
+            var tags = svc.popularTags || [];
+            for (var pi = 0; pi < tags.length; pi++) tagCounts[tags[pi].tag] = tags[pi].count
+        }
+        var result = [];
+        var maxVisible = 60;
+        for (var tagName in tagCounts) {
+            if (result.length >= maxVisible + selected.length)
+                break;
+
+            var isSelected = selected.indexOf(tagName) !== -1;
+            var matchesSearch = !query || _fuzzyMatch(tagName, query);
+            if (matchesSearch || isSelected)
+                result.push({
+                "tag": tagName,
+                "count": tagCounts[tagName],
+                "selected": isSelected
+            });
+
+        }
+        result.sort(function(a, b) {
+            if (a.selected !== b.selected)
+                return a.selected ? -1 : 1;
+
+            return b.count - a.count;
+        });
+        _visibleTagsCache = result;
+        var suggest = "";
+        if (query.length > 0) {
+            var bestCount = -1;
+            for (var ai = 0; ai < result.length; ai++) {
+                if (!result[ai].selected && (result[ai].tag.indexOf(query) === 0 || _stem(result[ai].tag) === _stem(query)) && result[ai].count > bestCount) {
+                    suggest = result[ai].tag;
+                    bestCount = result[ai].count;
+                }
+            }
+        }
+        _autoSuggestion = suggest;
+        _tagsDirty = false;
+    }
+
+    width: parentWidth
+    height: tagCloudVisible ? 154 : 0
+    visible: tagCloudVisible
+    radius: 16
+    clip: true
+    color: "transparent"
+    onTagCloudVisibleChanged: {
+        if (tagCloudVisible) {
+            _recomputeTags();
+            tagSearchInput.forceActiveFocus();
+        }
+    }
+    on_TagSearchQueryChanged: {
+        _tagsDirty = true;
+        _tagSearchDebounce.restart();
+    }
+
+    Connections {
+        function onPopularTagsChanged() {
+            tagCloud._recomputeTags();
+        }
+
+        function onSelectedTagsChanged() {
+            tagCloud._recomputeTags();
+        }
+
+        target: tagCloud.service
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        z: -1
+        onClicked: function(mouse) {
+            mouse.accepted = true;
+        }
+        onPressed: function(mouse) {
+            mouse.accepted = true;
+        }
+    }
+
     Timer {
         id: _tagSearchDebounce
+
         interval: 80
         onTriggered: tagCloud._recomputeTags()
     }
 
-    on_TagSearchQueryChanged: {
-        _tagsDirty = true
-        _tagSearchDebounce.restart()
-    }
-
-    function _stem(w) {
-        if (w.length < 3) return w
-        if (w.endsWith("ies") && w.length > 4) return w.slice(0, -3) + "y"
-        if (w.endsWith("ves") && w.length > 4) return w.slice(0, -3) + "f"
-        if (w.endsWith("ses") || w.endsWith("xes") || w.endsWith("zes") || w.endsWith("ches") || w.endsWith("shes"))
-            return w.endsWith("ches") || w.endsWith("shes") ? w.slice(0, -2) : w.slice(0, -2)
-        if (w.endsWith("ness") && w.length > 5) return w.slice(0, -4)
-        if (w.endsWith("ment") && w.length > 5) return w.slice(0, -4)
-        if (w.endsWith("ing") && w.length > 4) {
-            var base = w.slice(0, -3)
-            if (base.length > 1 && base[base.length - 1] === base[base.length - 2])
-                return base.slice(0, -1)
-            return base
-        }
-        if (w.endsWith("ed") && w.length > 3) {
-            var b = w.slice(0, -2)
-            if (b.length > 1 && b[b.length - 1] === b[b.length - 2])
-                return b.slice(0, -1)
-            return b
-        }
-        if (w.endsWith("er") && w.length > 3) return w.slice(0, -2)
-        if (w.endsWith("ly") && w.length > 3) return w.slice(0, -2)
-        if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) return w.slice(0, -1)
-        return w
-    }
-
-    function _editDist(a, b) {
-        if (a === b) return 0
-        var m = a.length, n = b.length
-        if (!m) return n
-        if (!n) return m
-        var prev = new Array(n + 1), curr = new Array(n + 1)
-        for (var j = 0; j <= n; j++) prev[j] = j
-        for (var i = 1; i <= m; i++) {
-            curr[0] = i
-            for (var j2 = 1; j2 <= n; j2++) {
-                curr[j2] = a[i-1] === b[j2-1]
-                    ? prev[j2-1]
-                    : 1 + Math.min(prev[j2-1], prev[j2], curr[j2-1])
-            }
-            var tmp = prev; prev = curr; curr = tmp
-        }
-        return prev[n]
-    }
-
-    function _fuzzyMatch(tagName, query) {
-        if (tagName.indexOf(query) !== -1) return true
-        var st = _stem(tagName), sq = _stem(query)
-        if (st === sq || st.indexOf(sq) !== -1 || sq.indexOf(st) !== -1) return true
-        var maxDist = Math.min(sq.length, st.length) <= 4 ? 1 : 2
-        return _editDist(st, sq) <= maxDist
-    }
-
-    function _recomputeTags() {
-        var query = _tagSearchQuery
-        var svc = service
-        if (!svc) { _visibleTagsCache = []; _tagsDirty = false; return }
-        var selected = svc.selectedTags || []
-
-        var tagCounts = {}
-        if (selected.length > 0) {
-            var db = svc.tagsDb || {}
-            for (var key in db) {
-                var wTags = db[key]
-                if (!wTags || !wTags.length) continue
-
-                var hasAll = true
-                for (var s = 0; s < selected.length; s++) {
-                    if (wTags.indexOf(selected[s]) === -1) { hasAll = false; break }
-                }
-                if (!hasAll) continue
-                for (var ti = 0; ti < wTags.length; ti++) {
-                    var tag = wTags[ti]
-                    tagCounts[tag] = (tagCounts[tag] || 0) + 1
-                }
-            }
-        } else {
-            var tags = svc.popularTags || []
-            for (var pi = 0; pi < tags.length; pi++)
-                tagCounts[tags[pi].tag] = tags[pi].count
-        }
-
-        var result = []
-        var maxVisible = 60
-        for (var tagName in tagCounts) {
-            if (result.length >= maxVisible + selected.length) break
-            var isSelected = selected.indexOf(tagName) !== -1
-            var matchesSearch = !query || _fuzzyMatch(tagName, query)
-            if (matchesSearch || isSelected)
-                result.push({ tag: tagName, count: tagCounts[tagName], selected: isSelected })
-        }
-        result.sort(function(a, b) {
-            if (a.selected !== b.selected) return a.selected ? -1 : 1
-            return b.count - a.count
-        })
-        _visibleTagsCache = result
-
-        var suggest = ""
-        if (query.length > 0) {
-            var bestCount = -1
-            for (var ai = 0; ai < result.length; ai++) {
-                if (!result[ai].selected && (result[ai].tag.indexOf(query) === 0 || _stem(result[ai].tag) === _stem(query)) && result[ai].count > bestCount) {
-                    suggest = result[ai].tag
-                    bestCount = result[ai].count
-                }
-            }
-        }
-        _autoSuggestion = suggest
-        _tagsDirty = false
-    }
-
     Row {
         id: tagSearchRow
+
         anchors.top: parent.top
         anchors.topMargin: 8
         anchors.left: parent.left
@@ -206,6 +256,7 @@ Rectangle {
 
         Rectangle {
             id: tagSearchBox
+
             width: parent.width - 30
             height: 26
             radius: 13
@@ -221,6 +272,7 @@ Rectangle {
 
             TextInput {
                 id: tagSearchInput
+
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
@@ -232,80 +284,102 @@ Rectangle {
                 clip: true
                 selectByMouse: true
                 onTextChanged: {
-                    if (tagCloud._syncingText) return
-                    var raw = text.toLowerCase()
-                    var words = raw.split(/\s+/).filter(function(w) { return w.length > 0 })
-                    var svc = tagCloud.service
-                    if (!svc) { tagCloud._tagSearchQuery = raw; return }
+                    if (tagCloud._syncingText)
+                        return ;
 
-                    var allTags = svc.popularTags || []
-                    var tagSet = {}
+                    var raw = text.toLowerCase();
+                    var words = raw.split(/\s+/).filter(function(w) {
+                        return w.length > 0;
+                    });
+                    var svc = tagCloud.service;
+                    if (!svc) {
+                        tagCloud._tagSearchQuery = raw;
+                        return ;
+                    }
+                    var allTags = svc.popularTags || [];
+                    var tagSet = {
+                    };
                     for (var i = 0; i < allTags.length; i++) tagSet[allTags[i].tag] = true
-
-                    var locked = []
-                    var partial = ""
+                    var locked = [];
+                    var partial = "";
                     for (var j = 0; j < words.length; j++) {
-                        if (tagSet[words[j]]) locked.push(words[j])
-                        else partial = words[j]
+                        if (tagSet[words[j]])
+                            locked.push(words[j]);
+                        else
+                            partial = words[j];
                     }
-
-                    var endsWithSpace = raw.length > 0 && raw[raw.length - 1] === ' '
+                    var endsWithSpace = raw.length > 0 && raw[raw.length - 1] === ' ';
                     if (!endsWithSpace && words.length > 0) {
-                        var lastWord = words[words.length - 1]
-                        var li = locked.indexOf(lastWord)
-                        if (li !== -1 && li === locked.length - 1) locked.pop()
-                        partial = lastWord
-                    }
+                        var lastWord = words[words.length - 1];
+                        var li = locked.indexOf(lastWord);
+                        if (li !== -1 && li === locked.length - 1)
+                            locked.pop();
 
-                    var prev = svc.selectedTags
-                    var changed = locked.length !== prev.length
+                        partial = lastWord;
+                    }
+                    var prev = svc.selectedTags;
+                    var changed = locked.length !== prev.length;
                     if (!changed) {
                         for (var k = 0; k < locked.length; k++) {
-                            if (prev.indexOf(locked[k]) === -1) { changed = true; break }
+                            if (prev.indexOf(locked[k]) === -1) {
+                                changed = true;
+                                break;
+                            }
                         }
                         if (!changed) {
                             for (var m = 0; m < prev.length; m++) {
-                                if (locked.indexOf(prev[m]) === -1) { changed = true; break }
+                                if (locked.indexOf(prev[m]) === -1) {
+                                    changed = true;
+                                    break;
+                                }
                             }
                         }
                     }
                     if (changed) {
-                        svc.selectedTags = locked
-                        svc.updateFilteredModel(true)
+                        svc.selectedTags = locked;
+                        svc.updateFilteredModel(true);
                     }
-                    tagCloud._tagSearchQuery = partial
+                    tagCloud._tagSearchQuery = partial;
                 }
                 Keys.onEscapePressed: {
-                    if (text !== "") {
-                        text = ""
-                    } else {
-                        tagCloud.closeRequested()
-                    }
+                    if (text !== "")
+                        text = "";
+                    else
+                        tagCloud.closeRequested();
                 }
                 Keys.onDownPressed: function(event) {
                     if (event.modifiers & Qt.ShiftModifier) {
-                        tagCloud.closeRequested()
-                        event.accepted = true
+                        tagCloud.closeRequested();
+                        event.accepted = true;
                     } else {
-                        event.accepted = false
+                        event.accepted = false;
                     }
                 }
-                Keys.onUpPressed: function(event) { event.accepted = false }
+                Keys.onUpPressed: function(event) {
+                    event.accepted = false;
+                }
                 Keys.onLeftPressed: function(event) {
-                    if (event.modifiers & Qt.ShiftModifier) { event.accepted = false }
+                    if (event.modifiers & Qt.ShiftModifier)
+                        event.accepted = false;
+
                 }
                 Keys.onRightPressed: function(event) {
-                    if (event.modifiers & Qt.ShiftModifier) { event.accepted = false }
+                    if (event.modifiers & Qt.ShiftModifier)
+                        event.accepted = false;
+
                 }
                 Keys.onTabPressed: function(event) {
-                    event.accepted = true
-                    var suggest = tagCloud._autoSuggestion
-                    if (!suggest) return
-                    var partial = tagCloud._tagSearchQuery
-                    var raw = text.toLowerCase()
-                    var lastIdx = raw.lastIndexOf(partial)
+                    event.accepted = true;
+                    var suggest = tagCloud._autoSuggestion;
+                    if (!suggest)
+                        return ;
+
+                    var partial = tagCloud._tagSearchQuery;
+                    var raw = text.toLowerCase();
+                    var lastIdx = raw.lastIndexOf(partial);
                     if (lastIdx !== -1)
-                        tagSearchInput.text = text.substring(0, lastIdx) + suggest + " "
+                        tagSearchInput.text = text.substring(0, lastIdx) + suggest + " ";
+
                 }
 
                 Text {
@@ -319,6 +393,7 @@ Rectangle {
 
                 Text {
                     id: ghostText
+
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
@@ -326,16 +401,23 @@ Rectangle {
                     color: tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceText.r, tagCloud.colors.surfaceText.g, tagCloud.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
                     visible: tagCloud._autoSuggestion.length > 0 && tagSearchInput.text.length > 0
                     text: {
-                        if (!visible) return ""
-                        var raw = tagSearchInput.text
-                        var partial = tagCloud._tagSearchQuery
-                        var suggest = tagCloud._autoSuggestion
-                        if (!partial || !suggest) return ""
-                        var lastIdx = raw.toLowerCase().lastIndexOf(partial)
-                        if (lastIdx === -1) return ""
-                        return raw.substring(0, lastIdx) + suggest
+                        if (!visible)
+                            return "";
+
+                        var raw = tagSearchInput.text;
+                        var partial = tagCloud._tagSearchQuery;
+                        var suggest = tagCloud._autoSuggestion;
+                        if (!partial || !suggest)
+                            return "";
+
+                        var lastIdx = raw.toLowerCase().lastIndexOf(partial);
+                        if (lastIdx === -1)
+                            return "";
+
+                        return raw.substring(0, lastIdx) + suggest;
                     }
                 }
+
             }
 
             Text {
@@ -352,14 +434,21 @@ Rectangle {
                     anchors.fill: parent
                     anchors.margins: -4
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: { tagSearchInput.text = ""; tagSearchInput.forceActiveFocus() }
+                    onClicked: {
+                        tagSearchInput.text = "";
+                        tagSearchInput.forceActiveFocus();
+                    }
                 }
+
             }
+
         }
+
     }
 
     Item {
         id: tagChipsArea
+
         anchors.top: tagSearchRow.bottom
         anchors.topMargin: 6
         anchors.left: parent.left
@@ -373,63 +462,61 @@ Rectangle {
 
         Flow {
             id: tagCloudFlow
+
+            property var _service: tagCloud.service
+
             width: parent.width
             spacing: -4
-            property var _service: tagCloud.service
 
             Repeater {
                 model: tagCloud._visibleTagsCache
 
                 Item {
                     id: tagParaChip
+
                     property bool isSelected: modelData.selected
                     property bool isHovered: tagParaMouse.containsMouse
                     property int skew: 10
+                    readonly property color _resolvedActiveColor: tagCloud.colors ? tagCloud.colors.primary : Style.fallbackAccent
+
                     width: tagParaText.implicitWidth + 24 + skew
                     height: 24
                     z: isSelected ? 10 : (isHovered ? 5 : 1)
 
-                    readonly property color _resolvedActiveColor: tagCloud.colors ? tagCloud.colors.primary : Style.fallbackAccent
-
                     Canvas {
                         id: tagCanvas
+
+                        property color fillColor: tagParaChip.isSelected ? tagParaChip._resolvedActiveColor : (tagParaChip.isHovered ? (tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceVariant.r, tagCloud.colors.surfaceVariant.g, tagCloud.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15)) : (tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceContainer.r, tagCloud.colors.surfaceContainer.g, tagCloud.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)))
+                        property color strokeColor: tagParaChip.isSelected ? Qt.rgba(tagParaChip._resolvedActiveColor.r, tagParaChip._resolvedActiveColor.g, tagParaChip._resolvedActiveColor.b, 0.6) : (tagCloud.colors ? Qt.rgba(tagCloud.colors.primary.r, tagCloud.colors.primary.g, tagCloud.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08))
+
                         anchors.fill: parent
-                        property color fillColor: tagParaChip.isSelected
-                            ? tagParaChip._resolvedActiveColor
-                            : (tagParaChip.isHovered
-                                ? (tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceVariant.r, tagCloud.colors.surfaceVariant.g, tagCloud.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15))
-                                : (tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceContainer.r, tagCloud.colors.surfaceContainer.g, tagCloud.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)))
-                        property color strokeColor: tagParaChip.isSelected
-                            ? Qt.rgba(tagParaChip._resolvedActiveColor.r, tagParaChip._resolvedActiveColor.g, tagParaChip._resolvedActiveColor.b, 0.6)
-                            : (tagCloud.colors ? Qt.rgba(tagCloud.colors.primary.r, tagCloud.colors.primary.g, tagCloud.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08))
                         onFillColorChanged: requestPaint()
                         onStrokeColorChanged: requestPaint()
                         onWidthChanged: requestPaint()
                         onPaint: {
-                            var ctx = getContext("2d")
-                            ctx.clearRect(0, 0, width, height)
-                            var sk = tagParaChip.skew
-                            ctx.fillStyle = fillColor
-                            ctx.beginPath()
-                            ctx.moveTo(sk, 0)
-                            ctx.lineTo(width, 0)
-                            ctx.lineTo(width - sk, height)
-                            ctx.lineTo(0, height)
-                            ctx.closePath()
-                            ctx.fill()
-                            ctx.strokeStyle = strokeColor
-                            ctx.lineWidth = 1
-                            ctx.stroke()
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var sk = tagParaChip.skew;
+                            ctx.fillStyle = fillColor;
+                            ctx.beginPath();
+                            ctx.moveTo(sk, 0);
+                            ctx.lineTo(width, 0);
+                            ctx.lineTo(width - sk, height);
+                            ctx.lineTo(0, height);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.strokeStyle = strokeColor;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
                         }
                     }
 
                     Text {
                         id: tagParaText
+
                         anchors.centerIn: parent
                         text: modelData.tag.toUpperCase()
-                        color: tagParaChip.isSelected
-                            ? (tagCloud.colors ? tagCloud.colors.primaryText : "#000")
-                            : (tagCloud.colors ? tagCloud.colors.tertiary : "#8bceff")
+                        color: tagParaChip.isSelected ? (tagCloud.colors ? tagCloud.colors.primaryText : "#000") : (tagCloud.colors ? tagCloud.colors.tertiary : "#8bceff")
                         font.family: Style.fontFamily
                         font.pixelSize: 10
                         font.weight: tagParaChip.isSelected ? Font.Bold : Font.Bold
@@ -438,33 +525,37 @@ Rectangle {
 
                     MouseArea {
                         id: tagParaMouse
+
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            var svc = tagCloudFlow._service
-                            if (!svc) return
-                            var tag = modelData.tag
-                            var tags = svc.selectedTags.slice()
-                            var idx = tags.indexOf(tag)
-                            var removing = idx !== -1
-                            if (removing) tags.splice(idx, 1)
-                            else tags.push(tag)
-                            svc.selectedTags = tags
-                            svc.updateFilteredModel(true)
+                            var svc = tagCloudFlow._service;
+                            if (!svc)
+                                return ;
 
-                            tagCloud._syncingText = true
+                            var tag = modelData.tag;
+                            var tags = svc.selectedTags.slice();
+                            var idx = tags.indexOf(tag);
+                            var removing = idx !== -1;
+                            if (removing)
+                                tags.splice(idx, 1);
+                            else
+                                tags.push(tag);
+                            svc.selectedTags = tags;
+                            svc.updateFilteredModel(true);
+                            tagCloud._syncingText = true;
                             if (removing) {
-                                var re = new RegExp('\\b' + tag + '\\b\\s*', 'i')
-                                tagSearchInput.text = tagSearchInput.text.replace(re, '').replace(/^\s+/, '')
+                                var re = new RegExp('\\b' + tag + '\\b\\s*', 'i');
+                                tagSearchInput.text = tagSearchInput.text.replace(re, '').replace(/^\s+/, '');
                             } else {
-                                var cur = tagSearchInput.text
-                                var suffix = (cur.length > 0 && cur[cur.length - 1] !== ' ') ? ' ' : ''
-                                tagSearchInput.text = cur + suffix + tag + ' '
+                                var cur = tagSearchInput.text;
+                                var suffix = (cur.length > 0 && cur[cur.length - 1] !== ' ') ? ' ' : '';
+                                tagSearchInput.text = cur + suffix + tag + ' ';
                             }
-                            tagCloud._syncingText = false
-                            tagCloud._recomputeTags()
-                            tagSearchInput.forceActiveFocus()
+                            tagCloud._syncingText = false;
+                            tagCloud._recomputeTags();
+                            tagSearchInput.forceActiveFocus();
                         }
                     }
 
@@ -473,17 +564,57 @@ Rectangle {
                         text: modelData.tag + " (" + modelData.count + ")"
                         delay: 500
                     }
+
                 }
+
             }
 
             move: Transition {
-                NumberAnimation { properties: "x,y"; duration: Style.animNormal; easing.type: Easing.OutCubic }
+                NumberAnimation {
+                    properties: "x,y"
+                    duration: Style.animNormal
+                    easing.type: Easing.OutCubic
+                }
+
             }
 
             add: Transition {
-                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Style.animNormal; easing.type: Easing.OutQuad }
-                NumberAnimation { property: "scale"; from: 0.8; to: 1; duration: Style.animNormal; easing.type: Easing.OutCubic }
+                NumberAnimation {
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: Style.animNormal
+                    easing.type: Easing.OutQuad
+                }
+
+                NumberAnimation {
+                    property: "scale"
+                    from: 0.8
+                    to: 1
+                    duration: Style.animNormal
+                    easing.type: Easing.OutCubic
+                }
+
             }
+
         }
+
     }
+
+    Behavior on width {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on height {
+        NumberAnimation {
+            duration: Style.animNormal
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
 }

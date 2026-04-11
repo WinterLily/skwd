@@ -32,7 +32,6 @@ depends=(
 makedepends=('git')
 optdepends=(
   'linux-wallpaperengine: Steam Wallpaper Engine support'
-  'ollama: local LLM for wallpaper analysis and tagging'
   'grim: screenshot capture for window switcher'
   'niri: recommended Wayland compositor'
 )

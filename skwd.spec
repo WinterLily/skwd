@@ -34,7 +34,6 @@ Requires:       mpvpaper
 Requires:       ImageMagick
 
 Recommends:     linux-wallpaperengine
-Recommends:     ollama
 Recommends:     grim
 Recommends:     niri
 

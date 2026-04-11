@@ -6,7 +6,6 @@ FilterBar 1.0 FilterBar.qml
 FilterButton 1.0 FilterButton.qml
 FilterDropdown 1.0 FilterDropdown.qml
 HexDelegate 1.0 HexDelegate.qml
-OllamaStatusIndicator 1.0 OllamaStatusIndicator.qml
 SettingsInput 1.0 SettingsInput.qml
 SettingsTextInput 1.0 SettingsTextInput.qml
 SettingsToggle 1.0 SettingsToggle.qml

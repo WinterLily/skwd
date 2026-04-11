@@ -1,58 +1,68 @@
-import QtQuick
 import ".."
+import QtQuick
 
 Item {
-  property string label
-  property int value
-  property var colors
-  signal edited(int v)
+    property string label
+    property int value
+    property var colors
 
-  width: parent ? parent.width : 400
-  height: 36
+    signal edited(int v)
 
-  Row {
-    anchors.fill: parent
-    spacing: 12
+    width: parent ? parent.width : 400
+    height: 36
 
-    Text {
-      width: 160
-      text: label
-      font.family: Style.fontFamily
-      font.pixelSize: 12
-      font.weight: Font.Medium
-      color: colors ? colors.surfaceText : "#ddd"
-      anchors.verticalCenter: parent.verticalCenter
-      elide: Text.ElideRight
-    }
-
-    Rectangle {
-      width: 140
-      height: 30
-      radius: 6
-      color: colors ? Qt.rgba(colors.surfaceContainer.r, colors.surfaceContainer.g, colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
-      border.width: numInput.activeFocus ? 1 : 0
-      border.color: colors ? Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
-
-      TextInput {
-        id: numInput
+    Row {
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        verticalAlignment: TextInput.AlignVCenter
-        font.family: Style.fontFamilyCode
-        font.pixelSize: 11
-        color: colors ? colors.tertiary : "#8bceff"
-        clip: true
-        text: value.toString()
-        validator: IntValidator { bottom: 0 }
-        selectByMouse: true
-        selectionColor: colors ? Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+        spacing: 12
 
-        onTextEdited: {
-          var n = parseInt(text)
-          if (!isNaN(n)) edited(n)
+        Text {
+            width: 160
+            text: label
+            font.family: Style.fontFamily
+            font.pixelSize: 12
+            font.weight: Font.Medium
+            color: colors ? colors.surfaceText : "#ddd"
+            anchors.verticalCenter: parent.verticalCenter
+            elide: Text.ElideRight
         }
-      }
+
+        Rectangle {
+            width: 140
+            height: 30
+            radius: 6
+            color: colors ? Qt.rgba(colors.surfaceContainer.r, colors.surfaceContainer.g, colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+            border.width: numInput.activeFocus ? 1 : 0
+            border.color: colors ? Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+
+            TextInput {
+                id: numInput
+
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
+                verticalAlignment: TextInput.AlignVCenter
+                font.family: Style.fontFamilyCode
+                font.pixelSize: 11
+                color: colors ? colors.tertiary : "#8bceff"
+                clip: true
+                text: value.toString()
+                selectByMouse: true
+                selectionColor: colors ? Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                onTextEdited: {
+                    var n = parseInt(text);
+                    if (!isNaN(n))
+                        edited(n);
+
+                }
+
+                validator: IntValidator {
+                    bottom: 0
+                }
+
+            }
+
+        }
+
     }
-  }
+
 }

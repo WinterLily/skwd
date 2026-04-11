@@ -1,9 +1,10 @@
-import QtQuick
 import ".."
 import "../.."
+import QtQuick
 
 Column {
     id: root
+
     property var colors
     property string label: ""
     property string value: ""
@@ -32,6 +33,7 @@ Column {
 
         TextInput {
             id: inputField
+
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
@@ -42,6 +44,16 @@ Column {
             clip: true
             selectByMouse: true
             text: root.value
+            onActiveFocusChanged: {
+                if (activeFocus && root.onFocused)
+                    root.onFocused();
+
+            }
+            onEditingFinished: {
+                if (root.onCommit)
+                    root.onCommit(text);
+
+            }
 
             Text {
                 anchors.fill: parent
@@ -52,12 +64,8 @@ Column {
                 visible: !inputField.text && !inputField.activeFocus
             }
 
-            onActiveFocusChanged: {
-                if (activeFocus && root.onFocused) root.onFocused()
-            }
-            onEditingFinished: {
-                if (root.onCommit) root.onCommit(text)
-            }
         }
+
     }
+
 }

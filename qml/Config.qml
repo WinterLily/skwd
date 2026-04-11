@@ -48,12 +48,9 @@ QtObject {
         return [_data.monitor]
     }
     readonly property string mainMonitor: _data.monitor ?? ""
-    readonly property string ollamaUrl: Quickshell.env("SKWD_OLLAMA_URL") || (_data.ollama?.url ?? "")
-    readonly property string ollamaModel: _data.ollama?.model ?? ""
     readonly property int weatherPollMs: _data.intervals?.weatherPollMs ?? 0
     readonly property int wifiPollMs: _data.intervals?.wifiPollMs ?? 0
     readonly property int smartHomePollMs: _data.intervals?.smartHomePollMs ?? 0
-    readonly property int ollamaStatusPollMs: _data.intervals?.ollamaStatusPollMs ?? 0
     readonly property int notificationExpireMs: _data.intervals?.notificationExpireMs ?? 0
 
     readonly property string terminal: _data.terminal ?? "kitty"
@@ -111,7 +108,6 @@ QtObject {
     readonly property bool wallpaperMute: _data.wallpaperMute !== false
 
     readonly property bool matugenEnabled: _data.features?.matugen !== false
-    readonly property bool ollamaEnabled: _data.features?.ollama !== false
     readonly property bool steamEnabled: _data.features?.steam !== false
     readonly property bool wallhavenEnabled: _data.features?.wallhaven !== false
     readonly property bool videoPreviewEnabled: _data.features?.videoPreview !== false
@@ -127,7 +123,7 @@ QtObject {
     readonly property bool autoDeleteImageTrash: _data.performance?.autoDeleteImageTrash === true
     readonly property bool autoDeleteVideoTrash: _data.performance?.autoDeleteVideoTrash === true
 
-    readonly property string colorSource: _data.colorSource ?? "ollama"
+    readonly property string colorSource: _data.colorSource ?? "matugen"
     readonly property string matugenConfig: wallCacheDir + "/matugen-config.toml"
     readonly property string defaultMatugenConfig: _resolve(_data.defaultMatugenConfig ?? "~/.config/matugen/config.toml")
 

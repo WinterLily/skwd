@@ -10,10 +10,6 @@
     "steam": "~/.local/share/Steam"
   },
   "monitor": "DP-1",
-  "ollama": {
-    "url": "http://localhost:11434",
-    "model": "gemma3:4b"
-  },
   "matugen": {
     "schemeType": "scheme-tonal-spot",
     "kdeColorScheme": "SkwdMatugen"
@@ -89,7 +85,6 @@
     "weatherPollMs": 600000,
     "wifiPollMs": 10000,
     "smartHomePollMs": 5000,
-    "ollamaStatusPollMs": 5000,
     "notificationExpireMs": 8000,
     "systemStatsFastSec": 3,
     "systemStatsSlowSec": 30

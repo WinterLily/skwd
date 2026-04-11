@@ -229,21 +229,6 @@ if command -v oh-my-posh >/dev/null 2>&1 || [ -x "$HOME/.local/bin/oh-my-posh" ]
   echo "  OMP: theme linked at $OMP_DIR/skwd.omp.json"
 fi
 
-# Ollama model setup
-if command -v ollama >/dev/null 2>&1; then
-  if ! ollama list 2>/dev/null | grep -q "gemma3:4b"; then
-    echo ""
-    read -rp "Install the gemma3:4b model for Ollama? This light-weight model or any other computer vision model is required for LLM computer vision (reading wallpaper content to create tags like dragon, ocean, cozy etc.) [y/N] " model_ans
-    if [[ "$model_ans" == "y" || "$model_ans" == "Y" ]]; then
-      echo "  Pulling gemma3:4b - this may take a while..."
-      ollama pull gemma3:4b
-      echo "  Done."
-    fi
-  else
-    echo "  Ollama gemma3:4b model already available."
-  fi
-fi
-
 # Wallpaper Engine path check
 if command -v linux-wallpaperengine >/dev/null 2>&1; then
   if [[ -z "$we_assets" ]]; then

@@ -1,5 +1,5 @@
-pragma Singleton
 import QtQuick
+pragma Singleton
 
 // Singleton design tokens for the entire shell UI.
 // Font families, sizes, radii, spacing, animation durations, borders, and opacity levels.
@@ -13,8 +13,6 @@ QtObject {
     readonly property string fontFamilyCode: "Roboto Mono"
     readonly property string fontFamilyIcons: "Material Design Icons Desktop"
     readonly property string fontFamilyNerdIcons: "Symbols Nerd Font"
-
-
     // Font sizes (px)
     readonly property int fontTiny: 9
     readonly property int fontCaption: 11
@@ -28,8 +26,6 @@ QtObject {
     readonly property int fontDisplayLarge: 36
     readonly property int fontClock: 200
     readonly property int fontClockDate: 120
-
-
     // Border radii
     readonly property int radiusTiny: 2
     readonly property int radiusSmall: 4
@@ -38,8 +34,6 @@ QtObject {
     readonly property int radiusXLarge: 16
     readonly property int radiusRound: 20
     readonly property int radiusCircle: 40
-
-
     // Spacing scale
     readonly property int spacingTiny: 2
     readonly property int spacingSmall: 4
@@ -47,8 +41,6 @@ QtObject {
     readonly property int spacingLarge: 12
     readonly property int spacingXLarge: 16
     readonly property int spacingXXLarge: 20
-
-
     // Animation durations (ms)
     readonly property int animVeryFast: 100
     readonly property int animFast: 150
@@ -58,17 +50,12 @@ QtObject {
     readonly property int animExpand: 350
     readonly property int animSlow: 400
     readonly property int animSpin: 1000
-
     readonly property int tooltipDelay: 500
     readonly property color fallbackAccent: "#4fc3f7"
-
-
     // Border widths
     readonly property int borderThin: 1
     readonly property int borderMedium: 2
     readonly property int borderThick: 3
-
-
     // Opacity levels
     readonly property real opacityDim: 0.35
     readonly property real opacityMuted: 0.5

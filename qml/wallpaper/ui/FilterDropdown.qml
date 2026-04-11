@@ -1,7 +1,7 @@
-import QtQuick
-import QtQuick.Controls
 import ".."
 import "../.."
+import QtQuick
+import QtQuick.Controls
 
 Item {
     id: dropdown
@@ -12,6 +12,8 @@ Item {
     property string displayValue: ""
     property var model: []
     property int skew: 8
+    readonly property bool isHovered: _mouse.containsMouse
+    property bool _popupOpen: false
 
     signal selected(string key)
 
@@ -19,41 +21,31 @@ Item {
     height: 24
     z: _popupOpen ? 100 : (isHovered ? 5 : 1)
 
-    readonly property bool isHovered: _mouse.containsMouse
-    property bool _popupOpen: false
-
     Canvas {
         id: _canvas
-        anchors.fill: parent
 
-        property color fillColor: dropdown._popupOpen
-            ? (dropdown.colors ? dropdown.colors.primary : Style.fallbackAccent)
-            : (dropdown.value !== ""
-                ? (dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2))
-                : (dropdown.isHovered
-                    ? (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceVariant.r, dropdown.colors.surfaceVariant.g, dropdown.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15))
-                    : (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceContainer.r, dropdown.colors.surfaceContainer.g, dropdown.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85))))
+        property color fillColor: dropdown._popupOpen ? (dropdown.colors ? dropdown.colors.primary : Style.fallbackAccent) : (dropdown.value !== "" ? (dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)) : (dropdown.isHovered ? (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceVariant.r, dropdown.colors.surfaceVariant.g, dropdown.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15)) : (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceContainer.r, dropdown.colors.surfaceContainer.g, dropdown.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85))))
         property color strokeColor: dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
 
+        anchors.fill: parent
         onFillColorChanged: requestPaint()
         onStrokeColorChanged: requestPaint()
         onWidthChanged: requestPaint()
-
         onPaint: {
-            var ctx = getContext("2d")
-            ctx.clearRect(0, 0, width, height)
-            var sk = dropdown.skew
-            ctx.fillStyle = fillColor
-            ctx.beginPath()
-            ctx.moveTo(sk, 0)
-            ctx.lineTo(width, 0)
-            ctx.lineTo(width - sk, height)
-            ctx.lineTo(0, height)
-            ctx.closePath()
-            ctx.fill()
-            ctx.strokeStyle = strokeColor
-            ctx.lineWidth = 1
-            ctx.stroke()
+            var ctx = getContext("2d");
+            ctx.clearRect(0, 0, width, height);
+            var sk = dropdown.skew;
+            ctx.fillStyle = fillColor;
+            ctx.beginPath();
+            ctx.moveTo(sk, 0);
+            ctx.lineTo(width, 0);
+            ctx.lineTo(width - sk, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
         }
     }
 
@@ -63,27 +55,29 @@ Item {
 
         Text {
             id: _btnLabel
+
             text: dropdown.displayValue || dropdown.label
             font.family: Style.fontFamily
             font.pixelSize: 10
             font.weight: Font.Bold
             font.letterSpacing: 0.5
-            color: dropdown._popupOpen
-                ? (dropdown.colors ? dropdown.colors.primaryText : "#000")
-                : (dropdown.colors ? dropdown.colors.tertiary : "#8bceff")
+            color: dropdown._popupOpen ? (dropdown.colors ? dropdown.colors.primaryText : "#000") : (dropdown.colors ? dropdown.colors.tertiary : "#8bceff")
         }
 
         Text {
             id: _arrow
+
             text: dropdown._popupOpen ? "▲" : "▼"
             font.pixelSize: 7
             color: _btnLabel.color
             anchors.verticalCenter: parent.verticalCenter
         }
+
     }
 
     MouseArea {
         id: _mouse
+
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -92,11 +86,11 @@ Item {
 
     Popup {
         id: _popup
+
         x: 0
         y: dropdown.height + 4
         padding: 6
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-
         onOpenedChanged: dropdown._popupOpen = opened
 
         background: Rectangle {
@@ -113,42 +107,43 @@ Item {
                 model: dropdown.model
 
                 Rectangle {
+                    property bool _itemIsActive: dropdown.value === modelData.key
+
                     width: Math.max(_itemLabel.implicitWidth + 20, 80)
                     height: 22
                     radius: 2
-                    color: _itemIsActive
-                        ? (dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.15))
-                        : (_itemMouse.containsMouse
-                            ? (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceVariant.r, dropdown.colors.surfaceVariant.g, dropdown.colors.surfaceVariant.b, 0.4) : Qt.rgba(1, 1, 1, 0.08))
-                            : "transparent")
-
-                    property bool _itemIsActive: dropdown.value === modelData.key
+                    color: _itemIsActive ? (dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.15)) : (_itemMouse.containsMouse ? (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceVariant.r, dropdown.colors.surfaceVariant.g, dropdown.colors.surfaceVariant.b, 0.4) : Qt.rgba(1, 1, 1, 0.08)) : "transparent")
 
                     Text {
                         id: _itemLabel
+
                         anchors.centerIn: parent
                         text: modelData.label
                         font.family: Style.fontFamily
                         font.pixelSize: 10
                         font.weight: parent._itemIsActive ? Font.Bold : Font.Medium
                         font.letterSpacing: 0.3
-                        color: parent._itemIsActive
-                            ? (dropdown.colors ? dropdown.colors.primary : Style.fallbackAccent)
-                            : (dropdown.colors ? dropdown.colors.surfaceText : "#e0e0e0")
+                        color: parent._itemIsActive ? (dropdown.colors ? dropdown.colors.primary : Style.fallbackAccent) : (dropdown.colors ? dropdown.colors.surfaceText : "#e0e0e0")
                     }
 
                     MouseArea {
                         id: _itemMouse
+
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            dropdown.selected(modelData.key)
-                            _popup.close()
+                            dropdown.selected(modelData.key);
+                            _popup.close();
                         }
                     }
+
                 }
+
             }
+
         }
+
     }
+
 }
