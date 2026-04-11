@@ -35,7 +35,7 @@
       "name": "ghostty",
       "template": "ghostty.conf",
       "output": "~/.config/ghostty/skwd-theme",
-      "reload": "pkill -USR1 ghostty"
+      "reload": "pkill -SIGUSR2 ghostty"
     },
     {
       "name": "niri",
