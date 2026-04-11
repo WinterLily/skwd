@@ -7,6 +7,7 @@ import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 import ".."
+import "../services"
 import "lyrics"
 import "dropdowns"
 
@@ -20,11 +21,6 @@ PanelWindow {
   required property var clock
   required property bool barVisible
   required property var activePlayer
-  required property real cpuUsage
-  required property real memUsage
-  required property real gpuUsage
-  required property real cpuTemp
-  required property real gpuTemp
   required property string weatherDesc
   required property string weatherTemp
   required property string weatherCity
@@ -214,14 +210,14 @@ PanelWindow {
             color: bar.colors.primary
           }
           Text {
-            text: Math.round(bar.cpuUsage) + "%"
+            text: Math.round(SystemStatService.cpuUsage) + "%"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
             color: bar.colors.tertiary
           }
           Text {
-            text: Math.round(bar.cpuTemp) + "°"
+            text: Math.round(SystemStatService.cpuTemp) + "°"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
@@ -240,14 +236,14 @@ PanelWindow {
             color: bar.colors.primary
           }
           Text {
-            text: Math.round(bar.gpuUsage) + "%"
+            text: Math.round(SystemStatService.gpuUsage) + "%"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
             color: bar.colors.tertiary
           }
           Text {
-            text: Math.round(bar.gpuTemp) + "°"
+            text: Math.round(SystemStatService.gpuTemp) + "°"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
@@ -266,7 +262,7 @@ PanelWindow {
             color: bar.colors.primary
           }
           Text {
-            text: Math.round(bar.memUsage) + "%"
+            text: Math.round(SystemStatService.memUsage) + "%"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily

@@ -15,6 +15,7 @@ import Qt.labs.platform
 import "qml"
 import "qml/bar"
 import "qml/bar/lyrics"
+import "qml/services"
 import "qml/wallpaper/services"
 
 
@@ -23,80 +24,68 @@ ShellRoot {
 
   property string homeDir: Config.homeDir
 
-  // IPC command listener (reads from FIFO pipe)
-  // Supports: lock, powermenu, launcher, toggleBar, wallpaper,
-  //   wallpaper-rescan, wallpaper-rescan-we,
-  //   smarthome, switcherOpen/Next/Prev/Confirm/Cancel/Close,
-  //   notifications, config
-  Process {
-    id: ipcListener
-    running: true
-    command: [Config.scriptsDir + "/bash/ipc-listener"]
-    onExited: ipcRestartTimer.start()
-    stdout: SplitParser {
-      onRead: message => {
-        var cmd = message.trim()
-        console.log("IPC received:", cmd)
-        if (cmd === "lock") {
-          if (root.lockscreenInstance) root.lockscreenInstance.showing = true
-        } else if (cmd === "powermenu") {
-          if (root.powerMenuInstance) root.powerMenuInstance.showing = !root.powerMenuInstance.showing
-        } else if (cmd === "launcher" || cmd === "applauncher") {
-          if (root.appLauncherInstance) root.appLauncherInstance.showing = !root.appLauncherInstance.showing
-        } else if (cmd === "toggleBar") {
-          root.barVisible = !root.barVisible
-        } else if (cmd === "wallpaper") {
-          wallpaperSelectorLoader.active = !wallpaperSelectorLoader.active
-        } else if (cmd === "smarthome") {
-          if (root.smartHomeInstance) root.smartHomeInstance.toggle()
-        } else if (cmd === "switcherOpen") {
-          if (root.windowSwitcherInstance) root.windowSwitcherInstance.open()
-        } else if (cmd === "switcherNext") {
-          if (root.windowSwitcherInstance) {
-            if (!root.windowSwitcherInstance.showing) {
-              root.windowSwitcherInstance.open()
-            } else {
-              root.windowSwitcherInstance.next()
-            }
-          }
-        } else if (cmd === "switcherPrev") {
-          if (root.windowSwitcherInstance) {
-            if (!root.windowSwitcherInstance.showing) {
-              root.windowSwitcherInstance.open()
-            } else {
-              root.windowSwitcherInstance.prev()
-            }
-          }
-        } else if (cmd === "switcherConfirm") {
-          if (root.windowSwitcherInstance) root.windowSwitcherInstance.confirm()
-        } else if (cmd === "switcherCancel") {
-          if (root.windowSwitcherInstance) root.windowSwitcherInstance.cancel()
-        } else if (cmd === "switcherClose") {
-          if (root.windowSwitcherInstance) root.windowSwitcherInstance.closeSelected()
-        } else if (cmd === "notifications") {
-          if (root.notificationInstance) root.notificationInstance.toggleCenter()
-         } else if (cmd === "config") {
-          if (root.configPanelInstance) root.configPanelInstance.showing = !root.configPanelInstance.showing
-        } else if (cmd === "wallpaper-rescan") {
-          if (wallpaperSelectorLoader.item?.selectorService)
-            wallpaperSelectorLoader.item.selectorService.forceRescan()
-          else
-            WallpaperCacheService.forceRescan()
-        } else if (cmd === "wallpaper-rescan-we") {
-          if (wallpaperSelectorLoader.item?.selectorService)
-            wallpaperSelectorLoader.item.selectorService.rescanWE()
-          else
-            WallpaperCacheService.rescanWEItems()
-        }
-      }
-    }
+  // IPC handlers — use `qs ipc call <target> <function>` from keybindings/scripts
+  IpcHandler {
+    target: "lock"
+    function lock() { if (root.lockscreenInstance) root.lockscreenInstance.showing = true }
   }
 
-  // IPC auto-restart (reconnect after 1s if pipe closes)
-  Timer {
-    id: ipcRestartTimer
-    interval: 1000
-    onTriggered: ipcListener.running = true
+  IpcHandler {
+    target: "powermenu"
+    function toggle() { if (root.powerMenuInstance) root.powerMenuInstance.showing = !root.powerMenuInstance.showing }
+    function open()   { if (root.powerMenuInstance) root.powerMenuInstance.showing = true }
+    function close()  { if (root.powerMenuInstance) root.powerMenuInstance.showing = false }
+  }
+
+  IpcHandler {
+    target: "launcher"
+    function toggle() { if (root.appLauncherInstance) root.appLauncherInstance.showing = !root.appLauncherInstance.showing }
+    function open()   { if (root.appLauncherInstance) root.appLauncherInstance.showing = true }
+    function close()  { if (root.appLauncherInstance) root.appLauncherInstance.showing = false }
+  }
+
+  IpcHandler {
+    target: "bar"
+    function toggle() { root.barVisible = !root.barVisible }
+    function show()   { root.barVisible = true }
+    function hide()   { root.barVisible = false }
+  }
+
+  IpcHandler {
+    target: "smarthome"
+    function toggle() { if (root.smartHomeInstance) root.smartHomeInstance.toggle() }
+  }
+
+  IpcHandler {
+    target: "switcher"
+    function open() {
+      if (root.windowSwitcherInstance) root.windowSwitcherInstance.open()
+    }
+    function next() {
+      if (!root.windowSwitcherInstance) return
+      if (!root.windowSwitcherInstance.showing) root.windowSwitcherInstance.open()
+      else root.windowSwitcherInstance.next()
+    }
+    function prev() {
+      if (!root.windowSwitcherInstance) return
+      if (!root.windowSwitcherInstance.showing) root.windowSwitcherInstance.open()
+      else root.windowSwitcherInstance.prev()
+    }
+    function confirm() { if (root.windowSwitcherInstance) root.windowSwitcherInstance.confirm() }
+    function cancel()  { if (root.windowSwitcherInstance) root.windowSwitcherInstance.cancel() }
+    function close()   { if (root.windowSwitcherInstance) root.windowSwitcherInstance.closeSelected() }
+  }
+
+  IpcHandler {
+    target: "notifications"
+    function toggle() { if (root.notificationInstance) root.notificationInstance.toggleCenter() }
+  }
+
+  IpcHandler {
+    target: "config"
+    function toggle() { if (root.configPanelInstance) root.configPanelInstance.showing = !root.configPanelInstance.showing }
+    function open()   { if (root.configPanelInstance) root.configPanelInstance.showing = true }
+    function close()  { if (root.configPanelInstance) root.configPanelInstance.showing = false }
   }
 
   // Notification server
@@ -411,18 +400,6 @@ ShellRoot {
   }
 
 
-  // System stats (single long-running process)
-  // Format: cpu:N|mem:N|gpu:N|ct:N|gt:N|st:USAGE|USED|TOTAL|AVAIL
-  property real cpuUsage: 0
-  property real memUsage: 0
-  property real gpuUsage: 0
-  property real cpuTemp: 0
-  property real gpuTemp: 0
-  property real storageUsage: 0
-  property string storageUsed: "0G"
-  property string storageTotal: "0G"
-  property string storageAvail: "0G"
-
   property var lyricsServiceRef: lyricsService
 
   LyricsIslandService {
@@ -430,42 +407,6 @@ ShellRoot {
     installDir: Config.installDir
   }
 
-  Process {
-    id: sysStatsProcess
-    command: [Config.scriptsDir + "/bash/system-stats"]
-    running: Config.barEnabled
-    onExited: sysStatsRestart.start()
-    stdout: SplitParser {
-      onRead: line => {
-
-        var parts = line.trim().split("|")
-        for (var i = 0; i < parts.length; i++) {
-          var kv = parts[i].split(":")
-          if (kv.length < 2) continue
-          var key = kv[0]
-          var val = kv.slice(1).join(":")
-          if (key === "cpu") root.cpuUsage = parseFloat(val) || 0
-          else if (key === "mem") root.memUsage = parseFloat(val) || 0
-          else if (key === "gpu") root.gpuUsage = parseFloat(val) || 0
-          else if (key === "ct") root.cpuTemp = parseFloat(val) || 0
-          else if (key === "gt") root.gpuTemp = parseFloat(val) || 0
-          else if (key === "st") {
-
-            root.storageUsage = parseFloat(val) || 0
-            if (i + 1 < parts.length) root.storageUsed = parts[i + 1] || "0G"
-            if (i + 2 < parts.length) root.storageTotal = parts[i + 2] || "0G"
-            if (i + 3 < parts.length) root.storageAvail = parts[i + 3] || "0G"
-            break
-          }
-        }
-      }
-    }
-  }
-  Timer {
-    id: sysStatsRestart
-    interval: 2000
-    onTriggered: sysStatsProcess.running = true
-  }
 
 
 
@@ -547,11 +488,6 @@ ShellRoot {
       clock: root.clockRef
       barVisible: root.barVisible
       activePlayer: root.activePlayer
-      cpuUsage: root.cpuUsage
-      memUsage: root.memUsage
-      gpuUsage: root.gpuUsage
-      cpuTemp: root.cpuTemp
-      gpuTemp: root.gpuTemp
       weatherDesc: root.weatherDesc
       weatherTemp: root.weatherTemp
       weatherCity: root.weatherCity
