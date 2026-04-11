@@ -86,7 +86,7 @@ QtObject {
     _ipcProc.running = true
   }
 
-  readonly property string _statusFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-status.json"
+  readonly property string _statusFilePath: Config.wallCacheDir + "/steam-dl-status.json"
 
   property var _statusFileView: FileView {
     path: swService._statusFilePath

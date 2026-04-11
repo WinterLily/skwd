@@ -116,6 +116,7 @@ mkdir -p "${XDG_RUNTIME_DIR:-/tmp}/skwd" 2>/dev/null || true
 [ -f "$SKWD_CACHE/wallpaper/colors.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/colors.json"
 [ -f "$SKWD_CACHE/wallpaper/matugen-colors.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/matugen-colors.json"
 [ -f "$SKWD_CACHE/app-launcher/freq.json" ] || echo '{}' > "$SKWD_CACHE/app-launcher/freq.json"
+[ -f "$SKWD_CACHE/wallpaper/steam-dl-status.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/steam-dl-status.json"
 
 # Create config.json from example if missing
 mkdir -p "$SKWD_CONFIG/data"

@@ -25,6 +25,7 @@ ShellRoot {
 
   // IPC command listener (reads from FIFO pipe)
   // Supports: lock, powermenu, launcher, toggleBar, wallpaper,
+  //   wallpaper-rescan, wallpaper-rescan-we,
   //   smarthome, switcherOpen/Next/Prev/Confirm/Cancel/Close,
   //   notifications, config
   Process {
@@ -74,8 +75,18 @@ ShellRoot {
           if (root.windowSwitcherInstance) root.windowSwitcherInstance.closeSelected()
         } else if (cmd === "notifications") {
           if (root.notificationInstance) root.notificationInstance.toggleCenter()
-        } else if (cmd === "config") {
+         } else if (cmd === "config") {
           if (root.configPanelInstance) root.configPanelInstance.showing = !root.configPanelInstance.showing
+        } else if (cmd === "wallpaper-rescan") {
+          if (wallpaperSelectorLoader.item?.selectorService)
+            wallpaperSelectorLoader.item.selectorService.forceRescan()
+          else
+            WallpaperCacheService.forceRescan()
+        } else if (cmd === "wallpaper-rescan-we") {
+          if (wallpaperSelectorLoader.item?.selectorService)
+            wallpaperSelectorLoader.item.selectorService.rescanWE()
+          else
+            WallpaperCacheService.rescanWEItems()
         }
       }
     }
@@ -299,6 +310,18 @@ ShellRoot {
     function toggle() { wallpaperSelectorLoader.active = !wallpaperSelectorLoader.active }
     function open()   { wallpaperSelectorLoader.active = true }
     function close()  { wallpaperSelectorLoader.active = false }
+    function rescan() {
+      if (wallpaperSelectorLoader.item?.selectorService)
+        wallpaperSelectorLoader.item.selectorService.forceRescan()
+      else
+        WallpaperCacheService.forceRescan()
+    }
+    function rescanWE() {
+      if (wallpaperSelectorLoader.item?.selectorService)
+        wallpaperSelectorLoader.item.selectorService.rescanWE()
+      else
+        WallpaperCacheService.rescanWEItems()
+    }
   }
 
   IpcHandler {

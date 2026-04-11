@@ -43,6 +43,8 @@ QtObject {
 
     function applyStatic(path) {
         console.log("WallpaperApplyService.applyStatic:", path, "wallpaperDir:", wallpaperDir)
+        _weKilling = true
+        weProcess.running = false
         _saveState("static", path, "")
         if (Config.isKDE) {
             awwwProcess.command = ["sh", "-c",
@@ -69,6 +71,8 @@ QtObject {
     }
 
     function applyVideo(path) {
+        _weKilling = true
+        weProcess.running = false
         _saveState("video", path, "")
         if (Config.isKDE) {
             _applyKdeVideo(path)
@@ -78,7 +82,7 @@ QtObject {
                 "pkill mpvpaper 2>/dev/null; " +
                 "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " +
                 "rm -f " + JSON.stringify(videoDir + "/lockscreen-video.mp4") + "; " +
-                "nohup setsid mpvpaper -o " + (wallpaperMute ? "'loop --mute=yes'" : "'loop'") + " '*' " + JSON.stringify(path) + " </dev/null >/dev/null 2>&1 &"]
+                "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(path) + " </dev/null >/dev/null 2>&1 &"]
             mpvProcess.running = true
         }
         _extractVideoThumb(path)
@@ -104,6 +108,7 @@ QtObject {
     }
 
     function applyWE(weId) {
+        console.log("WallpaperApplyService.applyWE:", weId)
         _saveState("we", "", weId)
         _reclaimOllamaVram()
         _pendingAction = function() {
@@ -162,7 +167,11 @@ QtObject {
         }
     }
 
+    property bool _weKilling: false
+
     function _killAll() {
+        _weKilling = true
+        weProcess.running = false
         killProcess.command = ["sh", "-c",
             "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " +
             "pkill mpvpaper 2>/dev/null; " +
@@ -187,20 +196,28 @@ QtObject {
     property var _awwwDaemonProcess: Process { id: awwwDaemonProcess }
 
     property var _weStderr: []
+    property var _weStdout: []
     property var _weProcess: Process {
         id: weProcess
         onExited: function(code, status) {
-            if (code !== 0 || service._weStderr.length > 0) {
-                console.log("WallpaperApplyService: WE exited code=" + code + " status=" + status +
-                            (service._weStderr.length > 0 ? " stderr: " + service._weStderr.join("") : ""))
-                if (code !== 0 && service._pendingWeId) {
-                    console.log("WallpaperApplyService: WE scene failed, falling back to preview image")
-                    service._applyWePreviewFallback(service._pendingWeId)
-                }
-            }
+            var wasKilling = service._weKilling
+            service._weKilling = false
+            var out = service._weStdout.join("").trim()
+            var err = service._weStderr.join("").trim()
+            service._weStdout = []
             service._weStderr = []
+            if (wasKilling) return
+            if (out) console.log("WallpaperApplyService: WE stdout:", out)
+            if (err) console.log("WallpaperApplyService: WE stderr:", err)
+            if (code !== 0 && service._pendingWeId) {
+                console.log("WallpaperApplyService: WE scene exited code=" + code + " for id=" + service._pendingWeId + ", falling back to preview image")
+                service._applyWePreviewFallback(service._pendingWeId)
+            } else if (code === 0 && service._pendingWeId) {
+                console.log("WallpaperApplyService: WE scene exited cleanly (code=0) for id=" + service._pendingWeId)
+            }
         }
-        stderr: SplitParser { onRead: data => service._weStderr.push(data) }
+        stdout: SplitParser { splitMarker: ""; onRead: data => service._weStdout.push(data) }
+        stderr: SplitParser { splitMarker: ""; onRead: data => service._weStderr.push(data) }
     }
 
     function _launchWE(weId) {
@@ -222,9 +239,11 @@ QtObject {
                 var weFile = proj.file || ""
                 var id = service._pendingWeId
                 var basePath = service.weDir + "/" + id
+                console.log("WallpaperApplyService: WE project id=" + id + " type=" + weType + " file=" + weFile)
 
                 if (weType === "video" && weFile) {
                     var videoPath = basePath + "/" + weFile
+                    console.log("WallpaperApplyService: WE video path:", videoPath)
                     _symLinkProcess.command = ["ln", "-sf", videoPath,
                                                service.videoDir + "/lockscreen-video.mp4"]
                     _symLinkProcess.running = true
@@ -235,13 +254,14 @@ QtObject {
                         if (service.wallpaperMute) opts = "loop --mute=yes"
                         weProcess.command = ["sh", "-c",
                             "pkill mpvpaper 2>/dev/null; " +
-                            "nohup setsid mpvpaper -o '" + opts + "' '*' " + JSON.stringify(videoPath) + " </dev/null >/dev/null 2>&1 &"]
+                            "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (service.wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(videoPath) + " </dev/null >/dev/null 2>&1 &"]
                         weProcess.running = true
                     }
                 } else {
                     _launchWEScene(id)
                 }
             } catch(e) {
+                console.log("WallpaperApplyService: failed to parse project.json for id=" + service._pendingWeId + " error=" + e)
                 service._launchWEScene(service._pendingWeId)
             }
         }
@@ -254,19 +274,21 @@ QtObject {
     property var _symLinkProcess: Process { id: symLinkProcess }
 
     function _launchWEScene(weId) {
+        // Clear kill guard — we're about to start a new scene, not kill one
+        _weKilling = false
         var mons = Quickshell.screens.map(function(s) { return s.name })
-        var screenArgs = ""
+        // Build the actual linux-wallpaperengine argument list
+        var weArgs = ["linux-wallpaperengine"]
+        if (service.wallpaperMute) weArgs.push("--silent")
+        weArgs.push("--no-fullscreen-pause", "--noautomute")
         for (var i = 0; i < mons.length; i++)
-            screenArgs += " --screen-root " + mons[i] + " --scaling fill"
-        var audioFlag = service.wallpaperMute ? "--silent" : ""
-        var assetsArg = " --assets-dir " + JSON.stringify(service.weAssetsDir)
-        var cmd = "nohup setsid linux-wallpaperengine " + audioFlag +
-            " --no-fullscreen-pause --noautomute" + screenArgs +
-            " --clamp border" +
-            assetsArg + " " + JSON.stringify(weId) +
-            " </dev/null >/dev/null 2>&1 &"
-        console.log("WallpaperApplyService: launching WE scene:", cmd)
-        weProcess.command = ["sh", "-c", cmd]
+            weArgs.push("--screen-root", mons[i])
+        if (service.weAssetsDir) weArgs.push("--assets-dir", service.weAssetsDir)
+        weArgs.push(weId)
+        console.log("WallpaperApplyService: launching WE scene id=" + weId + " args=" + weArgs.join(" "))
+        // bash --login sources the user's profile so WE is found in their PATH,
+        // exec replaces the shell with WE itself — weProcess monitors the real process.
+        weProcess.command = ["bash", "--login", "-c", 'exec "$@"', "--"].concat(weArgs)
         weProcess.running = true
     }
 

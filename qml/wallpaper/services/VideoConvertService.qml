@@ -142,9 +142,11 @@ QtObject {
             "width=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=width -of csv=p=0 \"$src\" 2>/dev/null || echo 0)\n" +
             "height=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=height -of csv=p=0 \"$src\" 2>/dev/null || echo 0)\n" +
             "codec=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 \"$src\" 2>/dev/null || echo unknown)\n" +
-            "if [ \"$codec\" = \"hevc\" ] && [ \"$width\" -le " + _currentResolution.maxW + " ] && [ \"$height\" -le " + _currentResolution.maxH + " ]; then\n" +
-            "  echo \"SKIP:$orig_size:$width:$height:$codec\"\n" +
-            "  exit 0\n" +
+            "if [ \"$codec\" = \"hevc\" ] || [ \"$codec\" = \"h264\" ]; then\n" +
+            "  if [ \"$width\" -le " + _currentResolution.maxW + " ] && [ \"$height\" -le " + _currentResolution.maxH + " ]; then\n" +
+            "    echo \"SKIP:$orig_size:$width:$height:$codec\"\n" +
+            "    exit 0\n" +
+            "  fi\n" +
             "fi\n" +
             "ffmpeg -y -i \"$src\" " +
             "-c:v libx265 -preset medium -crf " + preset.crf + " -maxrate " + preset.maxrate + " -bufsize " + preset.bufsize + " " +

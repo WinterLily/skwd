@@ -464,6 +464,20 @@ QtObject {
     WallpaperCacheService.forceRescan()
   }
 
+  function rescanWE() {
+    // Clear WE items from local data
+    var newData = []
+    for (var i = 0; i < _wallpaperData.length; i++) {
+      if (_wallpaperData[i].type !== "we") {
+        newData.push(_wallpaperData[i])
+      }
+    }
+    _wallpaperData = newData
+    updateFilteredModel()
+    // Trigger WE-only rescan in cache service
+    WallpaperCacheService.rescanWEItems()
+  }
+
   property var _unsubscribeWE: Process { command: ["bash", "-c", "true"] }
 
   property var _analysisConn: Connections {

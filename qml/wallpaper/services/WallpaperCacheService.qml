@@ -48,6 +48,21 @@ QtObject {
         _forceCleanProcess.running = true
     }
 
+    // Re-parse only Wallpaper Engine wallpapers to detect videos
+    function rescanWEItems() {
+        if (running) return
+        // Delete WE entries from meta table
+        DbService.exec("DELETE FROM meta WHERE type='we'")
+        // Clear WE thumbnail cache
+        _weCleanProcess.running = true
+    }
+
+    property var _weCleanProcess: Process {
+        command: ["sh", "-c",
+            "rm -rf " + DbService.shellQuote(service.weCacheDir) + "/* 2>/dev/null; true"]
+        onExited: service.rebuild(null)
+    }
+
     property var _forceCleanProcess: Process {
         command: ["sh", "-c",
             "rm -rf " + DbService.shellQuote(service.thumbsDir) + "/* " +
@@ -285,12 +300,13 @@ QtObject {
             'if [ -n "$we_dir" ] && [ -d "$we_dir" ]; then\n' +
             '  for d in "$we_dir"/*/; do\n' +
             '    [ -d "$d" ] || continue\n' +
+            '    [ -f "${d}project.json" ] || continue\n' +
             '    id=$(basename "$d")\n' +
             '    mtime=$(stat -c "%Y" "$d" 2>/dev/null || echo 0)\n' +
             '    preview=""\n' +
             '    for p in "${d}preview.jpg" "${d}preview.png" "${d}preview.gif"; do [ -f "$p" ] && preview="$p" && break; done\n' +
             '    [ -z "$preview" ] && continue\n' +
-            '    title=$(jq -r ".title // \\"Unknown\\"" "$d/project.json" 2>/dev/null)\n' +
+            '    title=$(jq -r ".title // \\"Unknown\\"" "${d}project.json" 2>/dev/null) || continue\n' +
             '    echo "we\t$preview\t$id\t$mtime\t$we_cache/$id.jpg\t$title"\n' +
             '  done\n' +
             'fi\n'

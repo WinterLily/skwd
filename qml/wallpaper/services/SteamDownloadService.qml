@@ -7,7 +7,7 @@ import "../.."
 QtObject {
   id: svc
 
-  readonly property string _statusFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-status.json"
+  readonly property string _statusFilePath: Config.wallCacheDir + "/steam-dl-status.json"
 
   property var downloadStatus: ({})
   property var downloadProgress: ({})

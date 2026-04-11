@@ -108,6 +108,8 @@ QtObject {
     readonly property string weAssetsDir: _resolve(_data.paths?.steamWeAssets)
     readonly property string steamDir: _resolve(_data.paths?.steam)
 
+    readonly property bool wallpaperMute: _data.wallpaperMute !== false
+
     readonly property bool matugenEnabled: _data.features?.matugen !== false
     readonly property bool ollamaEnabled: _data.features?.ollama !== false
     readonly property bool steamEnabled: _data.features?.steam !== false

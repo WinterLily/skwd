@@ -22,6 +22,7 @@ mkdir -p "$SKWD_CACHE/app-launcher" 2>/dev/null
 [ -f "$SKWD_CACHE/wallpaper/colors.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/colors.json" 2>/dev/null
 [ -f "$SKWD_CACHE/wallpaper/matugen-colors.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/matugen-colors.json" 2>/dev/null
 [ -f "$SKWD_CACHE/app-launcher/freq.json" ] || echo '{}' > "$SKWD_CACHE/app-launcher/freq.json" 2>/dev/null
+[ -f "$SKWD_CACHE/wallpaper/steam-dl-status.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/steam-dl-status.json" 2>/dev/null
 
 # Read a jq path from config.json, expand ~ to $HOME
 cfg_get() {

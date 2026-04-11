@@ -50,10 +50,17 @@ QtObject {
 
 
     // Animation durations (ms)
+    readonly property int animVeryFast: 100
     readonly property int animFast: 150
     readonly property int animNormal: 200
+    readonly property int animEnter: 250
     readonly property int animMedium: 300
+    readonly property int animExpand: 350
     readonly property int animSlow: 400
+    readonly property int animSpin: 1000
+
+    readonly property int tooltipDelay: 500
+    readonly property color fallbackAccent: "#4fc3f7"
 
 
     // Border widths

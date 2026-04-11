@@ -37,8 +37,8 @@ if [ ! -f "$thumb_path" ]; then
   ffmpeg -y -ss 1 -i "$video_path" -vframes 1 -vf "scale=640:360:force_original_aspect_ratio=increase,crop=640:360" "$thumb_path" 2>/dev/null
 fi
 
-mpv_opts="loop"
-[ "$wp_mute" = "true" ] && mpv_opts="loop --mute=yes"
+mpv_opts="loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30"
+[ "$wp_mute" = "true" ] && mpv_opts="$mpv_opts --mute=yes"
 mpvpaper -o "$mpv_opts" "*" "$video_path" &
 mpv_pid=$!
 
