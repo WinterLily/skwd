@@ -1,5 +1,4 @@
 import "../.."
-// Imports
 import QtQuick
 
 Rectangle {
@@ -221,7 +220,6 @@ Rectangle {
                     property int dayNum: index - parent.firstDayOfWeek + 1
                     property bool isValidDay: dayNum > 0 && dayNum <= parent.daysInMonth
                     property bool isToday: isValidDay && dayNum === parent.today && parent.month === parent.currentMonth && parent.year === parent.currentYear
-                    property bool hasEvents: false
 
                     width: 28
                     height: 28
@@ -263,17 +261,6 @@ Rectangle {
 
                     }
 
-                    Rectangle {
-                        anchors.bottom: parent.bottom
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.bottomMargin: 3
-                        width: 3
-                        height: 3
-                        radius: 1.5
-                        color: Colors.tertiary
-                        visible: hasEvents
-                    }
-
                     Text {
                         anchors.centerIn: parent
                         text: isValidDay ? dayNum : ""
@@ -300,8 +287,6 @@ Rectangle {
                             if (isValidDay)
                                 dayBg.requestPaint();
 
-                        }
-                        onClicked: {
                         }
                     }
 

@@ -15,8 +15,6 @@ QtObject {
     property var windowList: CompositorService.windows
     property int selectedIndex: 0
     property bool preserveIndex: false
-    property int screenshotCounter: 0
-    property string thumbDir: cacheDir + "/window-thumbs"
     // App config from apps.json (custom icons/names)
     property var appConfig: ({
     })

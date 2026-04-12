@@ -1,6 +1,5 @@
 import "../.."
 import QtQuick
-// Imports
 import Quickshell.Io
 
 Rectangle {

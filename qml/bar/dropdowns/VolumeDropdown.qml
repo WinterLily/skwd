@@ -1,4 +1,3 @@
-// Imports
 import Quickshell.Services.Pipewire
 import QtQuick
 import "../.."
@@ -108,16 +107,6 @@ Rectangle {
     }
     Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
     Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-
-    // PipeWire node tracker
-    PwObjectTracker {
-      id: volumeNodeTracker
-      objects: {
-        let allNodes = Pipewire.nodes.values
-        let audioDevices = allNodes.filter(n => n && !n.isStream && n.audio)
-        return audioDevices
-      }
-    }
 
     // Output section header
     Text {

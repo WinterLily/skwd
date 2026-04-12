@@ -2,7 +2,6 @@ import ".."
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -49,7 +48,6 @@ Scope {
     property var appsData: ({
     })
     property var _appKeys: []
-    property string _appSearchFilter: ""
 
     function _loadConfigData() {
         var text = configFile.text().trim();

@@ -1,5 +1,4 @@
 import "../.."
-// Imports
 import QtQuick
 
 Rectangle {

@@ -4,7 +4,6 @@ import "../services"
 import "../../services"
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 
 // Top-level orchestrator.
@@ -89,7 +88,6 @@ Scope {
         return base;
     }
     // Scroll restore state
-    property real lastContentX: 0
     property int lastIndex: 0
     property bool _restorePending: false
     property int _preCommitIndex: -1
@@ -119,11 +117,6 @@ Scope {
 
         wallpaperSelector._panelVisible = true;
         cardShowTimer.restart();
-    }
-
-    function resetScroll() {
-        lastContentX = 0;
-        lastIndex = 0;
     }
 
     function _focusActiveList() {

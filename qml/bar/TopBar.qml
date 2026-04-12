@@ -1,11 +1,9 @@
-// Imports
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pipewire
 import Quickshell.Bluetooth
 import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
 import ".."
 import "../services"
 import "lyrics"

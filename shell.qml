@@ -1,17 +1,10 @@
-// Imports
 import Quickshell
-import Quickshell.Wayland
 import Quickshell.Services.Pipewire
-import Quickshell.Services.SystemTray
 import Quickshell.Services.Notifications
 import Quickshell.Services.Mpris
 import Quickshell.Widgets
-import Quickshell.Bluetooth
 import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Shapes
-import Qt.labs.platform
 import "qml"
 import "qml/bar"
 import "qml/bar/lyrics"

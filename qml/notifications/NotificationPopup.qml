@@ -1,7 +1,6 @@
 import ".."
 import "../components"
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Notifications
