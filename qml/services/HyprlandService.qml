@@ -9,6 +9,7 @@ Item {
     property var workspaces: []
     property int focusedWindowIndex: -1
     property bool initialized: false
+    property string lastActiveOutput: ""
 
     signal workspaceChanged
     signal activeWindowChanged
@@ -106,6 +107,7 @@ Item {
                     windowsList.push(windowData)
                     if (windowData.isFocused) {
                         newFocusedIndex = windowsList.length - 1
+                        if (windowData.output) lastActiveOutput = windowData.output
                     }
                 }
             }
@@ -229,6 +231,10 @@ Item {
     }
 
     function getActiveOutput() {
+        // Prefer the cached value — by the time an overlay opens and steals focus,
+        // Hyprland has already updated m.focused to point at the overlay's screen.
+        // lastActiveOutput is updated whenever a real window receives focus.
+        if (lastActiveOutput) return lastActiveOutput
         try {
             if (!Hyprland.monitors) return null
             for (const m of Hyprland.monitors.values) {

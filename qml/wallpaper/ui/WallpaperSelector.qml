@@ -28,8 +28,7 @@ Scope {
     property alias selectorService: service
     property alias swService: swService
     // ── monitor tracking ──────────────────────────────────────────────────────
-    property string mainMonitor: Config.mainMonitor
-    property string activeMonitor: mainMonitor
+    property string activeMonitor: Quickshell.screens[0]?.name ?? ""
     property bool _panelVisible: false
     // ── layout dimensions (all animate via Behaviors at bottom) ───────────────
     property int sliceWidth: Config.wallpaperSliceWidth
@@ -72,21 +71,7 @@ Scope {
     // ── UI state ──────────────────────────────────────────────────────────────
     property bool wallhavenBrowserOpen: false
     property bool steamWorkshopBrowserOpen: false
-    property bool settingsOpen: false
     property bool cardVisible: false
-    property real _settingsShift: {
-        if (!settingsOpen)
-            return 0;
-
-        var base = settingsPanelItem.height - 4;
-        var naturalCardY = (selectorPanel.height - cardHeight) / 2;
-        var settingsY = naturalCardY + base / 2 + filterBarBg.y - settingsPanelItem.height - 8;
-        if (settingsY < 8) {
-            var extra = 2 * (8 - settingsY);
-            return base + extra;
-        }
-        return base;
-    }
     // Scroll restore state
     property int lastIndex: 0
     property bool _restorePending: false
@@ -126,7 +111,6 @@ Scope {
     onShowingChanged: {
         if (showing) {
             _panelVisible = false;
-            activeMonitor = mainMonitor;
             updateActiveMonitor();
             _restorePending = true;
             service.startCacheCheck();
@@ -134,7 +118,6 @@ Scope {
             _panelVisible = false;
             cardShowTimer.stop();
             cardVisible = false;
-            settingsOpen = false;
             gc();
         }
     }
@@ -279,7 +262,7 @@ Scope {
             width: wallpaperSelector.cardWidth
             height: wallpaperSelector.cardHeight
             anchors.centerIn: parent
-            anchors.verticalCenterOffset: wallpaperSelector._settingsShift / 2
+            anchors.verticalCenterOffset: 0
             visible: wallpaperSelector.cardVisible
             opacity: 0
             onAnimateInChanged: {
@@ -322,7 +305,6 @@ Scope {
                     maxWidth: parent.width - 20
                     z: 10
                     service: service
-                    settingsOpen: wallpaperSelector.settingsOpen
                     cacheLoading: service.cacheLoading
                     cacheProgress: service.cacheProgress
                     cacheTotal: service.cacheTotal
@@ -341,19 +323,11 @@ Scope {
                     steamWorkshopBrowserOpen: wallpaperSelector.steamWorkshopBrowserOpen
                     visible: !wallpaperSelector.anyBrowserOpen
                     opacity: wallpaperSelector.anyBrowserOpen ? 0 : 1
-                    onSettingsToggled: {
-                        wallpaperSelector.settingsOpen = !wallpaperSelector.settingsOpen;
-                        if (!wallpaperSelector.settingsOpen)
-                            wallpaperSelector._focusActiveList();
-
-                    }
                     onWallhavenToggled: {
-                        wallpaperSelector.settingsOpen = false;
                         wallpaperSelector.steamWorkshopBrowserOpen = false;
                         wallpaperSelector.wallhavenBrowserOpen = !wallpaperSelector.wallhavenBrowserOpen;
                     }
                     onSteamWorkshopToggled: {
-                        wallpaperSelector.settingsOpen = false;
                         wallpaperSelector.wallhavenBrowserOpen = false;
                         wallpaperSelector.steamWorkshopBrowserOpen = !wallpaperSelector.steamWorkshopBrowserOpen;
                     }
@@ -378,20 +352,6 @@ Scope {
                 cacheTotal: service.cacheTotal
             }
 
-        }
-
-        SettingsPanel {
-            id: settingsPanelItem
-
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: Math.max(8, cardContainer.y + filterBarBg.y - height - 8)
-            z: 999
-            service: service
-            settingsOpen: wallpaperSelector.settingsOpen
-            onCloseRequested: {
-                wallpaperSelector.settingsOpen = false;
-                wallpaperSelector._focusActiveList();
-            }
         }
 
         WallhavenBrowser {

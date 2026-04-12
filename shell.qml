@@ -78,13 +78,13 @@ ShellRoot {
   }
 
   IpcHandler {
-    target: "config"
-    function toggle() { if (root.configPanelInstance) root.configPanelInstance.showing = !root.configPanelInstance.showing }
+    target: "session"
+    function quit() { CompositorService.quit() }
   }
 
   IpcHandler {
-    target: "session"
-    function quit() { CompositorService.quit() }
+    target: "wallpaper-cache"
+    function rebuild() { WallpaperCacheService.rebuild() }
   }
 
   // Notification server
@@ -347,12 +347,6 @@ ShellRoot {
     }
   }
 
-  Loader {
-    id: configPanelLoader
-    active: true
-    source: "qml/config-panel/ConfigPanel.qml"
-  }
-
   // Component instance references (null until loaded)
   property var appLauncherInstance: appLauncherLoader.item ?? null
   property var lockscreenInstance: lockscreenLoader.item ?? null
@@ -360,7 +354,6 @@ ShellRoot {
   property var windowSwitcherInstance: windowSwitcherLoader.item ?? null
   property var smartHomeInstance: smartHomeLoader.item ?? null
   property var notificationInstance: notificationLoader.item ?? null
-  property var configPanelInstance: configPanelLoader.item ?? null
 
   // System clock and audio sink tracking
   SystemClock {

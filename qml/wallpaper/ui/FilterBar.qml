@@ -8,7 +8,6 @@ Item {
     id: filterBar
 
     property var service
-    property bool settingsOpen: false
     property bool wallhavenBrowserOpen: false
     property bool steamWorkshopBrowserOpen: false
     property bool cacheLoading: false
@@ -31,7 +30,6 @@ Item {
     readonly property int _padV: 7
     property real maxWidth: 99999
 
-    signal settingsToggled()
     signal wallhavenToggled()
     signal steamWorkshopToggled()
     signal tagCloudToggled()
@@ -263,14 +261,6 @@ Item {
                 skew: filterBar._skew
                 isActive: filterBar.steamWorkshopBrowserOpen
                 onClicked: filterBar.steamWorkshopToggled()
-            }
-
-            FilterButton {
-                icon: "\u{f0493}"
-                tooltip: "Settings"
-                skew: filterBar._skew
-                isActive: filterBar.settingsOpen
-                onClicked: filterBar.settingsToggled()
             }
 
             Item {

@@ -135,7 +135,7 @@ QtObject {
             return ;
 
         if (!apiKey) {
-            errorText = "Steam API key required. Set steam.apiKey in config.json";
+            errorText = "Steam API key required. Set steam.api_key in config.toml";
             resultsUpdated();
             return ;
         }

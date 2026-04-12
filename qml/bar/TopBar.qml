@@ -21,7 +21,7 @@ PanelWindow {
     required property string weatherCity
     required property var weatherForecast
     required property var lyricsService
-    screen: Quickshell.screens.find(s => s.name === Config.mainMonitor) ?? Quickshell.screens[0]
+    screen: Quickshell.screens[0]
     WlrLayershell.namespace: "topbar"
     WlrLayershell.keyboardFocus: {
         if (activeDropdown !== "") {

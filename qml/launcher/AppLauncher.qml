@@ -14,8 +14,7 @@ Scope {
 
     // External bindings
     property bool showing: false
-    property string mainMonitor: Config.mainMonitor
-    property string activeMonitor: mainMonitor
+    property string activeMonitor: Quickshell.screens[0]?.name ?? ""
     property bool _panelVisible: false
     // Expose service through appLauncher so it's reachable inside Component+Loader contexts
     property alias launcherService: service
@@ -62,9 +61,7 @@ Scope {
 
     onShowingChanged: {
         if (showing) {
-            console.log("AppLauncher: showing=true, activeMonitor=" + mainMonitor);
             _panelVisible = false;
-            activeMonitor = mainMonitor;
             updateActiveMonitor();
             service.searchText = "";
             service.loadFreqData();
@@ -85,7 +82,7 @@ Scope {
         homeDir: Config.homeDir
         cacheDir: Config.cacheDir
         configDir: Config.configDir
-        terminal: Config.terminal
+        terminal: Quickshell.env("TERMINAL") || "kitty"
     }
 
     Timer {

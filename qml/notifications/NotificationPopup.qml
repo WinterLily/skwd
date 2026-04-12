@@ -12,7 +12,7 @@ Scope {
 
     // State and layout properties
     property var notifications
-    property string mainMonitor: Config.mainMonitor
+    property string mainMonitor: Quickshell.screens[0]?.name ?? ""
     property bool barVisible: false
     property int barHeight: 32
     property int effectiveTopMargin: barVisible ? popupTopMargin + barHeight : popupTopMargin

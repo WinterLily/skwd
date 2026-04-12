@@ -16,7 +16,7 @@ Scope {
 
     // External bindings
     property bool showing: false
-    property string mainMonitor: Config.mainMonitor
+    property string mainMonitor: Quickshell.screens[0]?.name ?? ""
     // Slice geometry constants
     property int sliceWidth: 135
     property int expandedWidth: 924

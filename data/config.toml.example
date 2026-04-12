@@ -1,0 +1,249 @@
+# vex configuration
+# Copy to config.toml and edit to match your setup.
+# Requires Python 3.11+ (uses tomllib for TOML parsing).
+
+wallpaper_mute = true
+
+[paths]
+wallpaper       = "~/Pictures/Wallpapers"
+# video_wallpaper = ""                              # defaults to paths.wallpaper
+# steam           = "~/.local/share/Steam"
+# steam_workshop  = "~/.local/share/Steam/steamapps/workshop/content/431960"
+# steam_we_assets = "~/.local/share/Steam/steamapps/common/wallpaper_engine/assets"
+# cache           = "~/.cache/skwd"
+# scripts         = ""
+# colors_file     = ""                               # defaults to cache/colors.json
+# matugen_config  = "~/.config/matugen/config.toml"  # your personal matugen config
+
+
+# ── Features ──────────────────────────────────────────────────────────────────
+
+[features]
+matugen       = true
+video_preview = true
+
+# Steam Workshop and Wallhaven are configured in their own sections below.
+# Set enabled = false there to disable them entirely.
+
+
+# ── Bar ───────────────────────────────────────────────────────────────────────
+
+[bar]
+enabled      = true
+accent_edges = true
+
+[bar.weather]
+enabled = true
+city    = "YOUR_CITY"
+
+[bar.wifi]
+enabled   = true
+interface = "wlan0"
+
+[bar.music]
+enabled          = true
+preferred_player = "spotify"
+visualizer       = "wave"
+visualizer_top   = true
+visualizer_bottom = true
+autohide         = true
+
+[bar.widgets]
+bluetooth = true
+volume    = true
+calendar  = true
+
+
+# ── Components ────────────────────────────────────────────────────────────────
+
+[launcher]
+enabled  = true
+hex_radius = 56
+hex_rows   = 4
+hex_cols   = 9
+
+[wallpaper_selector]
+enabled        = true
+show_color_dots = false
+display_mode   = "hex"   # "hex", "slices", "grid"
+
+[wallpaper_selector.hex]
+radius       = 140
+rows         = 3
+cols         = 7
+scroll_step  = 1
+arc          = true
+arc_intensity = 1.2
+
+[wallpaper_selector.slices]
+height         = 520
+visible_count  = 12
+expanded_width = 924
+slice_width    = 135
+slice_spacing  = -30
+skew_offset    = 35
+
+[wallpaper_selector.grid]
+columns      = 6
+rows         = 3
+thumb_width  = 300
+thumb_height = 169
+
+[window_switcher]
+enabled = true
+
+[power_menu]
+enabled = true
+
+[[power_menu.items]]
+action = "lock"
+icon   = "\uf023"
+label  = ""
+
+[[power_menu.items]]
+action = "logout"
+icon   = "\uf2f5"
+label  = ""
+
+[[power_menu.items]]
+action = "reboot"
+icon   = "\uf2f9"
+label  = ""
+
+[[power_menu.items]]
+action = "poweroff"
+icon   = "\uf011"
+label  = ""
+
+[notifications]
+enabled = true
+
+# [lockscreen]
+# enabled = false   # WIP
+
+# [smart_home]
+# enabled = false   # WIP
+
+
+# ── External Services ─────────────────────────────────────────────────────────
+
+[wallhaven]
+enabled      = true
+api_key      = ""      # or set env WALLHAVEN_API_KEY
+columns      = 6
+rows         = 3
+thumb_width  = 300
+thumb_height = 169
+
+[steam]
+enabled      = true
+api_key      = ""      # or set env STEAM_API_KEY
+username     = ""
+columns      = 6
+rows         = 3
+thumb_width  = 300
+thumb_height = 169
+
+
+# ── Performance ───────────────────────────────────────────────────────────────
+
+[performance]
+video_convert_preset      = "balanced"   # "fast", "balanced", "slow"
+video_convert_resolution  = "2k"         # "1k", "2k", "4k"
+image_optimize_preset     = "balanced"
+image_optimize_resolution = "2k"
+auto_optimize_images      = false
+auto_convert_videos       = false
+image_trash_days          = 7
+video_trash_days          = 7
+auto_delete_image_trash   = false
+auto_delete_video_trash   = false
+
+
+# ── Matugen ───────────────────────────────────────────────────────────────────
+
+[matugen]
+scheme_type = "scheme-tonal-spot"
+
+[post_processing]
+on_restore = false
+scripts    = []
+# scripts = ["~/.config/skwd/scripts/after-wallpaper.sh"]
+
+
+# ── Polling intervals (milliseconds) ──────────────────────────────────────────
+
+[intervals]
+weather_poll_ms        = 600000
+wifi_poll_ms           = 10000
+smart_home_poll_ms     = 5000
+notification_expire_ms = 8000
+
+
+# ── Color integrations ────────────────────────────────────────────────────────
+# Each [[integrations]] entry maps a matugen template to an output file.
+# The "skwd" entry (colors.json) must stay first — the shell depends on it.
+
+[[integrations]]
+name     = "skwd"
+template = "quickshell-colors.json"
+output   = "colors.json"
+
+[[integrations]]
+name     = "kitty"
+template = "kitty.conf"
+output   = "~/.config/kitty/themes/noctalia.conf"
+reload   = "pkill -USR1 kitty"
+
+[[integrations]]
+name   = "ghostty"
+template = "ghostty.conf"
+output = "~/.config/ghostty/themes/noctalia"
+reload = "bash -c 'pgrep -f ghostty >/dev/null && pkill -SIGUSR2 ghostty || true'"
+
+[[integrations]]
+name     = "niri"
+template = "niri-colors.kdl"
+output   = "~/.config/niri/noctalia.kdl"
+reload   = "~/.config/skwd/scripts/reload-niri.sh"
+
+[[integrations]]
+name     = "hyprland"
+template = "hyprland-colors.conf"
+output   = "~/.config/hypr/noctalia/noctalia-colors.conf"
+reload   = "~/.config/skwd/scripts/reload-hyprland.sh"
+
+[[integrations]]
+name     = "vscode"
+template = "vscode-theme.json"
+output   = "~/.vscode/extensions/noctalia.noctaliatheme-0.0.5/themes/NoctaliaTheme-color-theme.json"
+
+[[integrations]]
+name     = "vesktop"
+template = "vesktop.css"
+output   = "~/.config/vesktop/themes/noctalia.theme.css"
+
+[[integrations]]
+name     = "spicetify"
+template = "spicetify.ini"
+output   = "~/.config/spicetify/Themes/Comfy/color.ini"
+reload   = "~/.config/skwd/scripts/reload-spicetify.sh"
+
+[[integrations]]
+name     = "yazi"
+template = "yazi-theme.toml"
+output   = "~/.config/yazi/flavors/noctalia.yazi/flavor.toml"
+
+[[integrations]]
+name     = "qt5ct"
+template = "qtct.conf"
+output   = "~/.config/qt5ct/colors/noctalia.conf"
+
+[[integrations]]
+name     = "qt6ct"
+template = "qtct.conf"
+output   = "~/.config/qt6ct/colors/noctalia.conf"
+
+[[integrations]]
+name   = "omp"
+reload = "~/.config/skwd/scripts/reload-omp.sh"

@@ -12,7 +12,7 @@ QtObject {
     readonly property string weDir: Config.weDir
     readonly property string weAssetsDir: Config.weAssetsDir
     readonly property string cacheDir: Config.wallCacheDir
-    readonly property string mainMonitor: Config.mainMonitor
+    readonly property string mainMonitor: Quickshell.screens[0]?.name ?? ""
     property string matugenScheme: "scheme-fidelity"
     property bool wallpaperMute: true
     readonly property string _matugenConfig: cacheDir + "/matugen-config.toml"
@@ -283,12 +283,12 @@ QtObject {
     Component.onCompleted: {
         var data = Config._data;
         if (data.matugen) {
-            if (data.matugen.schemeType)
-                matugenScheme = data.matugen.schemeType;
+            if (data.matugen.scheme_type)
+                matugenScheme = data.matugen.scheme_type;
 
         }
-        if (data.wallpaperMute !== undefined)
-            wallpaperMute = data.wallpaperMute;
+        if (data.wallpaper_mute !== undefined)
+            wallpaperMute = data.wallpaper_mute;
 
     }
     onWallpaperApplied: function(type, name, path) {
