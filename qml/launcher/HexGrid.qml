@@ -4,7 +4,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 
 // Hexagonal grid view for app launcher.
-// Modelled on WallpaperHexView — same ListView column pattern, arc effect and
+// Mirrors WallpaperHexView — same ListView column pattern, arc effect and
 // fade zones.  Only apps that have a non-empty iconPath are displayed.
 Item {
     id: root
@@ -36,12 +36,15 @@ Item {
     property var _hexItems: []
 
     function _rebuildHexItems() {
-        var arr = [];
+        console.log("HexGrid._rebuildHexItems: service=" + root.service
+            + " filteredModel=" + (root.service ? root.service.filteredModel : "N/A")
+            + " count=" + (root.service && root.service.filteredModel ? root.service.filteredModel.count : "N/A"));
         var fm = root.service ? root.service.filteredModel : null;
         if (!fm) {
             root._hexItems = [];
             return;
         }
+        var arr = [];
         for (var i = 0; i < fm.count; i++) {
             var item = fm.get(i);
             if (item.iconPath)
@@ -52,18 +55,26 @@ Item {
                     "iconPath": item.iconPath
                 });
         }
+        console.log("HexGrid._rebuildHexItems done: fm.count=" + fm.count + " → _hexItems=" + arr.length);
         root._hexItems = arr;
     }
 
+    // ── primary rebuild trigger: listen for modelUpdated signal ───────────────
     Connections {
         target: root.service
         function onModelUpdated() {
+            console.log("HexGrid: onModelUpdated fired, filteredModel.count=" + root.service.filteredModel.count);
             root._rebuildHexItems();
         }
     }
 
-    onServiceChanged: root._rebuildHexItems()
+    onServiceChanged: {
+        console.log("HexGrid: service assigned, filteredModel=" + (root.service ? root.service.filteredModel : "null"));
+        root._rebuildHexItems();
+    }
+
     onCardVisibleChanged: {
+        console.log("HexGrid: cardVisible=" + cardVisible + " _hexItems.length=" + root._hexItems.length);
         if (cardVisible && root._hexItems.length === 0)
             root._rebuildHexItems();
     }
@@ -110,6 +121,10 @@ Item {
         preferredHighlightEnd: (width + _hexW) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
 
+        onModelChanged: {
+            console.log("HexGrid ListView: model=" + model + " (_hexItems=" + root._hexItems.length + " rows=" + _rows + ")");
+        }
+
         onVisibleChanged: {
             if (visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
@@ -121,6 +136,7 @@ Item {
             }
         }
         onCountChanged: {
+            console.log("HexGrid ListView: count=" + count);
             if (count > 0 && visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
                 if (startCol >= 0) {
@@ -223,6 +239,11 @@ Item {
             width: _hexListView._stepX
             height: _hexListView.height
             clip: false
+
+            Component.onCompleted: {
+                var itemsInCol = Math.max(0, Math.min(_hexListView._rows, root._hexItems.length - colIdx * _hexListView._rows));
+                console.log("HexGrid delegate created: col=" + colIdx + " items=" + itemsInCol);
+            }
 
             Repeater {
                 model: Math.max(0, Math.min(_hexListView._rows, root._hexItems.length - hexCol.colIdx * _hexListView._rows))

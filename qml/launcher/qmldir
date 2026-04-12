@@ -1,5 +1,4 @@
 AppLauncher 1.0 AppLauncher.qml
 AppLauncherService 1.0 AppLauncherService.qml
 HexGrid 1.0 HexGrid.qml
-LauncherSliceView 1.0 LauncherSliceView.qml
 SearchPanel 1.0 SearchPanel.qml
