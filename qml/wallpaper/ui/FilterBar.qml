@@ -9,7 +9,6 @@ Item {
 
     property var service
     property bool settingsOpen: false
-    property bool ollamaActive: false
     property bool wallhavenBrowserOpen: false
     property bool steamWorkshopBrowserOpen: false
     property bool cacheLoading: false
@@ -18,10 +17,6 @@ Item {
     property bool matugenRunning: false
     property int matugenProgress: 0
     property int matugenTotal: 0
-    property int ollamaProgress: 0
-    property int ollamaTotal: 0
-    property string ollamaEta: ""
-    property string ollamaLogLine: ""
     property bool videoConvertRunning: false
     property int videoConvertProgress: 0
     property int videoConvertTotal: 0
@@ -329,7 +324,7 @@ Item {
             }
 
             Item {
-                visible: filterBar.cacheLoading || filterBar.ollamaActive || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
+                visible: filterBar.cacheLoading || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
                 width: visible ? (_statusRow.width + 24 + filterBar._skew) : 0
                 height: 24
 
@@ -378,7 +373,7 @@ Item {
                             to: 360
                             duration: 1200
                             loops: Animation.Infinite
-                            running: filterBar.cacheLoading || filterBar.ollamaActive || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
+                            running: filterBar.cacheLoading || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
                         }
 
                     }
@@ -391,12 +386,6 @@ Item {
                                     parts.push("CACHE " + filterBar.cacheProgress + "/" + filterBar.cacheTotal);
                                 else
                                     parts.push("PROCESSING");
-                            }
-                            if (filterBar.ollamaActive) {
-                                if (filterBar.ollamaTotal > 0)
-                                    parts.push("OLLAMA " + filterBar.ollamaProgress + "/" + filterBar.ollamaTotal);
-                                else
-                                    parts.push("OLLAMA");
                             }
                             if (filterBar.matugenRunning) {
                                 if (filterBar.matugenTotal > 0)
@@ -483,75 +472,6 @@ Item {
 
                 }
 
-            }
-
-            Item {
-                visible: filterBar.ollamaActive && filterBar.ollamaLogLine !== ""
-                width: visible ? (Math.min(_ollamaLogText.implicitWidth, 220) + 24 + filterBar._skew) : 0
-                height: 24
-
-                Canvas {
-                    property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
-                    property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
-
-                    anchors.fill: parent
-                    visible: parent.visible
-                    onFillColorChanged: requestPaint()
-                    onStrokeColorChanged: requestPaint()
-                    onWidthChanged: requestPaint()
-                    onPaint: {
-                        var ctx = getContext("2d");
-                        ctx.clearRect(0, 0, width, height);
-                        var sk = filterBar._skew;
-                        ctx.fillStyle = fillColor;
-                        ctx.strokeStyle = strokeColor;
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(sk, 0);
-                        ctx.lineTo(width, 0);
-                        ctx.lineTo(width - sk, height);
-                        ctx.lineTo(0, height);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.stroke();
-                    }
-                }
-
-                Text {
-                    id: _ollamaLogText
-
-                    anchors.centerIn: parent
-                    width: Math.min(implicitWidth, 220)
-                    text: filterBar.ollamaLogLine
-                    font.family: Style.fontFamilyCode
-                    font.pixelSize: 8
-                    font.letterSpacing: 0.3
-                    elide: Text.ElideMiddle
-                    maximumLineCount: 1
-                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.5)
-                }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: Style.animFast
-                    }
-
-                }
-
-            }
-
-            FilterButton {
-                visible: Config.ollamaEnabled
-                label: "O"
-                tooltip: filterBar.ollamaActive ? "Stop Ollama scan" : "Start Ollama scan"
-                skew: filterBar._skew
-                isActive: filterBar.ollamaActive
-                onClicked: {
-                    if (filterBar.ollamaActive)
-                        WallpaperAnalysisService.stop();
-                    else
-                        WallpaperAnalysisService.start();
-                }
             }
 
         }

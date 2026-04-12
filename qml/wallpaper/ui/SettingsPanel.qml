@@ -13,51 +13,12 @@ Item {
     property bool settingsOpen: false
     property string activeTab: "selector"
     property bool openDownward: false
-    property var _ollamaModels: []
-    property bool _ollamaModelsFetching: false
-    property string _ollamaFetchStdout: ""
     property string _lastConvertResult: ""
     property string _lastOptimizeResult: ""
-    property var _ollamaFetchProc
-
-    _ollamaFetchProc: Process {
-        onExited: function(code) {
-            settingsPanel._ollamaModelsFetching = false;
-            if (code === 0) {
-                try {
-                    var resp = JSON.parse(settingsPanel._ollamaFetchStdout.trim());
-                    var names = (resp.models || []).map(function(m) {
-                        return m.name;
-                    });
-                    names.sort();
-                    settingsPanel._ollamaModels = names;
-                } catch (e) {
-                    settingsPanel._ollamaModels = [];
-                }
-            } else {
-                settingsPanel._ollamaModels = [];
-            }
-        }
-
-        stdout: SplitParser {
-            onRead: function(data) {
-                settingsPanel._ollamaFetchStdout += data;
-            }
-        }
-
-    }
 
     property int _tabSkew: 14
 
     signal closeRequested()
-
-    function _fetchOllamaModels() {
-        var url = Config.ollamaUrl || "http://localhost:11434";
-        _ollamaModelsFetching = true;
-        _ollamaFetchStdout = "";
-        _ollamaFetchProc.command = ["sh", "-c", "curl -s --max-time 5 '" + url + "/api/tags'"];
-        _ollamaFetchProc.running = true;
-    }
 
     function _readConfig() {
         _selectorConfigFile.reload();
@@ -225,12 +186,6 @@ Item {
     Keys.onEscapePressed: closeRequested()
     focus: settingsOpen
     Connections {
-        function onOllamaEnabledChanged() {
-            if (!Config.ollamaEnabled && settingsPanel.activeTab === "ollama")
-                settingsPanel.activeTab = "general";
-
-        }
-
         function onMatugenEnabledChanged() {
             if (!Config.matugenEnabled && settingsPanel.activeTab === "matugen")
                 settingsPanel.activeTab = "general";
@@ -329,12 +284,6 @@ Item {
                     "label": "STEAM"
                 });
 
-                if (Config.ollamaEnabled)
-                    tabs.push({
-                    "key": "ollama",
-                    "label": "OLLAMA"
-                });
-
                 if (Config.matugenEnabled)
                     tabs.push({
                     "key": "matugen",
@@ -398,9 +347,6 @@ Item {
 
             if (settingsPanel.activeTab === "general")
                 return generalContent.implicitHeight;
-
-            if (settingsPanel.activeTab === "ollama")
-                return ollamaContent.implicitHeight;
 
             if (settingsPanel.activeTab === "paths")
                 return pathsContent.implicitHeight;
@@ -872,7 +818,7 @@ Item {
                 SettingsCombo {
                     label: "Color source"
                     value: Config.colorSource
-                    model: ["ollama", "magick"]
+                    model: ["magick"]
                     onSelect: function(v) {
                         settingsPanel._saveConfigKey("colorSource", v);
                     }
@@ -898,14 +844,6 @@ Item {
                     checked: Config.matugenEnabled
                     onToggle: function(v) {
                         settingsPanel._saveConfigKey("features.matugen", v);
-                    }
-                }
-
-                SettingsToggle {
-                    label: "Ollama (Local LLM colour & tagging)"
-                    checked: Config.ollamaEnabled
-                    onToggle: function(v) {
-                        settingsPanel._saveConfigKey("features.ollama", v);
                     }
                 }
 
@@ -939,112 +877,6 @@ Item {
                     onToggle: function(v) {
                         settingsPanel._saveConfigKey("components.wallpaperSelector.showColorDots", v);
                     }
-                }
-
-            }
-
-        }
-
-        Row {
-            id: ollamaContent
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-            visible: settingsPanel.activeTab === "ollama"
-            spacing: 12
-            onVisibleChanged: {
-                if (visible)
-                    settingsPanel._fetchOllamaModels();
-
-            }
-
-            Column {
-                width: (parent.width - 12) / 2
-                spacing: 6
-
-                Text {
-                    text: "CONNECTION"
-                    font.family: Style.fontFamily
-                    font.pixelSize: 13
-                    font.weight: Font.Bold
-                    font.letterSpacing: 1.5
-                    color: Colors.tertiary
-                }
-
-                SettingsTextInput {
-                    label: "URL"
-                    value: Config.ollamaUrl
-                    placeholder: "http://localhost:11434"
-                    onCommit: function(v) {
-                        settingsPanel._saveConfigKey("ollama.url", v);
-                        settingsPanel._fetchOllamaModels();
-                    }
-                }
-
-                SettingsCombo {
-                    label: settingsPanel._ollamaModelsFetching ? "Model  󰔟" : (settingsPanel._ollamaModels.length === 0 ? "Model  (no models found)" : "Model")
-                    model: settingsPanel._ollamaModels
-                    value: Config.ollamaModel
-                    onSelect: function(v) {
-                        settingsPanel._saveConfigKey("ollama.model", v);
-                    }
-                }
-
-                FilterButton {
-                    icon: "󰑐"
-                    tooltip: "Refresh model list"
-                    onClicked: settingsPanel._fetchOllamaModels()
-                }
-
-            }
-
-            Rectangle {
-                width: 1
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.1)
-            }
-
-            Column {
-                width: (parent.width - 12) / 2
-                spacing: 6
-
-                Text {
-                    text: "DATA"
-                    font.family: Style.fontFamily
-                    font.pixelSize: 13
-                    font.weight: Font.Bold
-                    font.letterSpacing: 1.5
-                    color: Colors.tertiary
-                }
-
-                Item {
-                    width: parent.width
-                    height: 28
-
-                    FilterButton {
-                        id: _deleteTagsBtn
-
-                        label: "DELETE ALL TAGS"
-                        skew: 8
-                        height: 26
-                        hasActiveColor: true
-                        activeColor: "#c62828"
-                        isActive: _deleteTagsBtn.isHovered
-                        onClicked: _deleteConfirmPopup.open()
-                    }
-
-                }
-
-                Text {
-                    width: parent.width
-                    text: "Clears all Ollama-generated tags. The next analysis pass will re-tag everything with the current model."
-                    font.family: Style.fontFamily
-                    font.pixelSize: 10
-                    font.letterSpacing: 0.2
-                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.45)
-                    wrapMode: Text.WordWrap
-                    lineHeight: 1.3
                 }
 
             }

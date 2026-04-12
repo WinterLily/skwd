@@ -110,29 +110,6 @@ Column {
     }
 
     ConfigSectionTitle {
-        text: "OLLAMA"
-        topPad: 16
-    }
-
-    ConfigTextField {
-        label: "URL"
-        value: panel.getNested(panel.configData, ["ollama", "url"], "")
-        onEdited: (v) => {
-            panel.setNested(panel.configData, ["ollama", "url"], v);
-            panel.configDataChanged();
-        }
-    }
-
-    ConfigTextField {
-        label: "Model"
-        value: panel.getNested(panel.configData, ["ollama", "model"], "")
-        onEdited: (v) => {
-            panel.setNested(panel.configData, ["ollama", "model"], v);
-            panel.configDataChanged();
-        }
-    }
-
-    ConfigSectionTitle {
         text: "MATUGEN"
         topPad: 16
     }

@@ -27,10 +27,6 @@ Column {
             "label": "Smart home poll (ms)",
             "fallback": 5000
         }, {
-            "key": "ollamaStatusPollMs",
-            "label": "Ollama status poll (ms)",
-            "fallback": 5000
-        }, {
             "key": "notificationExpireMs",
             "label": "Notification expire (ms)",
             "fallback": 8000

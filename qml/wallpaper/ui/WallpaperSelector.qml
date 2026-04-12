@@ -422,17 +422,12 @@ Scope {
                     z: 10
                     service: service
                     settingsOpen: wallpaperSelector.settingsOpen
-                    ollamaActive: service.ollamaActive
                     cacheLoading: service.cacheLoading
                     cacheProgress: service.cacheProgress
                     cacheTotal: service.cacheTotal
                     matugenRunning: MatugenCacheService.running
                     matugenProgress: MatugenCacheService.progress
                     matugenTotal: MatugenCacheService.total
-                    ollamaProgress: service.ollamaTaggedCount
-                    ollamaTotal: service.ollamaTotalThumbs
-                    ollamaEta: service.ollamaEta
-                    ollamaLogLine: service.ollamaLogLine
                     videoConvertRunning: VideoConvertService.running
                     videoConvertProgress: VideoConvertService.progress
                     videoConvertTotal: VideoConvertService.total
