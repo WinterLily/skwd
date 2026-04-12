@@ -71,7 +71,6 @@ Scope {
         return contentH + topBarHeight + 60;
     }
     // ── UI state ──────────────────────────────────────────────────────────────
-    property bool tagCloudVisible: false
     property bool wallhavenBrowserOpen: false
     property bool steamWorkshopBrowserOpen: false
     property bool settingsOpen: false
@@ -122,20 +121,12 @@ Scope {
         cardShowTimer.restart();
     }
 
-    function _setSelectedTags(tags) {
-        service.selectedTags = tags;
-        service.updateFilteredModel();
-    }
-
     function resetScroll() {
         lastContentX = 0;
         lastIndex = 0;
     }
 
     function _focusActiveList() {
-        if (wallpaperSelector.tagCloudVisible)
-            return;
-
         hexView.focusList();
     }
 
@@ -352,7 +343,6 @@ Scope {
                     imageOptimizeFile: ImageOptimizeService.currentFile
                     wallhavenBrowserOpen: wallpaperSelector.wallhavenBrowserOpen
                     steamWorkshopBrowserOpen: wallpaperSelector.steamWorkshopBrowserOpen
-                    tagCloudOpen: wallpaperSelector.tagCloudVisible
                     visible: !wallpaperSelector.anyBrowserOpen
                     opacity: wallpaperSelector.anyBrowserOpen ? 0 : 1
                     onSettingsToggled: {
@@ -370,14 +360,6 @@ Scope {
                         wallpaperSelector.wallhavenBrowserOpen = false;
                         wallpaperSelector.steamWorkshopBrowserOpen = !wallpaperSelector.steamWorkshopBrowserOpen;
                     }
-                    onTagCloudToggled: {
-                        wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
-                        if (!wallpaperSelector.tagCloudVisible) {
-                            tagCloud.reset();
-                            wallpaperSelector._setSelectedTags([]);
-                        }
-                    }
-
                     Behavior on opacity {
                         NumberAnimation {
                             duration: Style.animNormal
@@ -406,24 +388,6 @@ Scope {
             settingsOpen: wallpaperSelector.settingsOpen
             onCloseRequested: {
                 wallpaperSelector.settingsOpen = false;
-                wallpaperSelector._focusActiveList();
-            }
-        }
-
-        TagCloud {
-            id: tagCloud
-
-            anchors.top: cardContainer.bottom
-            anchors.horizontalCenter: cardContainer.horizontalCenter
-            parentWidth: cardContainer.width
-            z: 5
-            service: service
-            tagCloudVisible: wallpaperSelector.tagCloudVisible
-            onEscapePressed: wallpaperSelector._focusActiveList()
-            onCloseRequested: {
-                wallpaperSelector.tagCloudVisible = false;
-                tagCloud.reset();
-                wallpaperSelector._setSelectedTags([]);
                 wallpaperSelector._focusActiveList();
             }
         }
@@ -464,16 +428,8 @@ Scope {
             cardVisible: wallpaperSelector.cardVisible
             anyBrowserOpen: wallpaperSelector.anyBrowserOpen
             isHexMode: wallpaperSelector.isHexMode
-            tagCloudVisible: wallpaperSelector.tagCloudVisible
             showing: wallpaperSelector.showing
             onEscapePressed: wallpaperSelector.showing = false
-            onTagCloudToggleRequested: {
-                wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
-                if (!wallpaperSelector.tagCloudVisible) {
-                    tagCloud.reset();
-                    wallpaperSelector._setSelectedTags([]);
-                }
-            }
             onFocusRequested: wallpaperSelector._focusActiveList()
         }
     }
