@@ -22,6 +22,9 @@ Scope {
     property int hexRadius: Config.launcherHexRadius
     property int hexRows: Config.launcherHexRows
     property int hexCols: Config.launcherHexCols
+    property int hexScrollStep: Config.launcherHexScrollStep
+    property bool hexArc: Config.launcherHexArc
+    property real hexArcIntensity: Config.launcherHexArcIntensity
     property int topBarHeight: 50
     property int cardWidth: {
         var r = hexRadius;
@@ -289,6 +292,9 @@ Scope {
                 hexRadius: appLauncher.hexRadius
                 hexRows: appLauncher.hexRows
                 hexCols: appLauncher.hexCols
+                scrollStep: appLauncher.hexScrollStep
+                arcEnabled: appLauncher.hexArc
+                arcIntensity: appLauncher.hexArcIntensity
                 topBarHeight: appLauncher.topBarHeight
                 cardWidth: appLauncher.cardWidth
                 cardVisible: appLauncher.cardVisible

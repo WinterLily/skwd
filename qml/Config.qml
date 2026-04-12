@@ -19,7 +19,7 @@ QtObject {
     // Watch config.toml for changes and re-run the converter on each save.
 
     property var _tomlWatcher: FileView {
-        path: configDir + "/config.toml"
+        path: configDir + "/data/config.toml"
         watchChanges: true
         onFileChanged: config._runConverter()
     }
@@ -38,7 +38,7 @@ QtObject {
         command: [
             "python3", "-c",
             "import tomllib,json,sys; f=open(sys.argv[1],'rb'); print(json.dumps(tomllib.load(f)))",
-            config.configDir + "/config.toml"
+            config.configDir + "/data/config.toml"
         ]
         stdout: SplitParser {
             splitMarker: ""
@@ -95,9 +95,12 @@ QtObject {
     readonly property bool accentEdges: _bar.accent_edges !== false
 
     readonly property bool appLauncherEnabled: _data.launcher?.enabled !== false
-    readonly property int launcherHexRadius: _data.launcher?.hex_radius ?? 56
-    readonly property int launcherHexRows: _data.launcher?.hex_rows ?? 4
-    readonly property int launcherHexCols: _data.launcher?.hex_cols ?? 9
+    readonly property int launcherHexRadius: _data.launcher?.radius ?? 56
+    readonly property int launcherHexRows: _data.launcher?.rows ?? 4
+    readonly property int launcherHexCols: _data.launcher?.cols ?? 9
+    readonly property int launcherHexScrollStep: _data.launcher?.scroll_step ?? 1
+    readonly property bool launcherHexArc: _data.launcher?.arc !== false
+    readonly property real launcherHexArcIntensity: _data.launcher?.arc_intensity ?? 1.2
 
     readonly property bool wallpaperSelectorEnabled: _data.wallpaper_selector?.enabled !== false
     readonly property bool windowSwitcherEnabled: _data.window_switcher?.enabled !== false
@@ -187,7 +190,6 @@ QtObject {
 
     // Wallpaper selector UI dimensions
     property var _wallSel: _data.wallpaper_selector ?? {}
-    property var _wallHex: _wallSel.hex ?? {}
     property var _wallSlices: _wallSel.slices ?? {}
     property var _wallGrid: _wallSel.grid ?? {}
 
@@ -204,13 +206,13 @@ QtObject {
     readonly property int wallpaperSliceSpacing: _wallSlices.slice_spacing ?? -30
     readonly property int wallpaperSkewOffset: _wallSlices.skew_offset ?? (_isSmallScreen ? 25 : 35)
 
-    readonly property string displayMode: _wallSel.display_mode ?? "slices"
-    readonly property int hexRadius: _wallHex.radius ?? (_isSmallScreen ? 100 : 140)
-    readonly property int hexRows: _wallHex.rows ?? 3
-    readonly property int hexCols: _wallHex.cols ?? (_isSmallScreen ? 5 : 7)
-    readonly property int hexScrollStep: _wallHex.scroll_step ?? 1
-    readonly property bool hexArc: _wallHex.arc !== false
-    readonly property real hexArcIntensity: _wallHex.arc_intensity ?? 1.2
+    readonly property string displayMode: _wallSel.display_mode ?? "hex"
+    readonly property int hexRadius: _wallSel.radius ?? (_isSmallScreen ? 100 : 140)
+    readonly property int hexRows: _wallSel.rows ?? 3
+    readonly property int hexCols: _wallSel.cols ?? (_isSmallScreen ? 5 : 7)
+    readonly property int hexScrollStep: _wallSel.scroll_step ?? 1
+    readonly property bool hexArc: _wallSel.arc !== false
+    readonly property real hexArcIntensity: _wallSel.arc_intensity ?? 1.2
 
     readonly property int gridColumns: _wallGrid.columns ?? (_isSmallScreen ? 4 : 6)
     readonly property int gridRows: _wallGrid.rows ?? 3

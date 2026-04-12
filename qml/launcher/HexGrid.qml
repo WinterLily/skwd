@@ -17,6 +17,9 @@ Item {
     property int topBarHeight: 50
     property int cardWidth: 800
     property bool cardVisible: false
+    property int scrollStep: 1
+    property bool arcEnabled: true
+    property real arcIntensity: 1.2
     // ── read-write alias so AppLauncher can call resetToStart ────────────────
     property alias currentIndex: _hexListView.currentIndex
     // ── filtered item list (only apps with a non-empty iconPath) ──────────────
@@ -84,6 +87,7 @@ Item {
         // ── geometry ──────────────────────────────────────────────────────────
         property int _rows: root.hexRows
         property real _r: root.hexRadius
+        property real _arcFactor: root.arcEnabled ? root.arcIntensity : 0
         property real _gridSpacing: 14
         property real _hexW: _r * 2
         property real _hexH: Math.ceil(_r * 1.73205)
@@ -199,8 +203,8 @@ Item {
             anchors.fill: parent
             propagateComposedEvents: true
             onWheel: function(wheel) {
-                var delta = (wheel.angleDelta.y > 0 || wheel.angleDelta.x > 0) ? -1 : 1;
-                _hexListView.currentIndex = Math.max(0, Math.min(_hexListView.count - 1, _hexListView.currentIndex + delta));
+                var direction = (wheel.angleDelta.y > 0 || wheel.angleDelta.x > 0) ? -1 : 1;
+                _hexListView.currentIndex = Math.max(0, Math.min(_hexListView.count - 1, _hexListView.currentIndex + direction * root.scrollStep));
                 _hexListView._selectedCol = _hexListView.currentIndex;
             }
             onPressed: function(mouse) {
@@ -237,9 +241,11 @@ Item {
             readonly property bool _visible: _insideView && !_nearEdge
             property real _colScale: _visible ? 1 : 0
             readonly property real _arcOffset: {
+                if (_hexListView._arcFactor === 0)
+                    return 0;
                 var viewCenterX = _hexListView.width / 2;
                 var normalized = (_colCenter - viewCenterX) / Math.max(1, viewCenterX);
-                return -normalized * normalized * _hexListView._r * 1.2;
+                return -normalized * normalized * _hexListView._r * _hexListView._arcFactor;
             }
 
             width: _hexListView._stepX

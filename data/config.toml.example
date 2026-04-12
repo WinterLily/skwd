@@ -57,23 +57,23 @@ calendar  = true
 # ── Components ────────────────────────────────────────────────────────────────
 
 [launcher]
-enabled  = true
-hex_radius = 56
-hex_rows   = 4
-hex_cols   = 9
-
-[wallpaper_selector]
-enabled        = true
-show_color_dots = false
-display_mode   = "hex"   # "hex", "slices", "grid"
-
-[wallpaper_selector.hex]
-radius       = 140
-rows         = 3
-cols         = 7
+enabled      = true
+radius       = 56
+rows         = 4
+cols         = 9
 scroll_step  = 1
 arc          = true
 arc_intensity = 1.2
+
+[wallpaper_selector]
+enabled         = true
+show_color_dots = false
+radius          = 140
+rows            = 3
+cols            = 7
+scroll_step     = 1
+arc             = true
+arc_intensity   = 1.2
 
 [wallpaper_selector.slices]
 height         = 520

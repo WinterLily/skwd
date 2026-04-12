@@ -85,6 +85,7 @@ ShellRoot {
   IpcHandler {
     target: "wallpaper-cache"
     function rebuild() { WallpaperCacheService.rebuild() }
+    function rescan() { WallpaperCacheService.forceRescan() }
   }
 
   // Notification server
