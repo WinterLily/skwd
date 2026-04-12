@@ -1,8 +1,8 @@
+pragma Singleton
 import "../.."
 import QtQuick
 import Quickshell
 import Quickshell.Io
-pragma Singleton
 
 QtObject {
     id: service
@@ -100,12 +100,12 @@ QtObject {
 
     function _tryRestore() {
         if (!_restoreRequested || !_stateFileLoaded)
-            return ;
+            return;
 
         _restoreRequested = false;
         var text = _stateFile.text().trim();
         if (!text)
-            return ;
+            return;
 
         _restoring = true;
         try {
@@ -154,7 +154,7 @@ QtObject {
     function _launchWEScene(weId) {
         // Clear kill guard — we're about to start a new scene, not kill one
         _weKilling = false;
-        var mons = Quickshell.screens.map(function(s) {
+        var mons = Quickshell.screens.map(function (s) {
             return s.name;
         });
         // Build the actual linux-wallpaperengine argument list
@@ -163,14 +163,15 @@ QtObject {
             weArgs.push("--silent");
 
         weArgs.push("--no-fullscreen-pause", "--noautomute");
-        for (var i = 0; i < mons.length; i++) weArgs.push("--screen-root", mons[i])
+        for (var i = 0; i < mons.length; i++) {
+            weArgs.push("--scaling", "fill");
+            weArgs.push("--screen-root", mons[i]);
+        }
         if (service.weAssetsDir)
             weArgs.push("--assets-dir", service.weAssetsDir);
 
         weArgs.push(weId);
         console.log("WallpaperApplyService: launching WE scene id=" + weId + " args=" + weArgs.join(" "));
-        // bash --login sources the user's profile so WE is found in their PATH,
-        // exec replaces the shell with WE itself — weProcess monitors the real process.
         weProcess.command = ["bash", "--login", "-c", 'exec "$@"', "--"].concat(weArgs);
         weProcess.running = true;
     }
@@ -218,7 +219,7 @@ QtObject {
             return "true";
 
         var outputs = _matugenOutputFiles();
-        var hashFiles = outputs.map(function(f) {
+        var hashFiles = outputs.map(function (f) {
             return JSON.stringify(f);
         }).join(" ");
         var before = hashFiles ? "_BEFORE=$(md5sum " + hashFiles + " 2>/dev/null | sort); " : "";
@@ -234,7 +235,7 @@ QtObject {
 
     function _propagateColors() {
         if (!Config.matugenEnabled)
-            return ;
+            return;
 
         var integrations = Config.integrations;
         console.log("propagateColors: running", integrations.length, "integrations");
@@ -256,7 +257,7 @@ QtObject {
         console.log("runReload:", cmd);
         var proc = reloadComponent.createObject(service);
         proc.command = ["sh", "-c", cmd];
-        proc.exited.connect(function() {
+        proc.exited.connect(function () {
             proc.destroy();
         });
         proc.running = true;
@@ -264,11 +265,11 @@ QtObject {
 
     function _runPostProcessing(type, name, path) {
         if (_restoring && !Config.postProcessOnRestore)
-            return ;
+            return;
 
         var cmds = Config.postProcessing;
         if (!cmds || cmds.length === 0)
-            return ;
+            return;
 
         for (var i = 0; i < cmds.length; i++) {
             var cmd = cmds[i];
@@ -284,7 +285,7 @@ QtObject {
         console.log("runDetached:", cmd);
         var proc = reloadComponent.createObject(service);
         proc.command = ["sh", "-c", "nohup setsid sh -c " + JSON.stringify(cmd) + " </dev/null >/dev/null 2>&1 &"];
-        proc.exited.connect(function() {
+        proc.exited.connect(function () {
             proc.destroy();
         });
         proc.running = true;
@@ -300,11 +301,9 @@ QtObject {
         if (data.matugen) {
             if (data.matugen.schemeType)
                 matugenScheme = data.matugen.schemeType;
-
         }
         if (data.wallpaperMute !== undefined)
             wallpaperMute = data.wallpaperMute;
-
     }
     onWallpaperApplied: {
         _runPostProcessing(type, name, path);
@@ -335,7 +334,7 @@ QtObject {
     _awwwProcess: Process {
         id: awwwProcess
 
-        onExited: function(code, status) {
+        onExited: function (code, status) {
             console.log("WallpaperApplyService: awww exited code=" + code + " status=" + status);
             if (_awwwStderr.length > 0)
                 console.log("WallpaperApplyService: awww stderr:", _awwwStderr.join(""));
@@ -344,11 +343,10 @@ QtObject {
         }
 
         stderr: SplitParser {
-            onRead: (data) => {
+            onRead: data => {
                 return service._awwwStderr.push(data);
             }
         }
-
     }
 
     _mpvProcess: Process {
@@ -362,7 +360,7 @@ QtObject {
     _weProcess: Process {
         id: weProcess
 
-        onExited: function(code, status) {
+        onExited: function (code, status) {
             var wasKilling = service._weKilling;
             service._weKilling = false;
             var out = service._weStdout.join("").trim();
@@ -370,7 +368,7 @@ QtObject {
             service._weStdout = [];
             service._weStderr = [];
             if (wasKilling)
-                return ;
+                return;
 
             if (out)
                 console.log("WallpaperApplyService: WE stdout:", out);
@@ -388,18 +386,17 @@ QtObject {
 
         stdout: SplitParser {
             splitMarker: ""
-            onRead: (data) => {
+            onRead: data => {
                 return service._weStdout.push(data);
             }
         }
 
         stderr: SplitParser {
             splitMarker: ""
-            onRead: (data) => {
+            onRead: data => {
                 return service._weStderr.push(data);
             }
         }
-
     }
 
     _weReadProject: Process {
@@ -440,11 +437,10 @@ QtObject {
 
         stdout: SplitParser {
             splitMarker: ""
-            onRead: (data) => {
+            onRead: data => {
                 return _weProjectStdout.push(data);
             }
         }
-
     }
 
     _symLinkProcess: Process {
@@ -452,7 +448,7 @@ QtObject {
     }
 
     _wePreviewFallbackProc: Process {
-        onExited: function(code) {
+        onExited: function (code) {
             var preview = service._wePreviewStdout.trim();
             service._wePreviewStdout = "";
             if (code === 0 && preview) {
@@ -463,20 +459,19 @@ QtObject {
 
         stdout: SplitParser {
             splitMarker: ""
-            onRead: (data) => {
+            onRead: data => {
                 return service._wePreviewStdout += data;
             }
         }
-
     }
 
     _videoThumbProcess: Process {
         id: videoThumbProcess
 
-        onExited: function(code) {
+        onExited: function (code) {
             if (code === 2) {
                 console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
-                return ;
+                return;
             }
             service._propagateColors();
         }
@@ -494,29 +489,25 @@ QtObject {
         }
 
         stdout: SplitParser {
-            onRead: (data) => {
+            onRead: data => {
                 return _weFindPreviewStdout.push(data);
             }
         }
-
     }
 
     _copyAndTheme: Process {
         id: copyAndThemeProcess
 
-        onExited: function(code) {
+        onExited: function (code) {
             if (code === 2) {
                 console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
-                return ;
+                return;
             }
             service._propagateColors();
         }
     }
 
     reloadComponent: Component {
-        Process {
-        }
-
+        Process {}
     }
-
 }
