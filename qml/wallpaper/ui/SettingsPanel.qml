@@ -17,19 +17,20 @@ Item {
     property string _lastOptimizeResult: ""
     property int _tabSkew: 14
 
-    signal closeRequested
+    signal closeRequested()
 
     function _readConfig() {
         _selectorConfigFile.reload();
         try {
             return JSON.parse(_selectorConfigFile.text());
         } catch (e) {
-            return {};
+            return {
+            };
         }
     }
 
     function _cloneIntegrations() {
-        return Config.integrations.map(function (e) {
+        return Config.integrations.map(function(e) {
             return JSON.parse(JSON.stringify(e));
         });
     }
@@ -37,12 +38,13 @@ Item {
     function _saveField(key, value) {
         var data = _readConfig();
         if (!data.components)
-            data.components = {};
+            data.components = {
+        };
 
         if (typeof data.components.wallpaperSelector !== "object" || data.components.wallpaperSelector === null)
             data.components.wallpaperSelector = {
-                "enabled": true
-            };
+            "enabled": true
+        };
 
         data.components.wallpaperSelector[key] = value;
         _selectorConfigFile.setText(JSON.stringify(data, null, 2) + "\n");
@@ -54,7 +56,8 @@ Item {
         var obj = data;
         for (var i = 0; i < parts.length - 1; i++) {
             if (typeof obj[parts[i]] !== "object" || obj[parts[i]] === null)
-                obj[parts[i]] = {};
+                obj[parts[i]] = {
+            };
 
             obj = obj[parts[i]];
         }
@@ -65,12 +68,13 @@ Item {
     function _applyPreset(expanded, sliceH, sliceW, visible, gap, skew) {
         var data = _readConfig();
         if (!data.components)
-            data.components = {};
+            data.components = {
+        };
 
         if (typeof data.components.wallpaperSelector !== "object" || data.components.wallpaperSelector === null)
             data.components.wallpaperSelector = {
-                "enabled": true
-            };
+            "enabled": true
+        };
 
         data.components.wallpaperSelector.expandedWidth = expanded;
         data.components.wallpaperSelector.visibleCount = visible;
@@ -81,27 +85,31 @@ Item {
     function _saveCustomPreset(slot) {
         var data = _readConfig();
         if (!data.components)
-            data.components = {};
+            data.components = {
+        };
 
         if (typeof data.components.wallpaperSelector !== "object" || data.components.wallpaperSelector === null)
             data.components.wallpaperSelector = {
-                "enabled": true
-            };
+            "enabled": true
+        };
 
         if (!data.components.wallpaperSelector.customPresets)
-            data.components.wallpaperSelector.customPresets = {};
+            data.components.wallpaperSelector.customPresets = {
+        };
 
         var key = slot + "_" + Config.displayMode;
-        var preset = {};
+        var preset = {
+        };
         if (Config.displayMode === "hex")
             preset = {
-                "hexRadius": Config.hexRadius,
-                "hexRows": Config.hexRows,
-                "hexCols": Config.hexCols,
-                "hexScrollStep": Config.hexScrollStep,
-                "hexArc": Config.hexArc,
-                "hexArcIntensity": Config.hexArcIntensity
-            };
+            "hexRadius": Config.hexRadius,
+            "hexRows": Config.hexRows,
+            "hexCols": Config.hexCols,
+            "hexScrollStep": Config.hexScrollStep,
+            "hexArc": Config.hexArc,
+            "hexArcIntensity": Config.hexArcIntensity
+        };
+
         data.components.wallpaperSelector.customPresets[key] = preset;
         _selectorConfigFile.setText(JSON.stringify(data, null, 2) + "\n");
     }
@@ -110,7 +118,8 @@ Item {
         var key = slot + "_" + Config.displayMode;
         var p = Config.wallpaperCustomPresets[key];
         if (!p)
-            return;
+            return ;
+
     }
 
     z: 102
@@ -127,16 +136,19 @@ Item {
         function onMatugenEnabledChanged() {
             if (!Config.matugenEnabled && settingsPanel.activeTab === "matugen")
                 settingsPanel.activeTab = "performance";
+
         }
 
         function onSteamEnabledChanged() {
             if (!Config.steamEnabled && settingsPanel.activeTab === "steam")
                 settingsPanel.activeTab = "performance";
+
         }
 
         function onWallhavenEnabledChanged() {
             if (!Config.wallhavenEnabled && settingsPanel.activeTab === "wallhaven")
                 settingsPanel.activeTab = "performance";
+
         }
 
         target: Config
@@ -163,9 +175,10 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: function (mouse) {
+        onClicked: function(mouse) {
             if (mouse.button === Qt.RightButton)
                 settingsPanel.closeRequested();
+
         }
     }
 
@@ -187,33 +200,30 @@ Item {
 
         Repeater {
             model: {
-                var tabs = [
-                    {
-                        "key": "performance",
-                        "label": "PERFORMANCE"
-                    },
-                    {
-                        "key": "keybinds",
-                        "label": "KEYBINDS"
-                    }
-                ];
+                var tabs = [{
+                    "key": "performance",
+                    "label": "PERFORMANCE"
+                }, {
+                    "key": "keybinds",
+                    "label": "KEYBINDS"
+                }];
                 if (Config.wallhavenEnabled)
                     tabs.push({
-                        "key": "wallhaven",
-                        "label": "WALLHAVEN"
-                    });
+                    "key": "wallhaven",
+                    "label": "WALLHAVEN"
+                });
 
                 if (Config.steamEnabled)
                     tabs.push({
-                        "key": "steam",
-                        "label": "STEAM"
-                    });
+                    "key": "steam",
+                    "label": "STEAM"
+                });
 
                 if (Config.matugenEnabled)
                     tabs.push({
-                        "key": "matugen",
-                        "label": "MATUGEN"
-                    });
+                    "key": "matugen",
+                    "label": "MATUGEN"
+                });
 
                 return tabs;
             }
@@ -225,6 +235,7 @@ Item {
                 isActive: settingsPanel.activeTab === modelData.key
                 onClicked: settingsPanel.activeTab = modelData.key
             }
+
         }
 
         add: Transition {
@@ -243,6 +254,7 @@ Item {
                 duration: Style.animNormal
                 easing.type: Easing.OutCubic
             }
+
         }
 
         move: Transition {
@@ -251,7 +263,9 @@ Item {
                 duration: Style.animNormal
                 easing.type: Easing.OutCubic
             }
+
         }
+
     }
 
     Item {
@@ -307,7 +321,7 @@ Item {
                     value: Config.wallhavenColumns
                     min: 2
                     max: 12
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("wallhavenColumns", n);
                     }
                 }
@@ -317,7 +331,7 @@ Item {
                     value: Config.wallhavenRows
                     min: 1
                     max: 10
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("wallhavenRows", n);
                     }
                 }
@@ -337,7 +351,7 @@ Item {
                     value: Config.wallhavenThumbWidth
                     min: 100
                     max: 600
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("wallhavenThumbWidth", n);
                     }
                 }
@@ -347,10 +361,11 @@ Item {
                     value: Config.wallhavenThumbHeight
                     min: 60
                     max: 600
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("wallhavenThumbHeight", n);
                     }
                 }
+
             }
 
             Rectangle {
@@ -376,11 +391,13 @@ Item {
                     label: "API key"
                     value: Config.wallhavenApiKey
                     placeholder: "Wallhaven API key (for NSFW)"
-                    onCommit: function (v) {
+                    onCommit: function(v) {
                         settingsPanel._saveConfigKey("wallhaven.apiKey", v);
                     }
                 }
+
             }
+
         }
 
         Row {
@@ -409,7 +426,7 @@ Item {
                     value: Config.steamColumns
                     min: 2
                     max: 12
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("steamColumns", n);
                     }
                 }
@@ -419,7 +436,7 @@ Item {
                     value: Config.steamRows
                     min: 1
                     max: 10
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("steamRows", n);
                     }
                 }
@@ -439,7 +456,7 @@ Item {
                     value: Config.steamThumbWidth
                     min: 100
                     max: 600
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("steamThumbWidth", n);
                     }
                 }
@@ -449,10 +466,11 @@ Item {
                     value: Config.steamThumbHeight
                     min: 60
                     max: 600
-                    onCommit: function (n) {
+                    onCommit: function(n) {
                         settingsPanel._saveField("steamThumbHeight", n);
                     }
                 }
+
             }
 
             Rectangle {
@@ -478,7 +496,7 @@ Item {
                     label: "API key"
                     value: Config.steamApiKey
                     placeholder: "Steam API key"
-                    onCommit: function (v) {
+                    onCommit: function(v) {
                         settingsPanel._saveConfigKey("steam.apiKey", v);
                     }
                 }
@@ -487,11 +505,13 @@ Item {
                     label: "Username"
                     value: Config.steamUsername
                     placeholder: "Steam username (for steamcmd)"
-                    onCommit: function (v) {
+                    onCommit: function(v) {
                         settingsPanel._saveConfigKey("steam.username", v);
                     }
                 }
+
             }
+
         }
 
         Row {
@@ -529,7 +549,7 @@ Item {
                 SettingsToggle {
                     label: "Auto-optimize new images"
                     checked: Config.autoOptimizeImages
-                    onToggle: function (v) {
+                    onToggle: function(v) {
                         settingsPanel._saveConfigKey("performance.autoOptimizeImages", v);
                     }
                 }
@@ -538,26 +558,22 @@ Item {
                     label: "Quality"
                     model: ["light", "balanced", "quality"]
                     value: Config.imageOptimizePreset
-                    onSelect: function (v) {
+                    onSelect: function(v) {
                         settingsPanel._saveConfigKey("performance.imageOptimizePreset", v);
                     }
                 }
 
                 Repeater {
-                    model: [
-                        {
-                            "key": "light",
-                            "desc": "Q 82 · max compression"
-                        },
-                        {
-                            "key": "balanced",
-                            "desc": "Q 88 · good trade-off"
-                        },
-                        {
-                            "key": "quality",
-                            "desc": "Q 94 · visually lossless"
-                        }
-                    ]
+                    model: [{
+                        "key": "light",
+                        "desc": "Q 82 · max compression"
+                    }, {
+                        "key": "balanced",
+                        "desc": "Q 88 · good trade-off"
+                    }, {
+                        "key": "quality",
+                        "desc": "Q 94 · visually lossless"
+                    }]
 
                     Text {
                         text: (Config.imageOptimizePreset === modelData.key ? "▸ " : "  ") + modelData.key.toUpperCase() + ":  " + modelData.desc
@@ -566,13 +582,14 @@ Item {
                         font.letterSpacing: 0.2
                         color: Config.imageOptimizePreset === modelData.key ? (Colors.primary) : (Qt.rgba(Colors.surfaceVariantText.r, Colors.surfaceVariantText.g, Colors.surfaceVariantText.b, 0.7))
                     }
+
                 }
 
                 SettingsCombo {
                     label: "Max resolution"
                     model: ["1080p", "2k", "4k"]
                     value: Config.imageOptimizeResolution
-                    onSelect: function (v) {
+                    onSelect: function(v) {
                         settingsPanel._saveConfigKey("performance.imageOptimizeResolution", v);
                     }
                 }
@@ -618,7 +635,9 @@ Item {
                         font.letterSpacing: 0.2
                         color: Qt.rgba(Colors.surfaceVariantText.r, Colors.surfaceVariantText.g, Colors.surfaceVariantText.b, 0.8)
                     }
+
                 }
+
             }
 
             Rectangle {
@@ -672,20 +691,16 @@ Item {
                     }
 
                     Repeater {
-                        model: [
-                            {
-                                "key": "light",
-                                "desc": "CRF 28 · 6 Mbps"
-                            },
-                            {
-                                "key": "balanced",
-                                "desc": "CRF 26 · 10 Mbps"
-                            },
-                            {
-                                "key": "quality",
-                                "desc": "CRF 23 · 16 Mbps"
-                            }
-                        ]
+                        model: [{
+                            "key": "light",
+                            "desc": "CRF 28 · 6 Mbps"
+                        }, {
+                            "key": "balanced",
+                            "desc": "CRF 26 · 10 Mbps"
+                        }, {
+                            "key": "quality",
+                            "desc": "CRF 23 · 16 Mbps"
+                        }]
 
                         Text {
                             text: (Config.videoConvertPreset === modelData.key ? "▸ " : "  ") + modelData.key.toUpperCase() + ":  " + modelData.desc
@@ -694,6 +709,7 @@ Item {
                             font.letterSpacing: 0.2
                             color: Qt.rgba(Colors.surfaceVariantText.r, Colors.surfaceVariantText.g, Colors.surfaceVariantText.b, 0.7)
                         }
+
                     }
 
                     SettingsCombo {
@@ -715,8 +731,11 @@ Item {
                             skew: 8
                             height: 28
                         }
+
                     }
+
                 }
+
             }
 
             Rectangle {
@@ -753,7 +772,7 @@ Item {
                 SettingsToggle {
                     label: "Video previews"
                     checked: Config.videoPreviewEnabled
-                    onToggle: function (v) {
+                    onToggle: function(v) {
                         settingsPanel._saveConfigKey("features.videoPreview", v);
                     }
                 }
@@ -802,7 +821,7 @@ Item {
                     value: Config.imageTrashDays
                     min: 1
                     max: 365
-                    onCommit: function (v) {
+                    onCommit: function(v) {
                         settingsPanel._saveConfigKey("performance.imageTrashDays", v);
                     }
                 }
@@ -810,7 +829,7 @@ Item {
                 SettingsToggle {
                     label: "Auto-delete after retention"
                     checked: Config.autoDeleteImageTrash
-                    onToggle: function (v) {
+                    onToggle: function(v) {
                         settingsPanel._saveConfigKey("performance.autoDeleteImageTrash", v);
                     }
                 }
@@ -855,6 +874,7 @@ Item {
                         enabled: !WallpaperCacheService.running
                         onClicked: settingsPanel.service.forceRescan()
                     }
+
                 }
 
                 Item {
@@ -894,9 +914,13 @@ Item {
                             label: "Auto-delete after retention"
                             checked: false
                         }
+
                     }
+
                 }
+
             }
+
         }
 
         Flickable {
@@ -958,6 +982,7 @@ Item {
                         text: Config.defaultMatugenConfig
                         onEditingFinished: settingsPanel._saveConfigKey("defaultMatugenConfig", text)
                     }
+
                 }
 
                 Text {
@@ -1034,7 +1059,9 @@ Item {
                                             settingsPanel._saveConfigKey("integrations", a);
                                         }
                                     }
+
                                 }
+
                             }
 
                             Column {
@@ -1075,7 +1102,9 @@ Item {
                                             settingsPanel._saveConfigKey("integrations", a);
                                         }
                                     }
+
                                 }
+
                             }
 
                             Column {
@@ -1116,7 +1145,9 @@ Item {
                                             settingsPanel._saveConfigKey("integrations", a);
                                         }
                                     }
+
                                 }
+
                             }
 
                             Column {
@@ -1157,7 +1188,9 @@ Item {
                                             settingsPanel._saveConfigKey("integrations", a);
                                         }
                                     }
+
                                 }
+
                             }
 
                             Rectangle {
@@ -1190,9 +1223,13 @@ Item {
                                         settingsPanel._saveConfigKey("integrations", a);
                                     }
                                 }
+
                             }
+
                         }
+
                     }
+
                 }
 
                 Rectangle {
@@ -1227,12 +1264,15 @@ Item {
                             settingsPanel._saveConfigKey("integrations", a);
                         }
                     }
+
                 }
+
             }
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AlwaysOff
             }
+
         }
 
         Rectangle {
@@ -1255,7 +1295,9 @@ Item {
                 NumberAnimation {
                     duration: 150
                 }
+
             }
+
         }
 
         Row {
@@ -1280,32 +1322,25 @@ Item {
                 }
 
                 Repeater {
-                    model: [
-                        {
-                            "key": "← / →",
-                            "action": "Navigate items"
-                        },
-                        {
-                            "key": "↑ / ↓",
-                            "action": "Navigate rows (hex/grid)"
-                        },
-                        {
-                            "key": "Enter",
-                            "action": "Apply wallpaper"
-                        },
-                        {
-                            "key": "Escape",
-                            "action": "Close panel / overlay"
-                        },
-                        {
-                            "key": "Right-click",
-                            "action": "Flip card (details)"
-                        },
-                        {
-                            "key": "Scroll",
-                            "action": "Browse wallpapers"
-                        }
-                    ]
+                    model: [{
+                        "key": "← / →",
+                        "action": "Navigate items"
+                    }, {
+                        "key": "↑ / ↓",
+                        "action": "Navigate rows (hex/grid)"
+                    }, {
+                        "key": "Enter",
+                        "action": "Apply wallpaper"
+                    }, {
+                        "key": "Escape",
+                        "action": "Close panel / overlay"
+                    }, {
+                        "key": "Right-click",
+                        "action": "Flip card (details)"
+                    }, {
+                        "key": "Scroll",
+                        "action": "Browse wallpapers"
+                    }]
 
                     Item {
                         width: parent.width
@@ -1330,8 +1365,11 @@ Item {
                             font.pixelSize: 11
                             color: Colors.surfaceText
                         }
+
                     }
+
                 }
+
             }
 
             Rectangle {
@@ -1355,28 +1393,22 @@ Item {
                 }
 
                 Repeater {
-                    model: [
-                        {
-                            "key": "Shift + ← / →",
-                            "action": "Cycle colour filters"
-                        },
-                        {
-                            "key": "Shift + ↓",
-                            "action": "Toggle tag cloud"
-                        },
-                        {
-                            "key": "Tab",
-                            "action": "Auto-complete tag"
-                        },
-                        {
-                            "key": "Enter",
-                            "action": "Add tag (in tag input)"
-                        },
-                        {
-                            "key": "Escape",
-                            "action": "Clear search / close"
-                        }
-                    ]
+                    model: [{
+                        "key": "Shift + ← / →",
+                        "action": "Cycle colour filters"
+                    }, {
+                        "key": "Shift + ↓",
+                        "action": "Toggle tag cloud"
+                    }, {
+                        "key": "Tab",
+                        "action": "Auto-complete tag"
+                    }, {
+                        "key": "Enter",
+                        "action": "Add tag (in tag input)"
+                    }, {
+                        "key": "Escape",
+                        "action": "Clear search / close"
+                    }]
 
                     Item {
                         width: parent.width
@@ -1401,9 +1433,13 @@ Item {
                             font.pixelSize: 11
                             color: Colors.surfaceText
                         }
+
                     }
+
                 }
+
             }
+
         }
 
         Behavior on height {
@@ -1411,7 +1447,9 @@ Item {
                 duration: Style.animFast
                 easing.type: Easing.OutCubic
             }
+
         }
+
     }
 
     Rectangle {
@@ -1435,7 +1473,7 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: function (mouse) {
+            onClicked: function(mouse) {
                 mouse.accepted = true;
             }
         }
@@ -1518,6 +1556,7 @@ Item {
                         }
                     }
                 }
+
             }
 
             Row {
@@ -1550,8 +1589,11 @@ Item {
                         }
                     }
                 }
+
             }
+
         }
+
     }
 
     Rectangle {
@@ -1573,7 +1615,7 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: function (mouse) {
+            onClicked: function(mouse) {
                 mouse.accepted = true;
             }
         }
@@ -1656,8 +1698,11 @@ Item {
                         ImageOptimizeService.optimize(Config.imageOptimizePreset, Config.imageOptimizeResolution);
                     }
                 }
+
             }
+
         }
+
     }
 
     Rectangle {
@@ -1679,7 +1724,7 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: function (mouse) {
+            onClicked: function(mouse) {
                 mouse.accepted = true;
             }
         }
@@ -1759,8 +1804,11 @@ Item {
                     enabled: false
                     opacity: 0.35
                 }
+
             }
+
         }
+
     }
 
     Rectangle {
@@ -1782,7 +1830,7 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: function (mouse) {
+            onClicked: function(mouse) {
                 mouse.accepted = true;
             }
         }
@@ -1835,7 +1883,9 @@ Item {
                 isActive: true
                 onClicked: _restartWarningPopup.close()
             }
+
         }
+
     }
 
     Behavior on opacity {
@@ -1843,6 +1893,7 @@ Item {
             duration: Style.animFast
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on scale {
@@ -1850,5 +1901,7 @@ Item {
             duration: Style.animFast
             easing.type: Easing.OutCubic
         }
+
     }
+
 }

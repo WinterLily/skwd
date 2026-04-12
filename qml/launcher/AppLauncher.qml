@@ -17,10 +17,8 @@ Scope {
     property string mainMonitor: Config.mainMonitor
     property string activeMonitor: mainMonitor
     property bool _panelVisible: false
-
     // Expose service through appLauncher so it's reachable inside Component+Loader contexts
     property alias launcherService: service
-
     // Hex geometry
     property int hexRadius: Config.launcherHexRadius
     property int hexRows: Config.launcherHexRows
@@ -108,17 +106,18 @@ Scope {
             anchors.fill: parent
 
             Connections {
-                target: appLauncher.launcherService
-
                 function onSearchTextChanged() {
                     if (searchPanel.searchText !== appLauncher.launcherService.searchText)
                         searchPanel.searchText = appLauncher.launcherService.searchText;
+
                 }
 
                 function onModelUpdated() {
                     console.log("AppLauncher: service.modelUpdated() — filteredModel.count=" + appLauncher.launcherService.filteredModel.count);
                     hexGrid.resetToStart();
                 }
+
+                target: appLauncher.launcherService
             }
 
             Timer {
@@ -222,6 +221,7 @@ Scope {
                             anchors.centerIn: parent
                             service: appLauncher.launcherService
                         }
+
                     }
 
                     // Cache loading overlay with progress bar
@@ -253,8 +253,11 @@ Scope {
                                         duration: 100
                                         easing.type: Easing.OutCubic
                                     }
+
                                 }
+
                             }
+
                         }
 
                         Text {
@@ -267,8 +270,11 @@ Scope {
                             font.weight: Font.Medium
                             font.letterSpacing: 0.5
                         }
+
                     }
+
                 }
+
             }
 
             // Hex grid layout
@@ -298,9 +304,12 @@ Scope {
                 onBackspaceRequested: {
                     if (searchPanel.searchText.length > 0)
                         searchPanel.searchText = searchPanel.searchText.slice(0, -1);
+
                 }
             }
+
         }
+
     }
 
     // One PanelWindow per screen — screen is fixed at Variants creation time.
@@ -339,7 +348,9 @@ Scope {
                     NumberAnimation {
                         duration: 300
                     }
+
                 }
+
             }
 
             // Click anywhere on any screen to close
@@ -354,6 +365,9 @@ Scope {
                 active: isActive
                 sourceComponent: launcherUIComponent
             }
+
         }
+
     }
+
 }

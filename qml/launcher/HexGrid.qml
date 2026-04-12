@@ -17,9 +17,10 @@ Item {
     property int topBarHeight: 50
     property int cardWidth: 800
     property bool cardVisible: false
-
     // ── read-write alias so AppLauncher can call resetToStart ────────────────
     property alias currentIndex: _hexListView.currentIndex
+    // ── filtered item list (only apps with a non-empty iconPath) ──────────────
+    property var _hexItems: []
 
     // ── signals ───────────────────────────────────────────────────────────────
     signal escapePressed()
@@ -32,54 +33,50 @@ Item {
         _hexListView.forceActiveFocus();
     }
 
-    // ── filtered item list (only apps with a non-empty iconPath) ──────────────
-    property var _hexItems: []
-
     function _rebuildHexItems() {
-        console.log("HexGrid._rebuildHexItems: service=" + root.service
-            + " filteredModel=" + (root.service ? root.service.filteredModel : "N/A")
-            + " count=" + (root.service && root.service.filteredModel ? root.service.filteredModel.count : "N/A"));
+        console.log("HexGrid._rebuildHexItems: service=" + root.service + " filteredModel=" + (root.service ? root.service.filteredModel : "N/A") + " count=" + (root.service && root.service.filteredModel ? root.service.filteredModel.count : "N/A"));
         var fm = root.service ? root.service.filteredModel : null;
         if (!fm) {
             root._hexItems = [];
-            return;
+            return ;
         }
         var arr = [];
         for (var i = 0; i < fm.count; i++) {
             var item = fm.get(i);
             if (item.iconPath)
                 arr.push({
-                    "name": item.name,
-                    "exec": item.exec,
-                    "terminal": item.terminal,
-                    "iconPath": item.iconPath
-                });
+                "name": item.name,
+                "exec": item.exec,
+                "terminal": item.terminal,
+                "iconPath": item.iconPath
+            });
+
         }
         console.log("HexGrid._rebuildHexItems done: fm.count=" + fm.count + " → _hexItems=" + arr.length);
         root._hexItems = arr;
-    }
-
-    // ── primary rebuild trigger: listen for modelUpdated signal ───────────────
-    Connections {
-        target: root.service
-        function onModelUpdated() {
-            console.log("HexGrid: onModelUpdated fired, filteredModel.count=" + root.service.filteredModel.count);
-            root._rebuildHexItems();
-        }
     }
 
     onServiceChanged: {
         console.log("HexGrid: service assigned, filteredModel=" + (root.service ? root.service.filteredModel : "null"));
         root._rebuildHexItems();
     }
-
     onCardVisibleChanged: {
         console.log("HexGrid: cardVisible=" + cardVisible + " _hexItems.length=" + root._hexItems.length);
         if (cardVisible && root._hexItems.length === 0)
             root._rebuildHexItems();
-    }
 
+    }
     anchors.fill: parent
+
+    // ── primary rebuild trigger: listen for modelUpdated signal ───────────────
+    Connections {
+        function onModelUpdated() {
+            console.log("HexGrid: onModelUpdated fired, filteredModel.count=" + root.service.filteredModel.count);
+            root._rebuildHexItems();
+        }
+
+        target: root.service
+    }
 
     ListView {
         id: _hexListView
@@ -95,7 +92,6 @@ Item {
         property real _gridContentH: (_rows - 1) * _stepY + _hexH + _stepY / 2
         property real _yOffset: Math.max(0, (height - _gridContentH) / 2)
         property real _fadeZone: _stepX
-
         // ── selection state ───────────────────────────────────────────────────
         property int _selectedCol: currentIndex
         property int _selectedRow: 0
@@ -105,7 +101,6 @@ Item {
         y: root.topBarHeight + 15
         width: root.cardWidth
         height: parent.height - root.topBarHeight - 35
-
         visible: root.cardVisible
         orientation: ListView.Horizontal
         clip: false
@@ -120,11 +115,9 @@ Item {
         preferredHighlightBegin: (width - _hexW) / 2
         preferredHighlightEnd: (width + _hexW) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
-
         onModelChanged: {
             console.log("HexGrid ListView: model=" + model + " (_hexItems=" + root._hexItems.length + " rows=" + _rows + ")");
         }
-
         onVisibleChanged: {
             if (visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
@@ -146,7 +139,6 @@ Item {
                 }
             }
         }
-
         // ── keyboard ──────────────────────────────────────────────────────────
         Keys.onEscapePressed: root.escapePressed()
         Keys.onReturnPressed: {
@@ -164,7 +156,7 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Right && !(event.modifiers & Qt.ShiftModifier)) {
                 if (currentIndex < count - 1) {
@@ -172,25 +164,27 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Up) {
                 if (_selectedRow > 0)
                     _selectedRow--;
+
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Down) {
                 var maxRow = Math.min(_rows, root._hexItems.length - _selectedCol * _rows) - 1;
                 if (_selectedRow < maxRow)
                     _selectedRow++;
+
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Backspace) {
                 root.backspaceRequested();
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.text && event.text.length > 0 && !event.modifiers) {
                 var c = event.text.charCodeAt(0);
@@ -209,15 +203,27 @@ Item {
                 _hexListView.currentIndex = Math.max(0, Math.min(_hexListView.count - 1, _hexListView.currentIndex + delta));
                 _hexListView._selectedCol = _hexListView.currentIndex;
             }
-            onPressed: function(mouse) { mouse.accepted = false; }
-            onReleased: function(mouse) { mouse.accepted = false; }
-            onClicked: function(mouse) { mouse.accepted = false; }
+            onPressed: function(mouse) {
+                mouse.accepted = false;
+            }
+            onReleased: function(mouse) {
+                mouse.accepted = false;
+            }
+            onClicked: function(mouse) {
+                mouse.accepted = false;
+            }
         }
 
-        highlight: Item {}
+        highlight: Item {
+        }
 
-        header: Item { width: (_hexListView.width - _hexListView._hexW) / 2 }
-        footer: Item { width: (_hexListView.width - _hexListView._hexW) / 2 }
+        header: Item {
+            width: (_hexListView.width - _hexListView._hexW) / 2
+        }
+
+        footer: Item {
+            width: (_hexListView.width - _hexListView._hexW) / 2
+        }
 
         // ── column delegate ───────────────────────────────────────────────────
         delegate: Item {
@@ -239,7 +245,6 @@ Item {
             width: _hexListView._stepX
             height: _hexListView.height
             clip: false
-
             Component.onCompleted: {
                 var itemsInCol = Math.max(0, Math.min(_hexListView._rows, root._hexItems.length - colIdx * _hexListView._rows));
                 console.log("HexGrid delegate created: col=" + colIdx + " items=" + itemsInCol);
@@ -287,15 +292,43 @@ Item {
                             ShapePath {
                                 fillColor: "white"
                                 strokeColor: "transparent"
-                                startX: hexItem._cx + hexItem._r; startY: hexItem._cy
-                                PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                                PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                                PathLine { x: hexItem._cx - hexItem._r;                  y: hexItem._cy }
-                                PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                                PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                                PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
+                                startX: hexItem._cx + hexItem._r
+                                startY: hexItem._cy
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                                    y: hexItem._cy - hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                                    y: hexItem._cy - hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r
+                                    y: hexItem._cy
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r
+                                    y: hexItem._cy
+                                }
+
                             }
+
                         }
+
                     }
 
                     // ── icon image ────────────────────────────────────────────
@@ -327,6 +360,7 @@ Item {
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
+
                     }
 
                     // ── dimming overlay ───────────────────────────────────────
@@ -340,8 +374,12 @@ Item {
                             color: Qt.rgba(0, 0, 0, hexItem.isSelected ? 0 : (hexItem.isHovered ? 0.1 : 0.35))
 
                             Behavior on color {
-                                ColorAnimation { duration: 100 }
+                                ColorAnimation {
+                                    duration: 100
+                                }
+
                             }
+
                         }
 
                         layer.effect: MultiEffect {
@@ -350,6 +388,7 @@ Item {
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
+
                     }
 
                     // ── hex border ────────────────────────────────────────────
@@ -362,18 +401,48 @@ Item {
                             fillColor: "transparent"
                             strokeColor: hexItem.isSelected ? Colors.primary : Qt.rgba(0, 0, 0, 0.5)
                             strokeWidth: hexItem.isSelected ? 3 : 1.5
-                            startX: hexItem._cx + hexItem._r; startY: hexItem._cy
-                            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
-                            PathLine { x: hexItem._cx - hexItem._r;                  y: hexItem._cy }
-                            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                            PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
+                            startX: hexItem._cx + hexItem._r
+                            startY: hexItem._cy
+
+                            PathLine {
+                                x: hexItem._cx + hexItem._r * hexItem._sin30
+                                y: hexItem._cy - hexItem._r * hexItem._cos30
+                            }
+
+                            PathLine {
+                                x: hexItem._cx - hexItem._r * hexItem._sin30
+                                y: hexItem._cy - hexItem._r * hexItem._cos30
+                            }
+
+                            PathLine {
+                                x: hexItem._cx - hexItem._r
+                                y: hexItem._cy
+                            }
+
+                            PathLine {
+                                x: hexItem._cx - hexItem._r * hexItem._sin30
+                                y: hexItem._cy + hexItem._r * hexItem._cos30
+                            }
+
+                            PathLine {
+                                x: hexItem._cx + hexItem._r * hexItem._sin30
+                                y: hexItem._cy + hexItem._r * hexItem._cos30
+                            }
+
+                            PathLine {
+                                x: hexItem._cx + hexItem._r
+                                y: hexItem._cy
+                            }
 
                             Behavior on strokeColor {
-                                ColorAnimation { duration: 100 }
+                                ColorAnimation {
+                                    duration: 100
+                                }
+
                             }
+
                         }
+
                     }
 
                     // ── accent rim (bottom-left + bottom edges) ───────────────
@@ -388,10 +457,21 @@ Item {
                             strokeWidth: 3
                             capStyle: ShapePath.RoundCap
                             joinStyle: ShapePath.RoundJoin
-                            startX: hexItem._cx - hexItem._r; startY: hexItem._cy
-                            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
-                            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                            startX: hexItem._cx - hexItem._r
+                            startY: hexItem._cy
+
+                            PathLine {
+                                x: hexItem._cx - hexItem._r * hexItem._sin30
+                                y: hexItem._cy + hexItem._r * hexItem._cos30
+                            }
+
+                            PathLine {
+                                x: hexItem._cx + hexItem._r * hexItem._sin30
+                                y: hexItem._cy + hexItem._r * hexItem._cos30
+                            }
+
                         }
+
                     }
 
                     // ── app name label ────────────────────────────────────────
@@ -436,7 +516,9 @@ Item {
                             }
                         }
                     }
+
                 }
+
             }
 
             Behavior on _colScale {
@@ -445,7 +527,11 @@ Item {
                     easing.type: Easing.OutBack
                     easing.overshoot: 1.5
                 }
+
             }
+
         }
+
     }
+
 }

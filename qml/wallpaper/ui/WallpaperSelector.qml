@@ -1,7 +1,7 @@
 import ".."
 import "../.."
-import "../services"
 import "../../services"
+import "../services"
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -93,8 +93,8 @@ Scope {
     property int _preCommitIndex: -1
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal wallpaperChanged
-    signal uiReady
+    signal wallpaperChanged()
+    signal uiReady()
 
     // Get active monitor via CompositorService
     function updateActiveMonitor() {
@@ -165,9 +165,9 @@ Scope {
         weAssetsDir: Config.weAssetsDir
         showing: wallpaperSelector.showing
         onModelUpdated: {
-            if (wallpaperSelector.showing && !wallpaperSelector.cardVisible) {
+            if (wallpaperSelector.showing && !wallpaperSelector.cardVisible)
                 wallpaperSelector.cardVisible = true;
-            }
+
             if (service.filteredModel.count > 0) {
                 var idx = 0;
                 if (wallpaperSelector._restorePending) {
@@ -189,7 +189,7 @@ Scope {
                 service._skipCrossfade = false;
                 service.filterTransitioning = false;
                 service.commitFilteredModel();
-                return;
+                return ;
             }
             // Slow path: crossfade snapshot in slice view
             service.filterTransitioning = true;
@@ -217,7 +217,7 @@ Scope {
 
         id: selectorPanel
 
-        screen: Quickshell.screens.find(s => {
+        screen: Quickshell.screens.find((s) => {
             return s.name === wallpaperSelector.activeMonitor;
         }) ?? Quickshell.screens[0]
         visible: wallpaperSelector._panelVisible
@@ -251,7 +251,9 @@ Scope {
                 NumberAnimation {
                     duration: Style.animMedium
                 }
+
             }
+
         }
 
         // Click outside to dismiss / close browsers
@@ -304,7 +306,8 @@ Scope {
             // Absorb clicks inside the card so they don't dismiss
             MouseArea {
                 anchors.fill: parent
-                onClicked: {}
+                onClicked: {
+                }
             }
 
             Item {
@@ -342,6 +345,7 @@ Scope {
                         wallpaperSelector.settingsOpen = !wallpaperSelector.settingsOpen;
                         if (!wallpaperSelector.settingsOpen)
                             wallpaperSelector._focusActiveList();
+
                     }
                     onWallhavenToggled: {
                         wallpaperSelector.settingsOpen = false;
@@ -353,12 +357,16 @@ Scope {
                         wallpaperSelector.wallhavenBrowserOpen = false;
                         wallpaperSelector.steamWorkshopBrowserOpen = !wallpaperSelector.steamWorkshopBrowserOpen;
                     }
+
                     Behavior on opacity {
                         NumberAnimation {
                             duration: Style.animNormal
                         }
+
                     }
+
                 }
+
             }
 
             CacheProgressBar {
@@ -369,6 +377,7 @@ Scope {
                 cacheProgress: service.cacheProgress
                 cacheTotal: service.cacheTotal
             }
+
         }
 
         SettingsPanel {
@@ -425,6 +434,7 @@ Scope {
             onEscapePressed: wallpaperSelector.showing = false
             onFocusRequested: wallpaperSelector._focusActiveList()
         }
+
     }
 
     Behavior on sliceWidth {
@@ -432,6 +442,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on expandedWidth {
@@ -439,6 +450,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on sliceHeight {
@@ -446,6 +458,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on skewOffset {
@@ -453,6 +466,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on sliceSpacing {
@@ -460,6 +474,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on hexRadius {
@@ -467,6 +482,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on hexRows {
@@ -474,6 +490,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on hexCols {
@@ -481,6 +498,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on _gridCellW {
@@ -488,6 +506,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on _gridCellH {
@@ -495,6 +514,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
 
     Behavior on _gridTotalW {
@@ -502,5 +522,7 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
+
     }
+
 }
