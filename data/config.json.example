@@ -38,6 +38,12 @@
       "reload": "~/.config/skwd/scripts/reload-niri.sh"
     },
     {
+      "name": "hyprland",
+      "template": "hyprland-colors.conf",
+      "output": "~/.config/hypr/noctalia/noctalia-colors.conf",
+      "reload": "~/.config/skwd/scripts/reload-hyprland.sh"
+    },
+    {
       "name": "vscode",
       "template": "vscode-theme.json",
       "output": "~/.vscode/extensions/noctalia.noctaliatheme-0.0.5/themes/NoctaliaTheme-color-theme.json"
