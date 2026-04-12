@@ -4,7 +4,6 @@ import QtQuick
 Item {
     id: lyricsIsland
 
-    required property var colors
     required property real diagSlant
     required property real barHeight
     required property real waveformHeight
@@ -175,7 +174,7 @@ Item {
             ctx.lineTo(width - lyricsIsland.diagSlant, height);
             ctx.lineTo(lyricsIsland.diagSlant, height);
             ctx.closePath();
-            ctx.fillStyle = Qt.rgba(lyricsIsland.colors.surface.r, lyricsIsland.colors.surface.g, lyricsIsland.colors.surface.b, 1);
+            ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1);
             ctx.fill();
             if (Config.accentEdges) {
                 ctx.beginPath();
@@ -183,7 +182,7 @@ Item {
                 ctx.lineTo(lyricsIsland.diagSlant, height);
                 ctx.lineTo(width - lyricsIsland.diagSlant, height);
                 ctx.lineTo(width, 0);
-                ctx.strokeStyle = Qt.rgba(lyricsIsland.colors.primary.r, lyricsIsland.colors.primary.g, lyricsIsland.colors.primary.b, 1);
+                ctx.strokeStyle = Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 1);
                 ctx.lineWidth = 1.5;
                 ctx.lineJoin = "miter";
                 ctx.stroke();
@@ -199,7 +198,7 @@ Item {
                 centerBg.requestPaint();
             }
 
-            target: lyricsIsland.colors
+            target: Colors
         }
 
     }
@@ -213,7 +212,7 @@ Item {
             anchors.leftMargin: lyricsIsland.diagSlant + 8
             anchors.verticalCenter: parent.verticalCenter
             text: lyricsIsland._artistName
-            color: lyricsIsland.colors.primary
+            color: Colors.primary
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
@@ -224,7 +223,7 @@ Item {
             anchors.rightMargin: lyricsIsland.diagSlant + 8
             anchors.verticalCenter: parent.verticalCenter
             text: lyricsIsland._trackTitle
-            color: lyricsIsland.colors.tertiary
+            color: Colors.tertiary
             font.pixelSize: 12
             font.family: Style.fontFamily
         }
@@ -264,8 +263,8 @@ Item {
             ctx.lineTo(leftAtBot, height);
             ctx.closePath();
             ctx.clip();
-            var pri = lyricsIsland.colors.primary;
-            var ter = lyricsIsland.colors.tertiary;
+            var pri = Colors.primary;
+            var ter = Colors.tertiary;
             var theme = lyricsIsland.vizTheme;
             if (theme === "bars") {
                 var grad = ctx.createLinearGradient(0, baseY, 0, 0);
@@ -332,7 +331,7 @@ Item {
                 audioVisualizerUp.requestPaint();
             }
 
-            target: lyricsIsland.colors
+            target: Colors
         }
 
         Connections {
@@ -378,7 +377,7 @@ Item {
             ctx.lineTo(0, height);
             ctx.closePath();
             ctx.clip();
-            var sur = lyricsIsland.colors.surface;
+            var sur = Colors.surface;
             var theme = lyricsIsland.vizTheme;
             if (theme === "bars") {
                 var grad = ctx.createLinearGradient(0, 0, 0, height);
@@ -450,7 +449,7 @@ Item {
                 audioVisualizer.requestPaint();
             }
 
-            target: lyricsIsland.colors
+            target: Colors
         }
 
         Connections {

@@ -57,74 +57,8 @@ QtObject {
     property var _currentPresetData: presets["balanced"]
     property var _currentResolution: resolutions["2k"]
     property var _scanProcess
-
-    _scanProcess: Process {
-        onExited: svc._buildQueue()
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return svc._scanStdout.push(data);
-            }
-        }
-
-    }
-
     property var _workerComponent
-
-    _workerComponent: Component {
-        Process {
-            id: optimizeWorker
-
-            property string _src
-            property string _dest
-            property string _srcName
-            property string _destName
-            property string _stdout: ""
-
-            onExited: {
-                WatcherService.unsuppressFile(optimizeWorker._srcName);
-                if (optimizeWorker._srcName !== optimizeWorker._destName)
-                    WatcherService.unsuppressFile(optimizeWorker._destName);
-
-                var output = optimizeWorker._stdout.trim();
-                var lines = output.split("\n");
-                var resultLine = lines[lines.length - 1] || "";
-                if (resultLine.indexOf("OK:") === 0) {
-                    var p = resultLine.split(":");
-                    if (optimizeWorker._srcName !== optimizeWorker._destName)
-                        WatcherService.notifyRenamed(optimizeWorker._srcName, optimizeWorker._destName);
-
-                    svc._recordOptimization(optimizeWorker._src, optimizeWorker._dest, p);
-                    svc._optimized++;
-                } else if (resultLine.indexOf("SKIP:") === 0) {
-                    var sp = resultLine.split(":");
-                    svc._recordSkip(optimizeWorker._src, sp);
-                    svc.skipped++;
-                } else {
-                    svc._failed++;
-                }
-                svc.progress++;
-                svc._activeJobs--;
-                svc._startWorkers();
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return optimizeWorker._stdout += data;
-                }
-            }
-
-        }
-
-    }
-
     property var _trashCleanProcess
-
-    _trashCleanProcess: Process {
-        onExited: console.log("ImageOptimizeService: trash cleanup finished")
-    }
 
     signal finished(int optimized, int skippedCount, int failed)
 
@@ -280,6 +214,70 @@ QtObject {
 
         _trashCleanProcess.command = ["sh", "-c", "find " + DbService.shellQuote(_trashDir) + " -type f -mtime +" + Config.imageTrashDays + " -delete 2>/dev/null"];
         _trashCleanProcess.running = true;
+    }
+
+    _scanProcess: Process {
+        onExited: svc._buildQueue()
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return svc._scanStdout.push(data);
+            }
+        }
+
+    }
+
+    _workerComponent: Component {
+        Process {
+            id: optimizeWorker
+
+            property string _src
+            property string _dest
+            property string _srcName
+            property string _destName
+            property string _stdout: ""
+
+            onExited: {
+                WatcherService.unsuppressFile(optimizeWorker._srcName);
+                if (optimizeWorker._srcName !== optimizeWorker._destName)
+                    WatcherService.unsuppressFile(optimizeWorker._destName);
+
+                var output = optimizeWorker._stdout.trim();
+                var lines = output.split("\n");
+                var resultLine = lines[lines.length - 1] || "";
+                if (resultLine.indexOf("OK:") === 0) {
+                    var p = resultLine.split(":");
+                    if (optimizeWorker._srcName !== optimizeWorker._destName)
+                        WatcherService.notifyRenamed(optimizeWorker._srcName, optimizeWorker._destName);
+
+                    svc._recordOptimization(optimizeWorker._src, optimizeWorker._dest, p);
+                    svc._optimized++;
+                } else if (resultLine.indexOf("SKIP:") === 0) {
+                    var sp = resultLine.split(":");
+                    svc._recordSkip(optimizeWorker._src, sp);
+                    svc.skipped++;
+                } else {
+                    svc._failed++;
+                }
+                svc.progress++;
+                svc._activeJobs--;
+                svc._startWorkers();
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return optimizeWorker._stdout += data;
+                }
+            }
+
+        }
+
+    }
+
+    _trashCleanProcess: Process {
+        onExited: console.log("ImageOptimizeService: trash cleanup finished")
     }
 
 }

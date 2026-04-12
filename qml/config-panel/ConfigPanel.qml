@@ -10,7 +10,6 @@ import Quickshell.Wayland
 Scope {
     id: configPanel
 
-    property var colors
     property bool showing: false
     property string mainMonitor: Config.mainMonitor
     property int currentSection: 0
@@ -353,9 +352,9 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 radius: 20
-                color: configPanel.colors ? Qt.rgba(configPanel.colors.surface.r, configPanel.colors.surface.g, configPanel.colors.surface.b, 1) : Qt.rgba(0.1, 0.06, 0.05, 1)
+                color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1)
                 border.width: 1
-                border.color: configPanel.colors ? Qt.rgba(configPanel.colors.primary.r, configPanel.colors.primary.g, configPanel.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)
+                border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
             }
 
             Row {
@@ -381,8 +380,8 @@ Scope {
                         Canvas {
                             id: tabCanvas
 
-                            property color fillColor: parent.isSelected ? (configPanel.colors ? configPanel.colors.primary : "#4fc3f7") : (parent.isHovered ? (configPanel.colors ? Qt.rgba(configPanel.colors.surfaceVariant.r, configPanel.colors.surfaceVariant.g, configPanel.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15)) : (configPanel.colors ? Qt.rgba(configPanel.colors.surfaceContainer.r, configPanel.colors.surfaceContainer.g, configPanel.colors.surfaceContainer.b, 0.7) : Qt.rgba(0.1, 0.12, 0.18, 0.7)))
-                            property color strokeColor: parent.isSelected ? (configPanel.colors ? Qt.rgba(configPanel.colors.primary.r, configPanel.colors.primary.g, configPanel.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.3)) : (parent.isHovered ? (configPanel.colors ? Qt.rgba(configPanel.colors.primary.r, configPanel.colors.primary.g, configPanel.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)) : (configPanel.colors ? Qt.rgba(configPanel.colors.outline.r, configPanel.colors.outline.g, configPanel.colors.outline.b, 0.2) : Qt.rgba(1, 1, 1, 0.08)))
+                            property color fillColor: parent.isSelected ? (Colors.primary) : (parent.isHovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.7)))
+                            property color strokeColor: parent.isSelected ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6)) : (parent.isHovered ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2)))
 
                             anchors.centerIn: parent
                             width: tabLabel.implicitWidth + 52 + configPanel.skewOffset
@@ -419,7 +418,7 @@ Scope {
                                 text: modelData.icon
                                 font.family: Style.fontFamilyNerdIcons
                                 font.pixelSize: 14
-                                color: parent.parent.isSelected ? (configPanel.colors ? configPanel.colors.primaryText : "#000") : (configPanel.colors ? configPanel.colors.tertiary : "#8bceff")
+                                color: parent.parent.isSelected ? (Colors.primaryText) : (Colors.tertiary)
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
@@ -429,7 +428,7 @@ Scope {
                                 font.pixelSize: 11
                                 font.weight: Font.Bold
                                 font.letterSpacing: 0.5
-                                color: parent.parent.isSelected ? (configPanel.colors ? configPanel.colors.primaryText : "#000") : (configPanel.colors ? configPanel.colors.tertiary : "#8bceff")
+                                color: parent.parent.isSelected ? (Colors.primaryText) : (Colors.tertiary)
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
@@ -456,7 +455,7 @@ Scope {
                 font.pixelSize: 10
                 font.weight: Font.Medium
                 font.letterSpacing: 0.5
-                color: configPanel.colors ? configPanel.colors.error : "#ff6b6b"
+                color: Colors.error
                 visible: configPanel.hasUnsavedChanges
                 anchors.top: parent.top
                 anchors.right: parent.right
@@ -506,42 +505,36 @@ Scope {
                             width: parent.width
                             visible: configPanel.currentSection === 0
                             panel: configPanel
-                            colors: configPanel.colors
                         }
 
                         ConfigBarSection {
                             width: parent.width
                             visible: configPanel.currentSection === 1
                             panel: configPanel
-                            colors: configPanel.colors
                         }
 
                         ConfigComponentsSection {
                             width: parent.width
                             visible: configPanel.currentSection === 2
                             panel: configPanel
-                            colors: configPanel.colors
                         }
 
                         ConfigIntegrationsSection {
                             width: parent.width
                             visible: configPanel.currentSection === 3
                             panel: configPanel
-                            colors: configPanel.colors
                         }
 
                         ConfigAppsSection {
                             width: parent.width
                             visible: configPanel.currentSection === 4
                             panel: configPanel
-                            colors: configPanel.colors
                         }
 
                         ConfigIntervalsSection {
                             width: parent.width
                             visible: configPanel.currentSection === 5
                             panel: configPanel
-                            colors: configPanel.colors
                         }
 
                     }
@@ -556,7 +549,7 @@ Scope {
                     width: 4
                     height: Math.max(20, contentFlickable.visibleArea.heightRatio * contentFlickable.height)
                     radius: 2
-                    color: configPanel.colors ? configPanel.colors.primary : "#fff"
+                    color: Colors.primary
                     opacity: 0.5
                     z: 100
                 }
@@ -567,19 +560,16 @@ Scope {
                 id: footerBar
 
                 panel: configPanel
-                colors: configPanel.colors
             }
 
             ConfigIconPicker {
                 id: iconPicker
 
                 panel: configPanel
-                colors: configPanel.colors
             }
 
             ConfigFileBrowser {
                 panel: configPanel
-                colors: configPanel.colors
             }
 
         }

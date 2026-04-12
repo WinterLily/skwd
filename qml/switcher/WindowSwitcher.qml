@@ -14,7 +14,6 @@ Scope {
     id: windowSwitcher
 
     // External bindings
-    property var colors
     property bool showing: false
     property string mainMonitor: Config.mainMonitor
     // Slice geometry constants
@@ -242,7 +241,7 @@ Scope {
                 font.weight: Font.Bold
                 font.pixelSize: 18
                 font.letterSpacing: 2
-                color: windowSwitcher.colors ? windowSwitcher.colors.outline : "#666666"
+                color: Colors.outline
             }
 
             highlight: Item {
@@ -346,12 +345,12 @@ Scope {
                         gradient: Gradient {
                             GradientStop {
                                 position: 0
-                                color: windowSwitcher.colors ? Qt.rgba(windowSwitcher.colors.surfaceContainer.r, windowSwitcher.colors.surfaceContainer.g, windowSwitcher.colors.surfaceContainer.b, 1) : "#1a1c2e"
+                                color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
                             }
 
                             GradientStop {
                                 position: 1
-                                color: windowSwitcher.colors ? Qt.rgba(windowSwitcher.colors.surface.r, windowSwitcher.colors.surface.g, windowSwitcher.colors.surface.b, 1) : "#0e1018"
+                                color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1)
                             }
 
                         }
@@ -396,7 +395,7 @@ Scope {
                         font.pixelSize: iconSize
                         font.family: Style.fontFamilyIcons
                         opacity: windowThumb.visible ? 0.7 : 1
-                        color: delegateItem.isCurrent ? (windowSwitcher.colors ? windowSwitcher.colors.primary : "#4fc3f7") : Qt.rgba(windowSwitcher.colors ? windowSwitcher.colors.tertiary.r : 0.55, windowSwitcher.colors ? windowSwitcher.colors.tertiary.g : 0.79, windowSwitcher.colors ? windowSwitcher.colors.tertiary.b : 1, 0.5)
+                        color: delegateItem.isCurrent ? (Colors.primary) : Colors.tertiary
 
                         Behavior on opacity {
                             NumberAnimation {
@@ -488,7 +487,7 @@ Scope {
 
                     ShapePath {
                         fillColor: "transparent"
-                        strokeColor: delegateItem.isCurrent ? (windowSwitcher.colors ? windowSwitcher.colors.primary : "#8BC34A") : Qt.rgba(0, 0, 0, 0.6)
+                        strokeColor: delegateItem.isCurrent ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.6)
                         strokeWidth: delegateItem.isCurrent ? 3 : 1
                         startX: windowSwitcher.skewOffset
                         startY: 0
@@ -532,7 +531,7 @@ Scope {
                     width: focusedLabel.width + 12
                     height: 20
                     radius: 10
-                    color: windowSwitcher.colors ? windowSwitcher.colors.primary : "#4fc3f7"
+                    color: Colors.primary
                     visible: model.isFocused
                     z: 10
 
@@ -545,7 +544,7 @@ Scope {
                         font.pixelSize: 9
                         font.weight: Font.Bold
                         font.letterSpacing: 0.5
-                        color: windowSwitcher.colors ? windowSwitcher.colors.primaryText : "#000"
+                        color: Colors.primaryText
                     }
 
                 }
@@ -561,7 +560,7 @@ Scope {
                     radius: 6
                     color: Qt.rgba(0, 0, 0, 0.75)
                     border.width: 1
-                    border.color: windowSwitcher.colors ? Qt.rgba(windowSwitcher.colors.primary.r, windowSwitcher.colors.primary.g, windowSwitcher.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.2)
+                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                     visible: delegateItem.isCurrent
                     opacity: delegateItem.isCurrent ? 1 : 0
 
@@ -578,7 +577,7 @@ Scope {
                             font.pixelSize: 13
                             font.weight: Font.Bold
                             font.letterSpacing: 0.5
-                            color: windowSwitcher.colors ? windowSwitcher.colors.primary : "#4fc3f7"
+                            color: Colors.primary
                         }
 
                         Text {
@@ -616,7 +615,7 @@ Scope {
                     radius: 4
                     color: Qt.rgba(0, 0, 0, 0.75)
                     border.width: 1
-                    border.color: windowSwitcher.colors ? Qt.rgba(windowSwitcher.colors.primary.r, windowSwitcher.colors.primary.g, windowSwitcher.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
                     z: 10
 
                     Text {
@@ -628,7 +627,7 @@ Scope {
                         font.pixelSize: 9
                         font.weight: Font.Bold
                         font.letterSpacing: 0.5
-                        color: windowSwitcher.colors ? windowSwitcher.colors.tertiary : "#8bceff"
+                        color: Colors.tertiary
                     }
 
                 }
@@ -643,7 +642,7 @@ Scope {
                     radius: 4
                     color: Qt.rgba(0, 0, 0, 0.75)
                     border.width: 1
-                    border.color: windowSwitcher.colors ? Qt.rgba(windowSwitcher.colors.primary.r, windowSwitcher.colors.primary.g, windowSwitcher.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
                     visible: model.isFloating
                     z: 10
 
@@ -656,7 +655,7 @@ Scope {
                         font.pixelSize: 9
                         font.weight: Font.Bold
                         font.letterSpacing: 0.5
-                        color: windowSwitcher.colors ? windowSwitcher.colors.tertiary : "#8bceff"
+                        color: Colors.tertiary
                     }
 
                 }

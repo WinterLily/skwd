@@ -4,7 +4,6 @@ import QtQuick
 Item {
     property string label
     property bool checked
-    property var colors
 
     signal toggled(bool v)
 
@@ -21,7 +20,7 @@ Item {
             font.family: Style.fontFamily
             font.pixelSize: 12
             font.weight: Font.Medium
-            color: colors ? colors.surfaceText : "#ddd"
+            color: Colors.surfaceText
             anchors.verticalCenter: parent.verticalCenter
             elide: Text.ElideRight
         }
@@ -35,7 +34,7 @@ Item {
                 id: toggleBg
 
                 property bool isOn: checked
-                property color fillColor: isOn ? (colors ? colors.primary : "#4fc3f7") : (colors ? Qt.rgba(colors.surfaceVariant.r, colors.surfaceVariant.g, colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15))
+                property color fillColor: isOn ? (Colors.primary) : (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5))
 
                 anchors.fill: parent
                 onFillColorChanged: requestPaint()
@@ -58,7 +57,7 @@ Item {
             Canvas {
                 id: toggleKnob
 
-                property color knobColor: checked ? (colors ? colors.primaryText : "#000") : (colors ? colors.surfaceText : "#fff")
+                property color knobColor: checked ? (Colors.primaryText) : (Colors.surfaceText)
 
                 width: 22
                 height: 18

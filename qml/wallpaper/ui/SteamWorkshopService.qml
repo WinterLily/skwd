@@ -5,6 +5,8 @@ import Quickshell
 import Quickshell.Io
 
 QtObject {
+    // ignore parse errors on partial writes
+
     id: swService
 
     required property string weDir
@@ -39,154 +41,16 @@ QtObject {
     readonly property int _appId: 431960
     property string _daemonQmlPath: ""
     property var _daemonPathResolver
-
-    _daemonPathResolver: Process {
-        command: ["bash", "-c", "qml=$(tr '\\0' '\\n' < /proc/$PPID/cmdline | grep '\\.qml$' | head -1); " + "dir=$(dirname \"$(realpath \"$qml\")\"); " + "echo \"$dir/daemon.qml\""]
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return swService._daemonQmlPath = data.trim();
-            }
-        }
-
-    }
-
     property var _ipcProc
-
-    _ipcProc: Process {
-        onExited: function(exitCode, exitStatus) {
-            if (exitCode !== 0)
-                console.log("[SteamWorkshopService] IPC call exited with code " + exitCode);
-
-        }
-    }
-
     readonly property string _requestFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-request"
     property var _requestWriter
-
-    _requestWriter: FileView {
-        id: requestWriter
-    }
-
     readonly property string _statusFilePath: Config.wallCacheDir + "/steam-dl-status.json"
     property var _statusFileView
-
-    _statusFileView: FileView {
-        path: swService._statusFilePath
-        watchChanges: true
-        onFileChanged: _statusFileView.reload()
-    }
-
     property string _statusRaw: _statusFileView.__text ?? ""
     property string _localScanOutput: ""
     property var _localScanProc
-
-    _localScanProc: Process {
-        command: ["find", swService.weDir, "-mindepth", "1", "-maxdepth", "1", "-type", "d", "-printf", "%f\n"]
-        onExited: function(exitCode, exitStatus) {
-            var ids = {
-            };
-            var lines = swService._localScanOutput.split("\n");
-            for (var i = 0; i < lines.length; i++) {
-                var id = lines[i].trim();
-                if (id && /^\d+$/.test(id))
-                    ids[id] = true;
-
-            }
-            swService.localWorkshopIds = ids;
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                swService._localScanOutput += data + "\n";
-            }
-        }
-
-    }
-
     property string _searchOutput: ""
     property var _searchProcess
-
-    _searchProcess: Process {
-        command: ["curl", "-fsSL", "about:blank"]
-        onRunningChanged: {
-            if (running)
-                swService._searchOutput = "";
-
-        }
-        onExited: function(exitCode, exitStatus) {
-            swService.loading = false;
-            if (exitCode !== 0) {
-                swService.errorText = "Network error (curl exit " + exitCode + ")";
-                swService.results = [];
-                swService.resultsUpdated();
-                return ;
-            }
-            try {
-                var json = JSON.parse(swService._searchOutput);
-                var response = json.response || {
-                };
-                var total = response.total || 0;
-                var items = response.publishedfiledetails || [];
-                var newItems = items.map(function(item) {
-                    var previewUrl = item.preview_url || "";
-                    if (item.previews && item.previews.length > 0) {
-                        for (var p = 0; p < item.previews.length; p++) {
-                            if (item.previews[p].url) {
-                                previewUrl = item.previews[p].url;
-                                break;
-                            }
-                        }
-                    }
-                    var tags = [];
-                    if (item.tags) {
-                        for (var t = 0; t < item.tags.length; t++) {
-                            if (item.tags[t].display_name)
-                                tags.push(item.tags[t].display_name);
-                            else if (item.tags[t].tag)
-                                tags.push(item.tags[t].tag);
-                        }
-                    }
-                    return {
-                        "id": item.publishedfileid || "",
-                        "title": item.title || "Untitled",
-                        "description": (item.short_description || item.file_description || "").substring(0, 120),
-                        "previewUrl": previewUrl,
-                        "subscriptions": item.subscriptions || 0,
-                        "favorited": item.favorited || 0,
-                        "fileSize": item.file_size ? parseInt(item.file_size) : 0,
-                        "tags": tags,
-                        "creator": item.creator || ""
-                    };
-                });
-                // Filter out duplicates before concatenating
-                var existingIds = {
-                };
-                for (var e = 0; e < swService.results.length; e++) {
-                    existingIds[swService.results[e].id] = true;
-                }
-                var uniqueNewItems = newItems.filter(function(item) {
-                    return !existingIds[item.id];
-                });
-                swService.results = swService.results.concat(uniqueNewItems);
-                swService.lastPage = Math.max(1, Math.ceil(total / swService.numPerPage));
-                swService.errorText = "";
-            } catch (e) {
-                swService.errorText = "Parse error: " + e.message;
-                swService.results = [];
-            }
-            swService.resultsUpdated();
-            swService.scanLocalDirs();
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                swService._searchOutput += data;
-            }
-        }
-
-    }
 
     signal resultsUpdated()
     signal downloadFinished(string workshopId)
@@ -223,8 +87,6 @@ QtObject {
     }
 
     function _parseStatusFile() {
-        // ignore parse errors on partial writes
-
         if (!_statusRaw)
             return ;
 
@@ -361,4 +223,138 @@ QtObject {
 
     Component.onCompleted: _daemonPathResolver.running = true
     on_StatusRawChanged: _parseStatusFile()
+
+    _daemonPathResolver: Process {
+        command: ["bash", "-c", "qml=$(tr '\\0' '\\n' < /proc/$PPID/cmdline | grep '\\.qml$' | head -1); " + "dir=$(dirname \"$(realpath \"$qml\")\"); " + "echo \"$dir/daemon.qml\""]
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return swService._daemonQmlPath = data.trim();
+            }
+        }
+
+    }
+
+    _ipcProc: Process {
+        onExited: function(exitCode, exitStatus) {
+            if (exitCode !== 0)
+                console.log("[SteamWorkshopService] IPC call exited with code " + exitCode);
+
+        }
+    }
+
+    _requestWriter: FileView {
+        id: requestWriter
+    }
+
+    _statusFileView: FileView {
+        path: swService._statusFilePath
+        watchChanges: true
+        onFileChanged: _statusFileView.reload()
+    }
+
+    _localScanProc: Process {
+        command: ["find", swService.weDir, "-mindepth", "1", "-maxdepth", "1", "-type", "d", "-printf", "%f\n"]
+        onExited: function(exitCode, exitStatus) {
+            var ids = {
+            };
+            var lines = swService._localScanOutput.split("\n");
+            for (var i = 0; i < lines.length; i++) {
+                var id = lines[i].trim();
+                if (id && /^\d+$/.test(id))
+                    ids[id] = true;
+
+            }
+            swService.localWorkshopIds = ids;
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                swService._localScanOutput += data + "\n";
+            }
+        }
+
+    }
+
+    _searchProcess: Process {
+        command: ["curl", "-fsSL", "about:blank"]
+        onRunningChanged: {
+            if (running)
+                swService._searchOutput = "";
+
+        }
+        onExited: function(exitCode, exitStatus) {
+            swService.loading = false;
+            if (exitCode !== 0) {
+                swService.errorText = "Network error (curl exit " + exitCode + ")";
+                swService.results = [];
+                swService.resultsUpdated();
+                return ;
+            }
+            try {
+                var json = JSON.parse(swService._searchOutput);
+                var response = json.response || {
+                };
+                var total = response.total || 0;
+                var items = response.publishedfiledetails || [];
+                var newItems = items.map(function(item) {
+                    var previewUrl = item.preview_url || "";
+                    if (item.previews && item.previews.length > 0) {
+                        for (var p = 0; p < item.previews.length; p++) {
+                            if (item.previews[p].url) {
+                                previewUrl = item.previews[p].url;
+                                break;
+                            }
+                        }
+                    }
+                    var tags = [];
+                    if (item.tags) {
+                        for (var t = 0; t < item.tags.length; t++) {
+                            if (item.tags[t].display_name)
+                                tags.push(item.tags[t].display_name);
+                            else if (item.tags[t].tag)
+                                tags.push(item.tags[t].tag);
+                        }
+                    }
+                    return {
+                        "id": item.publishedfileid || "",
+                        "title": item.title || "Untitled",
+                        "description": (item.short_description || item.file_description || "").substring(0, 120),
+                        "previewUrl": previewUrl,
+                        "subscriptions": item.subscriptions || 0,
+                        "favorited": item.favorited || 0,
+                        "fileSize": item.file_size ? parseInt(item.file_size) : 0,
+                        "tags": tags,
+                        "creator": item.creator || ""
+                    };
+                });
+                // Filter out duplicates before concatenating
+                var existingIds = {
+                };
+                for (var e = 0; e < swService.results.length; e++) {
+                    existingIds[swService.results[e].id] = true;
+                }
+                var uniqueNewItems = newItems.filter(function(item) {
+                    return !existingIds[item.id];
+                });
+                swService.results = swService.results.concat(uniqueNewItems);
+                swService.lastPage = Math.max(1, Math.ceil(total / swService.numPerPage));
+                swService.errorText = "";
+            } catch (e) {
+                swService.errorText = "Parse error: " + e.message;
+                swService.results = [];
+            }
+            swService.resultsUpdated();
+            swService.scanLocalDirs();
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                swService._searchOutput += data;
+            }
+        }
+
+    }
+
 }

@@ -17,7 +17,6 @@ PanelWindow {
 
 
   // Required properties from parent
-  required property var colors
   required property var clock
   required property bool barVisible
   required property var activePlayer
@@ -170,7 +169,7 @@ PanelWindow {
           ctx.lineTo(width - bar.diagSlant, height)
           ctx.lineTo(0, height)
           ctx.closePath()
-          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 1.0)
+          ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1.0)
           ctx.fill()
 
           if (Config.accentEdges) {
@@ -178,14 +177,14 @@ PanelWindow {
             ctx.moveTo(0, height)
             ctx.lineTo(width - bar.diagSlant, height)
             ctx.lineTo(width, 0)
-            ctx.strokeStyle = Qt.rgba(bar.colors.primary.r, bar.colors.primary.g, bar.colors.primary.b, 1.0)
+            ctx.strokeStyle = Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 1.0)
             ctx.lineWidth = 1.5
             ctx.lineJoin = "miter"
             ctx.stroke()
           }
         }
         Connections {
-          target: bar.colors
+          target: Colors
           function onSurfaceChanged() { leftBg.requestPaint() }
           function onPrimaryChanged() { leftBg.requestPaint() }
         }
@@ -207,21 +206,21 @@ PanelWindow {
             text: "󰻠"
             font.pixelSize: 14
             font.family: Style.fontFamilyNerdIcons
-            color: bar.colors.primary
+            color: Colors.primary
           }
           Text {
             text: Math.round(SystemStatService.cpuUsage) + "%"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
-            color: bar.colors.tertiary
+            color: Colors.tertiary
           }
           Text {
             text: Math.round(SystemStatService.cpuTemp) + "°"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
-            color: bar.colors.tertiary
+            color: Colors.tertiary
           }
         }
 
@@ -233,21 +232,21 @@ PanelWindow {
             text: "󰢮"
             font.pixelSize: 14
             font.family: Style.fontFamilyNerdIcons
-            color: bar.colors.primary
+            color: Colors.primary
           }
           Text {
             text: Math.round(SystemStatService.gpuUsage) + "%"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
-            color: bar.colors.tertiary
+            color: Colors.tertiary
           }
           Text {
             text: Math.round(SystemStatService.gpuTemp) + "°"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
-            color: bar.colors.tertiary
+            color: Colors.tertiary
           }
         }
 
@@ -259,14 +258,14 @@ PanelWindow {
             text: "󰍛"
             font.pixelSize: 14
             font.family: Style.fontFamilyNerdIcons
-            color: bar.colors.primary
+            color: Colors.primary
           }
           Text {
             text: Math.round(SystemStatService.memUsage) + "%"
             font.pixelSize: 12
             font.weight: Font.Medium
             font.family: Style.fontFamily
-            color: bar.colors.tertiary
+            color: Colors.tertiary
           }
         }
 
@@ -281,7 +280,6 @@ PanelWindow {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      colors: bar.colors
       diagSlant: bar.diagSlant
       barHeight: bar.barHeight
       waveformHeight: bar.waveformHeight
@@ -313,7 +311,7 @@ PanelWindow {
           ctx.lineTo(width, height)
           ctx.lineTo(0 + bar.diagSlant, height)
           ctx.closePath()
-          ctx.fillStyle = Qt.rgba(bar.colors.surface.r, bar.colors.surface.g, bar.colors.surface.b, 1.0)
+          ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1.0)
           ctx.fill()
 
           if (Config.accentEdges) {
@@ -321,14 +319,14 @@ PanelWindow {
             ctx.moveTo(0, 0)
             ctx.lineTo(bar.diagSlant, height)
             ctx.lineTo(width, height)
-            ctx.strokeStyle = Qt.rgba(bar.colors.primary.r, bar.colors.primary.g, bar.colors.primary.b, 1.0)
+            ctx.strokeStyle = Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 1.0)
             ctx.lineWidth = 1.5
             ctx.lineJoin = "miter"
             ctx.stroke()
           }
         }
         Connections {
-          target: bar.colors
+          target: Colors
           function onSurfaceChanged() { rightBg.requestPaint() }
           function onPrimaryChanged() { rightBg.requestPaint() }
         }
@@ -372,14 +370,14 @@ PanelWindow {
               }
               font.pixelSize: 14
               font.family: Style.fontFamilyNerdIcons
-              color: bar.colors.primary
+              color: Colors.primary
             }
             Text {
               text: bar.weatherTemp
               font.pixelSize: 12
               font.weight: Font.Medium
               font.family: Style.fontFamily
-              color: bar.colors.tertiary
+              color: Colors.tertiary
             }
           }
 
@@ -407,14 +405,14 @@ PanelWindow {
               text: "󰂯"
               font.pixelSize: 14
               font.family: Style.fontFamilyNerdIcons
-              color: bar.colors.primary
+              color: Colors.primary
             }
             Text {
               text: bluetoothInfo.batteryText
               font.pixelSize: 12
               font.weight: Font.Medium
               font.family: Style.fontFamily
-              color: bar.colors.tertiary
+              color: Colors.tertiary
             }
           }
 
@@ -448,14 +446,14 @@ PanelWindow {
               }
               font.pixelSize: 14
               font.family: Style.fontFamilyNerdIcons
-              color: bar.colors.primary
+              color: Colors.primary
             }
             Text {
               text: wifiInfo.ssid
               font.pixelSize: 12
               font.weight: Font.Medium
               font.family: Style.fontFamily
-              color: bar.colors.tertiary
+              color: Colors.tertiary
             }
           }
 
@@ -522,7 +520,7 @@ PanelWindow {
               }
               font.pixelSize: 14
               font.family: Style.fontFamilyNerdIcons
-              color: bar.colors.primary
+              color: Colors.primary
               width: 16
               horizontalAlignment: Text.AlignHCenter
             }
@@ -531,7 +529,7 @@ PanelWindow {
               font.pixelSize: 12
               font.weight: Font.Medium
               font.family: Style.fontFamily
-              color: bar.colors.tertiary
+              color: Colors.tertiary
               width: Math.max(implicitWidth, 28)
             }
           }
@@ -561,21 +559,21 @@ PanelWindow {
               font.pixelSize: 13
               font.weight: Font.DemiBold
               font.family: Style.fontFamily
-              color: bar.colors.primary
+              color: Colors.primary
             }
             Text {
               text: ":"
               font.pixelSize: 13
               font.weight: Font.DemiBold
               font.family: Style.fontFamily
-              color: bar.colors.tertiary
+              color: Colors.tertiary
             }
             Text {
               text: Qt.formatTime(bar.clock.date, "mm")
               font.pixelSize: 13
               font.weight: Font.DemiBold
               font.family: Style.fontFamily
-              color: bar.colors.tertiary
+              color: Colors.tertiary
             }
           }
 
@@ -597,7 +595,6 @@ PanelWindow {
     anchors.right: parent.right
     y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap
     width: rightPanel.width
-    colors: bar.colors
     active: Config.wifiEnabled && bar.activeDropdown === "wifi"
     wifiSsid: wifiInfo.ssid
     wifiSignalStrength: wifiInfo.signalStrength
@@ -608,7 +605,6 @@ PanelWindow {
     anchors.right: parent.right
     y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH
     width: rightPanel.width
-    colors: bar.colors
     active: Config.volumeEnabled && bar.activeDropdown === "volume"
   }
 
@@ -617,7 +613,6 @@ PanelWindow {
     anchors.right: parent.right
     y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH
     width: Math.max(rightPanel.width, 256)
-    colors: bar.colors
     active: Config.calendarEnabled && bar.activeDropdown === "clock"
     clock: bar.clock
   }
@@ -627,7 +622,6 @@ PanelWindow {
     anchors.right: parent.right
     y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH + bar._calendarH
     width: rightPanel.width
-    colors: bar.colors
     active: Config.bluetoothEnabled && bar.activeDropdown === "bluetooth"
     connectedDevices: bluetoothInfo.connectedDevices
   }
@@ -637,7 +631,6 @@ PanelWindow {
     anchors.right: parent.right
     y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH
     width: rightPanel.width
-    colors: bar.colors
     active: Config.weatherEnabled && bar.activeDropdown === "weather"
     weatherCity: bar.weatherCity
     weatherForecast: bar.weatherForecast

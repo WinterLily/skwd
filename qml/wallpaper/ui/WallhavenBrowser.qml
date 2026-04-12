@@ -8,7 +8,6 @@ import Quickshell.Io
 Item {
     id: browser
 
-    property var colors
     property var whService
     property bool browserVisible: false
     property var _previewWp: null
@@ -144,7 +143,6 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
 
             FilterButton {
-                colors: browser.colors
                 icon: "󰅁"
                 skew: 8
                 tooltip: "Back to wallpapers"
@@ -160,9 +158,9 @@ Item {
                 width: 200
                 height: 24
                 radius: 0
-                color: browser.colors ? Qt.rgba(browser.colors.surface.r, browser.colors.surface.g, browser.colors.surface.b, 0.8) : Qt.rgba(0.15, 0.17, 0.22, 0.8)
+                color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.8)
                 border.width: searchInput.activeFocus ? 2 : 1
-                border.color: searchInput.activeFocus ? (browser.colors ? browser.colors.primary : Style.fallbackAccent) : (browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.12))
+                border.color: searchInput.activeFocus ? (Colors.primary) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2))
 
                 TextInput {
                     id: searchInput
@@ -171,7 +169,7 @@ Item {
                     anchors.margins: 6
                     font.family: Style.fontFamily
                     font.pixelSize: 11
-                    color: browser.colors ? browser.colors.surfaceText : "#e0e0e0"
+                    color: Colors.surfaceText
                     clip: true
                     Keys.onReturnPressed: {
                         browser.whService.query = text;
@@ -185,7 +183,7 @@ Item {
                     anchors.margins: 6
                     font.family: Style.fontFamily
                     font.pixelSize: 11
-                    color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.35) : Qt.rgba(1, 1, 1, 0.3)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.35)
                     text: "SEARCH WALLHAVEN..."
                     font.letterSpacing: 0.5
                     font.weight: Font.Medium
@@ -216,7 +214,6 @@ Item {
                 }]
 
                 FilterButton {
-                    colors: browser.colors
                     label: modelData.label
                     skew: 8
                     isActive: browser.whService ? browser.whService.categories.charAt(modelData.bit) === "1" : false
@@ -254,7 +251,6 @@ Item {
                 }]
 
                 FilterButton {
-                    colors: browser.colors
                     label: modelData.label
                     skew: 8
                     isActive: browser.whService ? browser.whService.sorting === modelData.key : false
@@ -273,7 +269,6 @@ Item {
 
             FilterDropdown {
                 visible: browser.whService && browser.whService.sorting === "toplist"
-                colors: browser.colors
                 skew: 8
                 label: "PERIOD"
                 value: browser.whService ? browser.whService.topRange : "1M"
@@ -326,7 +321,7 @@ Item {
                 text: "󰔟"
                 font.family: Style.fontFamilyNerdIcons
                 font.pixelSize: 16
-                color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                color: Colors.primary
                 anchors.verticalCenter: parent.verticalCenter
 
                 RotationAnimation on rotation {
@@ -352,7 +347,7 @@ Item {
                 font.pixelSize: 9
                 font.weight: Font.Bold
                 font.letterSpacing: 1.2
-                color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.35) : Qt.rgba(1, 1, 1, 0.25)
+                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.35)
                 anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -374,7 +369,6 @@ Item {
                 }]
 
                 FilterButton {
-                    colors: browser.colors
                     label: modelData.label
                     skew: 8
                     isActive: browser.whService ? browser.whService.purity.charAt(modelData.bit) === "1" : false
@@ -401,7 +395,6 @@ Item {
             }
 
             FilterDropdown {
-                colors: browser.colors
                 skew: 8
                 label: "MIN RES"
                 value: browser.whService ? browser.whService.atleast : ""
@@ -449,7 +442,6 @@ Item {
             }
 
             FilterDropdown {
-                colors: browser.colors
                 skew: 8
                 label: "RATIO"
                 value: browser.whService ? browser.whService.ratios : ""
@@ -617,7 +609,7 @@ Item {
 
             contentItem: Rectangle {
                 radius: 2
-                color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
             }
 
         }
@@ -703,13 +695,13 @@ Item {
                 radius: 6
                 color: "transparent"
                 border.width: resultsGrid.currentIndex === thumbDelegate.index ? 2 : 0
-                border.color: browser.colors ? browser.colors.primary : "#ff8800"
+                border.color: Colors.primary
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: parent.border.width
                     radius: 5
-                    color: browser.colors ? Qt.rgba(browser.colors.surface.r, browser.colors.surface.g, browser.colors.surface.b, 0.6) : Qt.rgba(0.12, 0.14, 0.18, 0.6)
+                    color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.6)
                     clip: true
 
                     Image {
@@ -731,7 +723,7 @@ Item {
                         anchors.fill: parent
                         radius: 6
                         visible: thumbImg.status !== Image.Ready
-                        color: browser.colors ? Qt.rgba(browser.colors.surfaceVariant.r, browser.colors.surfaceVariant.g, browser.colors.surfaceVariant.b, 0.5) : Qt.rgba(0.18, 0.2, 0.25, 0.8)
+                        color: Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)
 
                         Rectangle {
                             id: shimmer
@@ -751,7 +743,7 @@ Item {
 
                                 GradientStop {
                                     position: 0.5
-                                    color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                                    color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
                                 }
 
                                 GradientStop {
@@ -776,7 +768,7 @@ Item {
                             text: "\u{f0553}"
                             font.family: Style.fontFamilyNerdIcons
                             font.pixelSize: 22
-                            color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)
+                            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.15)
                         }
 
                     }
@@ -813,7 +805,6 @@ Item {
                                 visible: thumbDelegate.dlStatus !== "downloading"
 
                                 ActionButton {
-                                    colors: browser.colors
                                     icon: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "\u{f012c}" : (thumbDelegate.dlStatus === "error" ? "\u{f0159}" : "\u{f01da}")
                                     label: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "Saved" : (thumbDelegate.dlStatus === "error" ? "Error" : "Save")
                                     tooltip: "Download to wallpaper folder"
@@ -826,7 +817,6 @@ Item {
                                 }
 
                                 ActionButton {
-                                    colors: browser.colors
                                     icon: "\u{f0e56}"
                                     label: "Apply"
                                     tooltip: "Download and set as wallpaper"
@@ -841,7 +831,6 @@ Item {
                                 }
 
                                 ActionButton {
-                                    colors: browser.colors
                                     icon: "\u{f0e56}"
                                     label: "Apply"
                                     tooltip: "Set as wallpaper"
@@ -855,7 +844,6 @@ Item {
                                 }
 
                                 ActionButton {
-                                    colors: browser.colors
                                     icon: "\u{f01b4}"
                                     label: "Delete"
                                     danger: true
@@ -877,7 +865,7 @@ Item {
                                 text: "Downloading..."
                                 font.family: Style.fontFamily
                                 font.pixelSize: 11
-                                color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                                color: Colors.primary
                             }
 
                             Text {
@@ -933,7 +921,7 @@ Item {
                         width: dlBadgeRow.implicitWidth + 8
                         height: 16
                         radius: 4
-                        color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.85) : Qt.rgba(0.3, 0.76, 0.97, 0.85)
+                        color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.85)
 
                         Row {
                             id: dlBadgeRow
@@ -945,7 +933,7 @@ Item {
                                 text: "\u{f012c}"
                                 font.family: Style.fontFamilyNerdIcons
                                 font.pixelSize: 10
-                                color: browser.colors ? browser.colors.primaryText : "#000"
+                                color: Colors.primaryText
                             }
 
                             Text {
@@ -953,7 +941,7 @@ Item {
                                 font.family: Style.fontFamily
                                 font.pixelSize: 8
                                 font.weight: Font.Medium
-                                color: browser.colors ? browser.colors.primaryText : "#000"
+                                color: Colors.primaryText
                             }
 
                         }
@@ -974,7 +962,7 @@ Item {
                             anchors.bottom: parent.bottom
                             width: parent.width * thumbDelegate.dlProgress
                             radius: 2
-                            color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                            color: Colors.primary
 
                             Behavior on width {
                                 NumberAnimation {
@@ -1032,7 +1020,7 @@ Item {
         text: "Search wallhaven.cc for wallpapers, or browse the top list"
         font.family: Style.fontFamily
         font.pixelSize: 12
-        color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.4)
         anchors.centerIn: resultsGrid
     }
 
@@ -1046,7 +1034,7 @@ Item {
             text: "\u{f051f}"
             font.family: Style.fontFamilyNerdIcons
             font.pixelSize: 128
-            color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+            color: Colors.primary
             opacity: browser.whService && browser.whService.loading ? 1 : 0
 
             Behavior on opacity {
@@ -1141,7 +1129,7 @@ Item {
             text: "\u{f051f}"
             font.family: Style.fontFamilyNerdIcons
             font.pixelSize: 40
-            color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+            color: Colors.primary
 
             RotationAnimation on rotation {
                 from: 0
@@ -1213,7 +1201,7 @@ Item {
                         text: "\u{f0a39}"
                         font.family: Style.fontFamilyNerdIcons
                         font.pixelSize: 14
-                        color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                        color: Colors.primary
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -1235,7 +1223,7 @@ Item {
                         text: "\u{f0224}"
                         font.family: Style.fontFamilyNerdIcons
                         font.pixelSize: 14
-                        color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                        color: Colors.primary
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -1316,7 +1304,6 @@ Item {
                     spacing: -3
 
                     ActionButton {
-                        colors: browser.colors
                         icon: (parent._dlSt === "done" || parent._isLocal) ? "\u{f012c}" : (parent._dlSt === "error" ? "\u{f0159}" : "\u{f01da}")
                         label: (parent._dlSt === "done" || parent._isLocal) ? "Saved" : (parent._dlSt === "downloading" ? "Downloading..." : (parent._dlSt === "error" ? "Error" : "Download"))
                         tooltip: "Save to wallpaper folder"
@@ -1329,7 +1316,6 @@ Item {
                     }
 
                     ActionButton {
-                        colors: browser.colors
                         icon: "\u{f0e56}"
                         label: "Apply"
                         tooltip: "Download and set as wallpaper"
@@ -1344,7 +1330,6 @@ Item {
                     }
 
                     ActionButton {
-                        colors: browser.colors
                         icon: "\u{f0e56}"
                         label: "Apply"
                         tooltip: "Set as wallpaper"
@@ -1358,7 +1343,6 @@ Item {
                     }
 
                     ActionButton {
-                        colors: browser.colors
                         icon: "\u{f01b4}"
                         label: "Delete"
                         danger: true

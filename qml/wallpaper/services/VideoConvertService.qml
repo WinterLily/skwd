@@ -5,6 +5,8 @@ pragma Singleton
 
 QtObject {
     // Active jobs will finish but no new ones will start
+    // Skip if already HEVC and within resolution limits
+    // Move original to trash, then place converted at final destination
 
     id: svc
 
@@ -68,112 +70,13 @@ QtObject {
     property bool _autoConvertRunning: false
     property int _autoConvertTotal: 0
     property var _autoConvertWorkerComponent
-
-    _autoConvertWorkerComponent: Component {
-        Process {
-            id: autoConvertWorker
-
-            property string _src
-            property string _finalDest: ""
-            property string _stdout: ""
-
-            onExited: {
-                var output = autoConvertWorker._stdout.trim();
-                var lines = output.split("\n");
-                var resultLine = lines[lines.length - 1] || "";
-                if (resultLine.indexOf("OK:") === 0) {
-                    var p = resultLine.split(":");
-                    svc._recordConversion(autoConvertWorker._src, p, autoConvertWorker._finalDest);
-                } else if (resultLine.indexOf("SKIP:") === 0) {
-                    var sp = resultLine.split(":");
-                    svc._recordSkip(autoConvertWorker._src, sp);
-                }
-                svc._activeJobs--;
-                svc._processAutoConvertQueue();
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return autoConvertWorker._stdout += data;
-                }
-            }
-
-        }
-
-    }
-
     property string _currentPreset: "balanced"
     property var _currentPresetData: presets["balanced"]
     property var _currentResolution: resolutions["2k"]
     property var _mkdirs
-
-    _mkdirs: Process {
-        command: ["sh", "-c", "mkdir -p " + DbService.shellQuote(svc._convertedDir) + " " + DbService.shellQuote(svc._trashDir) + " " + DbService.shellQuote(Config.videoDir)]
-        onExited: svc._scanVideos()
-    }
-
     property var _scanProcess
-
-    _scanProcess: Process {
-        onExited: svc._buildQueue()
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return svc._scanStdout.push(data);
-            }
-        }
-
-    }
-
     property var _workerComponent
-
-    _workerComponent: Component {
-        Process {
-            id: convertWorker
-
-            property string _src
-            property string _finalDest: ""
-            property string _stdout: ""
-
-            onExited: {
-                var output = convertWorker._stdout.trim();
-                var lines = output.split("\n");
-                var resultLine = lines[lines.length - 1] || "";
-                if (resultLine.indexOf("OK:") === 0) {
-                    var p = resultLine.split(":");
-                    svc._recordConversion(convertWorker._src, p, convertWorker._finalDest);
-                    svc._converted++;
-                } else if (resultLine.indexOf("SKIP:") === 0) {
-                    var sp = resultLine.split(":");
-                    svc._recordSkip(convertWorker._src, sp);
-                    svc.skipped++;
-                } else {
-                    svc._failed++;
-                }
-                svc.progress++;
-                svc._activeJobs--;
-                svc._startWorkers();
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return convertWorker._stdout += data;
-                }
-            }
-
-        }
-
-    }
-
     property var _trashCleanProcess
-
-    _trashCleanProcess: Process {
-        onExited: console.log("VideoConvertService: trash cleanup finished")
-    }
 
     signal finished(int converted, int skippedCount, int failed)
 
@@ -210,11 +113,12 @@ QtObject {
 
     // Auto-convert a single file (called when autoConvertVideos is enabled)
     function autoConvertFile(src) {
+        // If a full conversion is running, the file will be picked up
+
         if (!Config.autoConvertVideos)
             return ;
 
         if (running)
-            // If a full conversion is running, the file will be picked up
             return ;
 
         // Check if already converted
@@ -307,7 +211,8 @@ QtObject {
             var src = allFiles[j].trim();
             if (!src)
                 continue;
- // Skip if already converted with same or higher quality preset
+
+            // Skip if already converted with same or higher quality preset
             if (already[src] === _currentPreset) {
                 skippedCount++;
                 continue;
@@ -337,9 +242,6 @@ QtObject {
     }
 
     function _launchWorker(src) {
-        // Skip if already HEVC and within resolution limits
-        // Move original to trash, then place converted at final destination
-
         var preset = _currentPresetData;
         var destName = src.split("/").pop().replace(/\.[^.]*$/, ".mp4");
         var dest = _convertedDir + "/" + destName;
@@ -401,6 +303,101 @@ QtObject {
 
         _trashCleanProcess.command = ["sh", "-c", "find " + DbService.shellQuote(_trashDir) + " -type f -mtime +" + Config.videoTrashDays + " -delete 2>/dev/null"];
         _trashCleanProcess.running = true;
+    }
+
+    _autoConvertWorkerComponent: Component {
+        Process {
+            id: autoConvertWorker
+
+            property string _src
+            property string _finalDest: ""
+            property string _stdout: ""
+
+            onExited: {
+                var output = autoConvertWorker._stdout.trim();
+                var lines = output.split("\n");
+                var resultLine = lines[lines.length - 1] || "";
+                if (resultLine.indexOf("OK:") === 0) {
+                    var p = resultLine.split(":");
+                    svc._recordConversion(autoConvertWorker._src, p, autoConvertWorker._finalDest);
+                } else if (resultLine.indexOf("SKIP:") === 0) {
+                    var sp = resultLine.split(":");
+                    svc._recordSkip(autoConvertWorker._src, sp);
+                }
+                svc._activeJobs--;
+                svc._processAutoConvertQueue();
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return autoConvertWorker._stdout += data;
+                }
+            }
+
+        }
+
+    }
+
+    _mkdirs: Process {
+        command: ["sh", "-c", "mkdir -p " + DbService.shellQuote(svc._convertedDir) + " " + DbService.shellQuote(svc._trashDir) + " " + DbService.shellQuote(Config.videoDir)]
+        onExited: svc._scanVideos()
+    }
+
+    _scanProcess: Process {
+        onExited: svc._buildQueue()
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return svc._scanStdout.push(data);
+            }
+        }
+
+    }
+
+    _workerComponent: Component {
+        Process {
+            id: convertWorker
+
+            property string _src
+            property string _finalDest: ""
+            property string _stdout: ""
+
+            onExited: {
+                var output = convertWorker._stdout.trim();
+                var lines = output.split("\n");
+                var resultLine = lines[lines.length - 1] || "";
+                if (resultLine.indexOf("OK:") === 0) {
+                    var p = resultLine.split(":");
+                    svc._recordConversion(convertWorker._src, p, convertWorker._finalDest);
+                    svc._converted++;
+                } else if (resultLine.indexOf("SKIP:") === 0) {
+                    var sp = resultLine.split(":");
+                    svc._recordSkip(convertWorker._src, sp);
+                    svc.skipped++;
+                } else {
+                    svc._failed++;
+                }
+                svc.progress++;
+                svc._activeJobs--;
+                svc._startWorkers();
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return convertWorker._stdout += data;
+                }
+            }
+
+        }
+
+    }
+
+    _trashCleanProcess: Process {
+        onExited: console.log("VideoConvertService: trash cleanup finished")
     }
 
 }

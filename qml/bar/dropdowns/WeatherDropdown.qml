@@ -5,7 +5,6 @@ import QtQuick
 Rectangle {
     id: root
 
-    required property var colors
     // Dropdown animation state
     property bool active: false
     property string weatherCity: ""
@@ -50,13 +49,13 @@ Rectangle {
             ctx.lineTo(root.diagSlant, height);
             ctx.lineTo(0, height - root.diagSlant);
             ctx.closePath();
-            ctx.fillStyle = Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 1);
+            ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1);
             ctx.fill();
             if (Config.accentEdges) {
                 ctx.beginPath();
                 ctx.moveTo(0, height - root.diagSlant);
                 ctx.lineTo(root.diagSlant, height);
-                ctx.strokeStyle = Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 1);
+                ctx.strokeStyle = Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 1);
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
@@ -71,7 +70,7 @@ Rectangle {
                 dropdownBg.requestPaint();
             }
 
-            target: root.colors
+            target: Colors
         }
 
     }
@@ -83,7 +82,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         height: 2
-        color: root.colors.primary
+        color: Colors.primary
         width: animatedWidth
 
         Behavior on animatedWidth {
@@ -118,7 +117,7 @@ Rectangle {
         // City name header
         Text {
             text: root.weatherCity.toUpperCase()
-            color: root.colors.primary
+            color: Colors.primary
             font.pixelSize: 14
             font.family: Style.fontFamily
             font.weight: Font.DemiBold
@@ -133,7 +132,7 @@ Rectangle {
 
                 Text {
                     text: modelData.day
-                    color: root.colors.backgroundText
+                    color: Colors.backgroundText
                     font.pixelSize: 12
                     font.family: Style.fontFamily
                     font.weight: Font.Medium
@@ -145,7 +144,7 @@ Rectangle {
 
                     Text {
                         text: "H: " + modelData.high
-                        color: root.colors.primary
+                        color: Colors.primary
                         font.pixelSize: 12
                         font.family: Style.fontFamily
                         font.weight: Font.Medium
@@ -153,7 +152,7 @@ Rectangle {
 
                     Text {
                         text: "L: " + modelData.low
-                        color: root.colors.tertiary
+                        color: Colors.tertiary
                         font.pixelSize: 12
                         font.family: Style.fontFamily
                         font.weight: Font.Medium
@@ -163,7 +162,7 @@ Rectangle {
 
                 Text {
                     text: modelData.desc
-                    color: root.colors.backgroundText
+                    color: Colors.backgroundText
                     font.pixelSize: 12
                     font.family: Style.fontFamily
                     opacity: 0.85

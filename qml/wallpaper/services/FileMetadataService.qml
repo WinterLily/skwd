@@ -16,43 +16,6 @@ QtObject {
     property var _current: null
     property var _probeProcess
 
-    _probeProcess: Process {
-        property string _out: ""
-
-        onStarted: {
-            _out = "";
-        }
-        onExited: {
-            var cur = service._current;
-            service._running = false;
-            service._current = null;
-            if (_out) {
-                var parts = _out.split("\t");
-                if (parts.length >= 3) {
-                    var meta = {
-                        "filesize": parseInt(parts[0]) || 0,
-                        "width": parseInt(parts[1]) || 0,
-                        "height": parseInt(parts[2]) || 0
-                    };
-                    var db = service.metadataDb;
-                    db[cur.key] = meta;
-                    service.metadataDb = db;
-                    DbService.exec("UPDATE meta SET filesize=" + meta.filesize + ",width=" + meta.width + ",height=" + meta.height + " WHERE key=" + DbService.sqlStr(cur.key) + ";");
-                    service.metadataReady(cur.key);
-                }
-            }
-            delete service._probing[cur.key];
-            service._startNext();
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return _probeProcess._out = data.trim();
-            }
-        }
-
-    }
-
     signal metadataReady(string key)
 
     function getMetadata(key) {
@@ -118,4 +81,42 @@ QtObject {
         metadataDb = metadataDb;
         loaded = true;
     }
+
+    _probeProcess: Process {
+        property string _out: ""
+
+        onStarted: {
+            _out = "";
+        }
+        onExited: {
+            var cur = service._current;
+            service._running = false;
+            service._current = null;
+            if (_out) {
+                var parts = _out.split("\t");
+                if (parts.length >= 3) {
+                    var meta = {
+                        "filesize": parseInt(parts[0]) || 0,
+                        "width": parseInt(parts[1]) || 0,
+                        "height": parseInt(parts[2]) || 0
+                    };
+                    var db = service.metadataDb;
+                    db[cur.key] = meta;
+                    service.metadataDb = db;
+                    DbService.exec("UPDATE meta SET filesize=" + meta.filesize + ",width=" + meta.width + ",height=" + meta.height + " WHERE key=" + DbService.sqlStr(cur.key) + ";");
+                    service.metadataReady(cur.key);
+                }
+            }
+            delete service._probing[cur.key];
+            service._startNext();
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return _probeProcess._out = data.trim();
+            }
+        }
+
+    }
+
 }

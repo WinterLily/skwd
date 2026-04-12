@@ -2,6 +2,8 @@ import QtQuick
 import Quickshell.Io
 
 Process {
+    // Progress percent (only when not a success line)
+
     id: dlProc
 
     property var workshopIds: []
@@ -20,38 +22,8 @@ Process {
     readonly property string _contentPath: _steamBase + "/steamapps/workshop/content/431960/" + currentId
     readonly property real _currentExpectedSize: currentId ? (expectedSizes[currentId] || 0) : 0
     property var _sizePoller
-
-    _sizePoller: Timer {
-        interval: 800
-        repeat: true
-        running: dlProc._downloading && dlProc.currentId !== "" && dlProc._currentExpectedSize > 0
-        onTriggered: dlProc._pollSize()
-    }
-
     property string _pollOutput: ""
     property var _pollProc
-
-    _pollProc: Process {
-        onExited: function(exitCode) {
-            var bytes = parseInt(dlProc._pollOutput.trim());
-            var expected = dlProc._currentExpectedSize;
-            if (bytes > 0 && expected > 0) {
-                var pct = Math.min(bytes / expected, 0.99);
-                dlProc.progressUpdate(dlProc.currentId, pct);
-                var mb = (bytes / 1.04858e+06).toFixed(1);
-                var totalMb = (expected / 1.04858e+06).toFixed(1);
-                dlProc.statusMessage(dlProc.currentId, "Downloading " + mb + " / " + totalMb + " MB (" + Math.round(pct * 100) + "%)");
-            }
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                dlProc._pollOutput += data;
-            }
-        }
-
-    }
 
     signal progressUpdate(string id, real pct)
     signal itemDone(string id, bool success)
@@ -104,6 +76,35 @@ Process {
         dlProc.batchDone(exitCode === 0);
     }
 
+    _sizePoller: Timer {
+        interval: 800
+        repeat: true
+        running: dlProc._downloading && dlProc.currentId !== "" && dlProc._currentExpectedSize > 0
+        onTriggered: dlProc._pollSize()
+    }
+
+    _pollProc: Process {
+        onExited: function(exitCode) {
+            var bytes = parseInt(dlProc._pollOutput.trim());
+            var expected = dlProc._currentExpectedSize;
+            if (bytes > 0 && expected > 0) {
+                var pct = Math.min(bytes / expected, 0.99);
+                dlProc.progressUpdate(dlProc.currentId, pct);
+                var mb = (bytes / 1.04858e+06).toFixed(1);
+                var totalMb = (expected / 1.04858e+06).toFixed(1);
+                dlProc.statusMessage(dlProc.currentId, "Downloading " + mb + " / " + totalMb + " MB (" + Math.round(pct * 100) + "%)");
+            }
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                dlProc._pollOutput += data;
+            }
+        }
+
+    }
+
     stderr: SplitParser {
         splitMarker: "\n"
         onRead: (data) => {
@@ -129,8 +130,6 @@ Process {
     stdout: SplitParser {
         splitMarker: "\n"
         onRead: (data) => {
-            // Progress percent (only when not a success line)
-
             console.log("[Steam DL batch] " + data);
             // Detect which item steamcmd is working on
             if (data.indexOf("Downloading item") >= 0) {

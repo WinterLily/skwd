@@ -5,7 +5,6 @@ import QtQuick
 Column {
     id: root
 
-    property var colors
     property string label: ""
     property string value: ""
     property string placeholder: ""
@@ -20,16 +19,16 @@ Column {
         font.family: Style.fontFamily
         font.pixelSize: 11
         font.weight: Font.Medium
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+        color: Colors.tertiary
     }
 
     Rectangle {
         width: parent.width
         height: 26
         radius: 4
-        color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+        color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
         border.width: inputField.activeFocus ? 1 : 0
-        border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
 
         TextInput {
             id: inputField
@@ -40,7 +39,7 @@ Column {
             verticalAlignment: TextInput.AlignVCenter
             font.family: Style.fontFamilyCode
             font.pixelSize: 11
-            color: root.colors ? root.colors.tertiary : "#8bceff"
+            color: Colors.tertiary
             clip: true
             selectByMouse: true
             text: root.value
@@ -59,7 +58,7 @@ Column {
                 anchors.fill: parent
                 verticalAlignment: Text.AlignVCenter
                 font: parent.font
-                color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.3)
                 text: root.placeholder
                 visible: !inputField.text && !inputField.activeFocus
             }

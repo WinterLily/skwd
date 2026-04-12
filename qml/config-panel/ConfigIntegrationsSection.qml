@@ -5,14 +5,12 @@ Column {
     id: root
 
     property var panel
-    property var colors
 
     width: parent.width
     spacing: 8
 
     ConfigSectionTitle {
         text: "THEME INTEGRATIONS"
-        colors: root.colors
     }
 
     Repeater {
@@ -52,7 +50,6 @@ Column {
                 panel.setNested(panel.configData, ["integrations", modelData.key], v);
                 panel.configDataChanged();
             }
-            colors: root.colors
         }
 
     }

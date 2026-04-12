@@ -7,6 +7,19 @@ Process {
     property string whId
     property string dest
     property var _verifyProc
+    property var _cleanupProc
+
+    signal progressUpdate(string id, real pct)
+    signal done(string id, bool success)
+
+    onExited: function(exitCode, exitStatus) {
+        if (exitCode === 0) {
+            dlProc.progressUpdate(dlProc.whId, 1);
+            _verifyProc.running = true;
+        } else {
+            dlProc.done(dlProc.whId, false);
+        }
+    }
 
     _verifyProc: Process {
         property string _output: ""
@@ -28,23 +41,9 @@ Process {
 
     }
 
-    property var _cleanupProc
-
     _cleanupProc: Process {
         command: ["rm", "-f", dlProc.dest]
         onExited: function() {
-            dlProc.done(dlProc.whId, false);
-        }
-    }
-
-    signal progressUpdate(string id, real pct)
-    signal done(string id, bool success)
-
-    onExited: function(exitCode, exitStatus) {
-        if (exitCode === 0) {
-            dlProc.progressUpdate(dlProc.whId, 1);
-            _verifyProc.running = true;
-        } else {
             dlProc.done(dlProc.whId, false);
         }
     }

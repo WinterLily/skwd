@@ -2,6 +2,7 @@ import ".."
 import "../components"
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -12,7 +13,6 @@ import Quickshell.Wayland
 Scope {
     id: powerMenuScope
 
-    property var colors
     property bool showing: false
     property bool hideLockOption: false
     // _panelVisible gates window visibility — stays false until the active-monitor
@@ -209,22 +209,79 @@ Scope {
                 Repeater {
                     model: powerMenuScope.options
 
-                    HexItem {
+                    Item {
                         id: hexItem
 
                         readonly property int colIdx: Math.floor(index / powerCard._rows)
                         readonly property int rowIdx: index % powerCard._rows
+                        readonly property int _r: powerCard._r
+                        readonly property real _cx: _r
+                        readonly property real _cy: powerCard._hexH / 2
+                        readonly property real _cos30: 0.866025
+                        readonly property real _sin30: 0.5
+                        property bool isSelected: powerMenuScope.selectedIndex === index
+                        property bool isHovered: hexMouse.containsMouse
 
-                        radius: powerCard._r
+                        width: powerCard._hexW
+                        height: powerCard._hexH
                         x: colIdx * powerCard._stepX
                         // Odd columns shift down by half a step — this is what creates the interlock
                         y: rowIdx * powerCard._stepY + (colIdx % 2 !== 0 ? powerCard._stepY / 2 : 0)
-                        isSelected: powerMenuScope.selectedIndex === index
-                        selectedBorderColor: powerMenuScope.colors ? powerMenuScope.colors.primary : "#ffb4ab"
-                        borderColor: Qt.rgba(0, 0, 0, 0.45)
-                        accentColor: powerMenuScope.colors ? powerMenuScope.colors.primary : "#ffb4ab"
-                        onHovered: powerMenuScope.selectedIndex = index
-                        onClicked: powerMenuScope.executeOption(index)
+
+                        // Hex clip mask
+                        Item {
+                            id: hexMaskLayer
+
+                            anchors.fill: parent
+                            visible: false
+                            layer.enabled: true
+
+                            Shape {
+                                anchors.fill: parent
+                                antialiasing: true
+                                preferredRendererType: Shape.CurveRenderer
+
+                                ShapePath {
+                                    fillColor: "white"
+                                    strokeColor: "transparent"
+                                    startX: hexItem._cx + hexItem._r
+                                    startY: hexItem._cy
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r * hexItem._sin30
+                                        y: hexItem._cy - hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r * hexItem._sin30
+                                        y: hexItem._cy - hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r
+                                        y: hexItem._cy
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r * hexItem._sin30
+                                        y: hexItem._cy + hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r * hexItem._sin30
+                                        y: hexItem._cy + hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r
+                                        y: hexItem._cy
+                                    }
+
+                                }
+
+                            }
+
+                        }
 
                         // Background fill
                         Item {
@@ -234,12 +291,12 @@ Scope {
 
                             Rectangle {
                                 anchors.fill: parent
-                                color: powerMenuScope.colors ? Qt.rgba(powerMenuScope.colors.surfaceContainer.r, powerMenuScope.colors.surfaceContainer.g, powerMenuScope.colors.surfaceContainer.b, 1) : "#2c1f1d"
+                                color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
                             }
 
                             layer.effect: MultiEffect {
                                 maskEnabled: true
-                                maskSource: hexItem.mask
+                                maskSource: hexMaskLayer
                                 maskThresholdMin: 0.3
                                 maskSpreadAtMin: 0.3
                             }
@@ -251,8 +308,8 @@ Scope {
                             anchors.centerIn: parent
                             text: modelData.icon
                             font.family: powerMenuScope.iconFont
-                            font.pixelSize: hexItem.radius * 0.72
-                            color: hexItem.isSelected ? (powerMenuScope.colors ? powerMenuScope.colors.primary : "#ffb4ab") : (powerMenuScope.colors ? powerMenuScope.colors.tertiary : "#8bceff")
+                            font.pixelSize: hexItem._r * 0.72
+                            color: hexItem.isSelected ? Colors.primary : (Colors.tertiary)
                             scale: hexItem.isHovered ? 1.1 : 1
                             layer.enabled: true
                             layer.smooth: true
@@ -274,7 +331,7 @@ Scope {
 
                             layer.effect: MultiEffect {
                                 maskEnabled: true
-                                maskSource: hexItem.mask
+                                maskSource: hexMaskLayer
                                 maskThresholdMin: 0.3
                                 maskSpreadAtMin: 0.3
                             }
@@ -302,9 +359,92 @@ Scope {
 
                             layer.effect: MultiEffect {
                                 maskEnabled: true
-                                maskSource: hexItem.mask
+                                maskSource: hexMaskLayer
                                 maskThresholdMin: 0.3
                                 maskSpreadAtMin: 0.3
+                            }
+
+                        }
+
+                        // Hex outline
+                        Shape {
+                            anchors.fill: parent
+                            antialiasing: true
+                            preferredRendererType: Shape.CurveRenderer
+
+                            ShapePath {
+                                fillColor: "transparent"
+                                strokeColor: hexItem.isSelected ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.45)
+                                strokeWidth: hexItem.isSelected ? 3 : 1.5
+                                startX: hexItem._cx + hexItem._r
+                                startY: hexItem._cy
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                                    y: hexItem._cy - hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                                    y: hexItem._cy - hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r
+                                    y: hexItem._cy
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r
+                                    y: hexItem._cy
+                                }
+
+                                Behavior on strokeColor {
+                                    ColorAnimation {
+                                        duration: 120
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                        // Accent colour rim: bottom-left and bottom edges
+                        Shape {
+                            anchors.fill: parent
+                            antialiasing: true
+                            preferredRendererType: Shape.CurveRenderer
+
+                            ShapePath {
+                                fillColor: "transparent"
+                                strokeColor: Colors.primary
+                                strokeWidth: 3
+                                capStyle: ShapePath.RoundCap
+                                joinStyle: ShapePath.RoundJoin
+                                startX: hexItem._cx - hexItem._r
+                                startY: hexItem._cy
+
+                                PathLine {
+                                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                                }
+
+                                PathLine {
+                                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                                }
+
                             }
 
                         }
@@ -318,7 +458,7 @@ Scope {
                             font.family: Style.fontFamily
                             font.pixelSize: 12
                             font.weight: Font.Medium
-                            color: hexItem.isSelected ? (powerMenuScope.colors ? powerMenuScope.colors.primary : "#ffb4ab") : (powerMenuScope.colors ? Qt.rgba(powerMenuScope.colors.surfaceText.r, powerMenuScope.colors.surfaceText.g, powerMenuScope.colors.surfaceText.b, 0.7) : Qt.rgba(1, 1, 1, 0.6))
+                            color: hexItem.isSelected ? (Colors.primary) : Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.7)
 
                             Behavior on color {
                                 ColorAnimation {
@@ -327,6 +467,27 @@ Scope {
 
                             }
 
+                        }
+
+                        // Mouse area with hex-accurate hit testing
+                        MouseArea {
+                            id: hexMouse
+
+                            function contains(point) {
+                                var dx = Math.abs(point.x - hexItem._cx);
+                                var dy = Math.abs(point.y - hexItem._cy);
+                                return dy <= hexItem._cos30 * hexItem._r && dx <= hexItem._r - dy * 0.57735;
+                            }
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onContainsMouseChanged: {
+                                if (containsMouse)
+                                    powerMenuScope.selectedIndex = index;
+
+                            }
+                            onClicked: powerMenuScope.executeOption(index)
                         }
 
                     }

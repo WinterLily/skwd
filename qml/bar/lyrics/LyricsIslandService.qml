@@ -7,6 +7,7 @@ QtObject {
     required property string installDir
     property var audioBars: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     property var _cavaProcess
+    property var _cavaRestartTimer
 
     _cavaProcess: Process {
         id: cavaProcess
@@ -33,8 +34,6 @@ QtObject {
         }
 
     }
-
-    property var _cavaRestartTimer
 
     _cavaRestartTimer: Timer {
         id: cavaRestartTimer

@@ -6,7 +6,6 @@ import QtQuick.Controls
 Item {
     id: btn
 
-    property var colors
     property bool isActive: false
     property string icon: ""
     property string label: ""
@@ -17,7 +16,7 @@ Item {
     property bool hasActiveColor: false
     property real activeOpacity: 1
     readonly property bool isHovered: _mouse.containsMouse
-    readonly property color _resolvedActiveColor: btn.hasActiveColor ? btn.activeColor : (btn.colors ? btn.colors.primary : Style.fallbackAccent)
+    readonly property color _resolvedActiveColor: btn.hasActiveColor ? btn.activeColor : (Colors.primary)
 
     signal clicked()
 
@@ -29,8 +28,8 @@ Item {
     Canvas {
         id: _canvas
 
-        property color fillColor: btn.isActive ? btn._resolvedActiveColor : (btn.isHovered ? (btn.colors ? Qt.rgba(btn.colors.surfaceVariant.r, btn.colors.surfaceVariant.g, btn.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15)) : "transparent")
-        property color strokeColor: btn.isActive ? Qt.rgba(btn._resolvedActiveColor.r, btn._resolvedActiveColor.g, btn._resolvedActiveColor.b, 0.6) : (btn.isHovered ? (btn.colors ? Qt.rgba(btn.colors.primary.r, btn.colors.primary.g, btn.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)) : "transparent")
+        property color fillColor: btn.isActive ? btn._resolvedActiveColor : (btn.isHovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)) : "transparent")
+        property color strokeColor: btn.isActive ? Qt.rgba(btn._resolvedActiveColor.r, btn._resolvedActiveColor.g, btn._resolvedActiveColor.b, 0.6) : (btn.isHovered ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)) : "transparent")
 
         anchors.fill: parent
         onFillColorChanged: requestPaint()
@@ -63,7 +62,7 @@ Item {
         font.family: btn.useNerdFont ? Style.fontFamilyNerdIcons : Style.fontFamily
         font.weight: btn.useNerdFont ? Font.Normal : Font.Bold
         font.letterSpacing: btn.useNerdFont ? 0 : 0.5
-        color: btn.isActive ? (btn.hasActiveColor ? "#fff" : (btn.colors ? btn.colors.primaryText : "#000")) : (btn.colors ? btn.colors.tertiary : "#8bceff")
+        color: btn.isActive ? (btn.hasActiveColor ? "#fff" : (Colors.primaryText)) : (Colors.tertiary)
     }
 
     MouseArea {

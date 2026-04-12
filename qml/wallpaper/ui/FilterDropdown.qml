@@ -6,7 +6,6 @@ import QtQuick.Controls
 Item {
     id: dropdown
 
-    property var colors
     property string label: ""
     property string value: ""
     property string displayValue: ""
@@ -24,8 +23,8 @@ Item {
     Canvas {
         id: _canvas
 
-        property color fillColor: dropdown._popupOpen ? (dropdown.colors ? dropdown.colors.primary : Style.fallbackAccent) : (dropdown.value !== "" ? (dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)) : (dropdown.isHovered ? (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceVariant.r, dropdown.colors.surfaceVariant.g, dropdown.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15)) : (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceContainer.r, dropdown.colors.surfaceContainer.g, dropdown.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85))))
-        property color strokeColor: dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+        property color fillColor: dropdown._popupOpen ? (Colors.primary) : (dropdown.value !== "" ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)) : (dropdown.isHovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.6)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.85))))
+        property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
 
         anchors.fill: parent
         onFillColorChanged: requestPaint()
@@ -61,7 +60,7 @@ Item {
             font.pixelSize: 10
             font.weight: Font.Bold
             font.letterSpacing: 0.5
-            color: dropdown._popupOpen ? (dropdown.colors ? dropdown.colors.primaryText : "#000") : (dropdown.colors ? dropdown.colors.tertiary : "#8bceff")
+            color: dropdown._popupOpen ? (Colors.primaryText) : (Colors.tertiary)
         }
 
         Text {
@@ -95,9 +94,9 @@ Item {
 
         background: Rectangle {
             radius: 4
-            color: dropdown.colors ? Qt.rgba(dropdown.colors.surface.r, dropdown.colors.surface.g, dropdown.colors.surface.b, 0.95) : Qt.rgba(0.1, 0.12, 0.18, 0.95)
+            color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.95)
             border.width: 1
-            border.color: dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.1)
+            border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2)
         }
 
         contentItem: Column {
@@ -112,7 +111,7 @@ Item {
                     width: Math.max(_itemLabel.implicitWidth + 20, 80)
                     height: 22
                     radius: 2
-                    color: _itemIsActive ? (dropdown.colors ? Qt.rgba(dropdown.colors.primary.r, dropdown.colors.primary.g, dropdown.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.15)) : (_itemMouse.containsMouse ? (dropdown.colors ? Qt.rgba(dropdown.colors.surfaceVariant.r, dropdown.colors.surfaceVariant.g, dropdown.colors.surfaceVariant.b, 0.4) : Qt.rgba(1, 1, 1, 0.08)) : "transparent")
+                    color: _itemIsActive ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.25)) : (_itemMouse.containsMouse ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.4)) : "transparent")
 
                     Text {
                         id: _itemLabel
@@ -123,7 +122,7 @@ Item {
                         font.pixelSize: 10
                         font.weight: parent._itemIsActive ? Font.Bold : Font.Medium
                         font.letterSpacing: 0.3
-                        color: parent._itemIsActive ? (dropdown.colors ? dropdown.colors.primary : Style.fallbackAccent) : (dropdown.colors ? dropdown.colors.surfaceText : "#e0e0e0")
+                        color: parent._itemIsActive ? (Colors.primary) : (Colors.surfaceText)
                     }
 
                     MouseArea {

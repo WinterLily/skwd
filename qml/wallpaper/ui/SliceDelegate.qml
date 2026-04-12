@@ -10,7 +10,6 @@ import QtQuick.Shapes
 Item {
     id: delegateItem
 
-    property var colors
     property int expandedWidth: 768
     property int sliceWidth: 108
     property int skewOffset: 28
@@ -242,7 +241,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     visible: thumbImage.status !== Image.Ready
-                    color: delegateItem.colors ? Qt.rgba(delegateItem.colors.surfaceVariant.r, delegateItem.colors.surfaceVariant.g, delegateItem.colors.surfaceVariant.b, 0.8) : Qt.rgba(0.18, 0.2, 0.25, 0.8)
+                    color: Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.8)
                 }
 
                 Rectangle {
@@ -300,7 +299,7 @@ Item {
 
                 ShapePath {
                     fillColor: "transparent"
-                    strokeColor: delegateItem.isCurrent ? (delegateItem.colors ? delegateItem.colors.primary : "#8BC34A") : (delegateItem.isHovered ? Qt.rgba(delegateItem.colors ? delegateItem.colors.primary.r : 0.5, delegateItem.colors ? delegateItem.colors.primary.g : 0.76, delegateItem.colors ? delegateItem.colors.primary.b : 0.29, 0.4) : Qt.rgba(0, 0, 0, 0.6))
+                    strokeColor: delegateItem.isCurrent ? (Colors.primary) : (delegateItem.isHovered ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4) : Qt.rgba(0, 0, 0, 0.6))
                     strokeWidth: delegateItem.isCurrent ? 3 : 1
                     startX: delegateItem._topLeft
                     startY: 0
@@ -345,9 +344,9 @@ Item {
                 width: 22
                 height: 22
                 radius: 11
-                color: delegateItem.videoActive ? (delegateItem.colors ? delegateItem.colors.primary : Style.fallbackAccent) : Qt.rgba(0, 0, 0, 0.7)
+                color: delegateItem.videoActive ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.7)
                 border.width: 1
-                border.color: delegateItem.videoActive ? "transparent" : (delegateItem.colors ? Qt.rgba(delegateItem.colors.primary.r, delegateItem.colors.primary.g, delegateItem.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.4))
+                border.color: delegateItem.videoActive ? "transparent" : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6))
                 visible: delegateItem.hasVideo
                 z: 10
 
@@ -356,7 +355,7 @@ Item {
                     anchors.horizontalCenterOffset: 1
                     text: "▶"
                     font.pixelSize: 9
-                    color: delegateItem.videoActive ? (delegateItem.colors ? delegateItem.colors.primaryText : "#000") : (delegateItem.colors ? delegateItem.colors.primary : Style.fallbackAccent)
+                    color: delegateItem.videoActive ? (Colors.primaryText) : (Colors.primary)
                 }
 
                 Behavior on color {
@@ -390,7 +389,7 @@ Item {
 
                     ShapePath {
                         fillColor: Qt.rgba(0, 0, 0, 0.75)
-                        strokeColor: delegateItem.colors ? Qt.rgba(delegateItem.colors.primary.r, delegateItem.colors.primary.g, delegateItem.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+                        strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
                         strokeWidth: 1
                         startX: typeBadge._tl
                         startY: 0
@@ -428,7 +427,7 @@ Item {
                     font.pixelSize: 9
                     font.weight: Font.Bold
                     font.letterSpacing: 0.5
-                    color: delegateItem.colors ? delegateItem.colors.tertiary : "#8bceff"
+                    color: Colors.tertiary
                 }
 
             }
@@ -520,7 +519,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: delegateItem.colors ? delegateItem.colors.surfaceContainer : "#1a1a2e"
+                    color: Colors.surfaceContainer
                 }
 
                 ShaderEffectSource {
@@ -554,7 +553,7 @@ Item {
                     Text {
                         width: parent.width
                         text: model.name.replace(/\.[^/.]+$/, "").toUpperCase()
-                        color: delegateItem.colors ? delegateItem.colors.tertiary : "#8bceff"
+                        color: Colors.tertiary
                         font.family: Style.fontFamily
                         font.pixelSize: 13
                         font.weight: Font.Bold
@@ -573,7 +572,7 @@ Item {
 
                         Text {
                             text: FileMetadataService.formatExt(model.name)
-                            color: delegateItem.colors ? Qt.rgba(delegateItem.colors.tertiary.r, delegateItem.colors.tertiary.g, delegateItem.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                            color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                             font.family: Style.fontFamily
                             font.pixelSize: 10
                             font.weight: Font.Medium
@@ -589,7 +588,7 @@ Item {
 
                         Text {
                             text: delegateItem._backMeta ? (delegateItem._backMeta.width + " \u00d7 " + delegateItem._backMeta.height) : "\u2013"
-                            color: delegateItem.colors ? Qt.rgba(delegateItem.colors.tertiary.r, delegateItem.colors.tertiary.g, delegateItem.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                            color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                             font.family: Style.fontFamily
                             font.pixelSize: 10
                             font.weight: Font.Medium
@@ -605,7 +604,7 @@ Item {
 
                         Text {
                             text: delegateItem._backMeta ? FileMetadataService.formatSize(delegateItem._backMeta.filesize) : "\u2013"
-                            color: delegateItem.colors ? Qt.rgba(delegateItem.colors.tertiary.r, delegateItem.colors.tertiary.g, delegateItem.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                            color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                             font.family: Style.fontFamily
                             font.pixelSize: 10
                             font.weight: Font.Medium
@@ -622,7 +621,7 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             text: "FAVOURITE"
-                            color: delegateItem.colors ? delegateItem.colors.tertiary : "#8bceff"
+                            color: Colors.tertiary
                             font.family: Style.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Medium
@@ -656,7 +655,7 @@ Item {
 
                             Canvas {
                                 property bool isOn: favToggle.checked
-                                property color fillColor: isOn ? (delegateItem.colors ? delegateItem.colors.primary : Style.fallbackAccent) : Qt.rgba(1, 1, 1, 0.15)
+                                property color fillColor: isOn ? (Colors.primary) : Qt.rgba(1, 1, 1, 0.15)
 
                                 anchors.fill: parent
                                 onFillColorChanged: requestPaint()
@@ -677,7 +676,7 @@ Item {
                             }
 
                             Canvas {
-                                property color knobColor: favToggle.checked ? (delegateItem.colors ? delegateItem.colors.primaryText : "#000") : (delegateItem.colors ? delegateItem.colors.surfaceText : "#fff")
+                                property color knobColor: favToggle.checked ? (Colors.primaryText) : (Colors.surfaceText)
 
                                 width: 22
                                 height: 18
@@ -735,9 +734,9 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: addTagField.activeFocus ? (delegateItem.colors ? Qt.rgba(delegateItem.colors.surface.r, delegateItem.colors.surface.g, delegateItem.colors.surface.b, 0.5) : Qt.rgba(0, 0, 0, 0.3)) : "transparent"
+                            color: addTagField.activeFocus ? (Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.5)) : "transparent"
                             border.width: 1
-                            border.color: addTagField.activeFocus ? (delegateItem.colors ? Qt.rgba(delegateItem.colors.primary.r, delegateItem.colors.primary.g, delegateItem.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)) : (delegateItem.colors ? Qt.rgba(delegateItem.colors.outline.r, delegateItem.colors.outline.g, delegateItem.colors.outline.b, 0.2) : Qt.rgba(1, 1, 1, 0.1))
+                            border.color: addTagField.activeFocus ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
 
                             Behavior on color {
                                 ColorAnimation {
@@ -768,7 +767,7 @@ Item {
                             font.family: Style.fontFamily
                             font.pixelSize: 10
                             font.letterSpacing: 0.3
-                            color: delegateItem.colors ? delegateItem.colors.surfaceText : "#fff"
+                            color: Colors.surfaceText
                             clip: true
                             onTextChanged: {
                                 if (_syncing)
@@ -828,7 +827,7 @@ Item {
                                 font.family: Style.fontFamily
                                 font.pixelSize: 10
                                 font.letterSpacing: 1
-                                color: delegateItem.colors ? Qt.rgba(delegateItem.colors.surfaceText.r, delegateItem.colors.surfaceText.g, delegateItem.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                 visible: !parent.text && !parent.activeFocus
                             }
 
@@ -887,9 +886,9 @@ Item {
                                         width: tagLabelText.implicitWidth + 28
                                         height: 26
                                         radius: 4
-                                        color: hovered ? (delegateItem.colors ? Qt.rgba(delegateItem.colors.surfaceVariant.r, delegateItem.colors.surfaceVariant.g, delegateItem.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15)) : "transparent"
+                                        color: hovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)) : "transparent"
                                         border.width: 1
-                                        border.color: hovered ? (delegateItem.colors ? Qt.rgba(delegateItem.colors.primary.r, delegateItem.colors.primary.g, delegateItem.colors.primary.b, 0.7) : Qt.rgba(1, 1, 1, 0.3)) : (delegateItem.colors ? Qt.rgba(delegateItem.colors.outline.r, delegateItem.colors.outline.g, delegateItem.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.15))
+                                        border.color: hovered ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.7)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.5))
 
                                         Text {
                                             id: tagLabelText
@@ -898,7 +897,7 @@ Item {
                                             anchors.leftMargin: 8
                                             anchors.verticalCenter: parent.verticalCenter
                                             text: modelData.toUpperCase()
-                                            color: delegateItem.colors ? delegateItem.colors.tertiary : "#8bceff"
+                                            color: Colors.tertiary
                                             font.family: Style.fontFamily
                                             font.pixelSize: 11
                                             font.weight: Font.Medium
@@ -912,7 +911,7 @@ Item {
                                             text: "\u{f0156}"
                                             font.family: Style.fontFamilyNerdIcons
                                             font.pixelSize: 10
-                                            color: parent.hovered ? (delegateItem.colors ? delegateItem.colors.primary : "#ff6b6b") : Qt.rgba(1, 1, 1, 0.25)
+                                            color: parent.hovered ? (Colors.primary) : Qt.rgba(1, 1, 1, 0.25)
 
                                             Behavior on color {
                                                 ColorAnimation {
@@ -986,7 +985,6 @@ Item {
 
                         ActionButton {
                             width: model.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                            colors: delegateItem.colors
                             icon: "\u{f0208}"
                             label: "VIEW"
                             skew: Math.abs(delegateItem.skewOffset) * 0.4
@@ -999,7 +997,6 @@ Item {
 
                         ActionButton {
                             width: model.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                            colors: delegateItem.colors
                             icon: "\u{f0a79}"
                             label: "DELETE"
                             danger: true
@@ -1019,7 +1016,6 @@ Item {
                         ActionButton {
                             visible: model.type === "we"
                             width: visible ? (parent.width - parent.spacing * 2) / 3 : 0
-                            colors: delegateItem.colors
                             icon: "\u{f0bef}"
                             label: "STEAM"
                             skew: Math.abs(delegateItem.skewOffset) * 0.4
@@ -1055,7 +1051,7 @@ Item {
 
                 ShapePath {
                     fillColor: "transparent"
-                    strokeColor: delegateItem.colors ? delegateItem.colors.primary : "#8BC34A"
+                    strokeColor: Colors.primary
                     strokeWidth: 2
                     startX: delegateItem._topLeft
                     startY: 0

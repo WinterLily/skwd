@@ -4,7 +4,6 @@ import QtQuick
 Item {
     property string label
     property int value
-    property var colors
 
     signal edited(int v)
 
@@ -21,7 +20,7 @@ Item {
             font.family: Style.fontFamily
             font.pixelSize: 12
             font.weight: Font.Medium
-            color: colors ? colors.surfaceText : "#ddd"
+            color: Colors.surfaceText
             anchors.verticalCenter: parent.verticalCenter
             elide: Text.ElideRight
         }
@@ -30,9 +29,9 @@ Item {
             width: 140
             height: 30
             radius: 6
-            color: colors ? Qt.rgba(colors.surfaceContainer.r, colors.surfaceContainer.g, colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+            color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
             border.width: numInput.activeFocus ? 1 : 0
-            border.color: colors ? Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+            border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
 
             TextInput {
                 id: numInput
@@ -43,11 +42,11 @@ Item {
                 verticalAlignment: TextInput.AlignVCenter
                 font.family: Style.fontFamilyCode
                 font.pixelSize: 11
-                color: colors ? colors.tertiary : "#8bceff"
+                color: Colors.tertiary
                 clip: true
                 text: value.toString()
                 selectByMouse: true
-                selectionColor: colors ? Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                selectionColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)
                 onTextEdited: {
                     var n = parseInt(text);
                     if (!isNaN(n))

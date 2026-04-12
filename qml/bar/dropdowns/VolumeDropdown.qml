@@ -6,7 +6,6 @@ import "../.."
 Rectangle {
   id: root
 
-  required property var colors
 
   // Dropdown animation state
   property bool active: false
@@ -39,20 +38,20 @@ Rectangle {
       ctx.lineTo(root.diagSlant, height)
       ctx.lineTo(0, height - root.diagSlant)
       ctx.closePath()
-      ctx.fillStyle = Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 1.0)
+      ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1.0)
       ctx.fill()
 
       if (Config.accentEdges) {
         ctx.beginPath()
         ctx.moveTo(0, height - root.diagSlant)
         ctx.lineTo(root.diagSlant, height)
-        ctx.strokeStyle = Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 1.0)
+        ctx.strokeStyle = Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 1.0)
         ctx.lineWidth = 1.5
         ctx.stroke()
       }
     }
     Connections {
-      target: root.colors
+      target: Colors
       function onSurfaceChanged() { dropdownBg.requestPaint() }
       function onPrimaryChanged() { dropdownBg.requestPaint() }
     }
@@ -77,7 +76,7 @@ Rectangle {
     anchors.bottom: parent.bottom
     anchors.right: parent.right
     height: 2
-    color: root.colors.primary
+    color: Colors.primary
     property real animatedWidth: root.visible ? parent.width - root.diagSlant : 0
     width: animatedWidth
     Behavior on animatedWidth {
@@ -123,7 +122,7 @@ Rectangle {
     // Output section header
     Text {
       text: "OUTPUT"
-      color: root.colors.primary
+      color: Colors.primary
       font.pixelSize: 14
       font.family: Style.fontFamily
       font.weight: Font.DemiBold
@@ -145,14 +144,14 @@ Rectangle {
             text: modelData === Pipewire.defaultAudioSink ? "󰕾" : "󰖀"
             font.pixelSize: 12
             font.family: Style.fontFamilyNerdIcons
-            color: root.colors.primary
+            color: Colors.primary
             width: 14
             horizontalAlignment: Text.AlignHCenter
           }
 
           Text {
             text: modelData.description || modelData.name || "Unknown Output"
-            color: root.colors.backgroundText
+            color: Colors.backgroundText
             font.pixelSize: 12
             font.family: Style.fontFamily
             font.weight: Font.Medium
@@ -162,7 +161,7 @@ Rectangle {
 
           Text {
             text: Math.round((modelData.audio?.volume ?? 0) * 100) + "%"
-            color: root.colors.tertiary
+            color: Colors.tertiary
             font.pixelSize: 12
             font.family: Style.fontFamily
             font.weight: Font.Medium
@@ -184,7 +183,7 @@ Rectangle {
     // Input section header
     Text {
       text: "INPUT"
-      color: root.colors.primary
+      color: Colors.primary
       font.pixelSize: 14
       font.family: Style.fontFamily
       font.weight: Font.DemiBold
@@ -207,14 +206,14 @@ Rectangle {
             text: modelData === Pipewire.defaultAudioSource ? "󰍬" : "󰍭"
             font.pixelSize: 12
             font.family: Style.fontFamilyNerdIcons
-            color: root.colors.primary
+            color: Colors.primary
             width: 14
             horizontalAlignment: Text.AlignHCenter
           }
 
           Text {
             text: modelData.description || modelData.name || "Unknown Input"
-            color: root.colors.backgroundText
+            color: Colors.backgroundText
             font.pixelSize: 12
             font.family: Style.fontFamily
             font.weight: Font.Medium
@@ -224,7 +223,7 @@ Rectangle {
 
           Text {
             text: Math.round((modelData.audio?.volume ?? 0) * 100) + "%"
-            color: root.colors.tertiary
+            color: Colors.tertiary
             font.pixelSize: 12
             font.family: Style.fontFamily
             font.weight: Font.Medium

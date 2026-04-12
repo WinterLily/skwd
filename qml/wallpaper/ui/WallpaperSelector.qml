@@ -13,7 +13,6 @@ import Quickshell.Wayland
 Scope {
     id: wallpaperSelector
 
-    property var colors
     property bool showing: false
     property alias selectedColorFilter: service.selectedColorFilter
     property alias selectorService: service
@@ -421,15 +420,19 @@ Scope {
                     anchors.topMargin: 30
                     maxWidth: parent.width - 20
                     z: 10
-                    colors: wallpaperSelector.colors
                     service: service
                     settingsOpen: wallpaperSelector.settingsOpen
+                    ollamaActive: service.ollamaActive
                     cacheLoading: service.cacheLoading
                     cacheProgress: service.cacheProgress
                     cacheTotal: service.cacheTotal
                     matugenRunning: MatugenCacheService.running
                     matugenProgress: MatugenCacheService.progress
                     matugenTotal: MatugenCacheService.total
+                    ollamaProgress: service.ollamaTaggedCount
+                    ollamaTotal: service.ollamaTotalThumbs
+                    ollamaEta: service.ollamaEta
+                    ollamaLogLine: service.ollamaLogLine
                     videoConvertRunning: VideoConvertService.running
                     videoConvertProgress: VideoConvertService.progress
                     videoConvertTotal: VideoConvertService.total
@@ -484,7 +487,6 @@ Scope {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottomMargin: 30
-                colors: wallpaperSelector.colors
                 cacheLoading: service.cacheLoading
                 cacheProgress: service.cacheProgress
                 cacheTotal: service.cacheTotal
@@ -498,7 +500,6 @@ Scope {
             anchors.horizontalCenter: parent.horizontalCenter
             y: Math.max(8, cardContainer.y + filterBarBg.y - height - 8)
             z: 999
-            colors: wallpaperSelector.colors
             service: service
             settingsOpen: wallpaperSelector.settingsOpen
             onCloseRequested: {
@@ -514,7 +515,6 @@ Scope {
             anchors.horizontalCenter: cardContainer.horizontalCenter
             parentWidth: cardContainer.width
             z: 5
-            colors: wallpaperSelector.colors
             service: service
             tagCloudVisible: wallpaperSelector.tagCloudVisible
             onEscapePressed: wallpaperSelector._focusActiveList()
@@ -532,7 +532,6 @@ Scope {
             anchors.centerIn: parent
             width: cardContainer.width - 20
             z: 6
-            colors: wallpaperSelector.colors
             whService: whService
             browserVisible: wallpaperSelector.wallhavenBrowserOpen
             onEscapePressed: {
@@ -547,7 +546,6 @@ Scope {
             anchors.centerIn: parent
             width: cardContainer.width - 20
             z: 6
-            colors: wallpaperSelector.colors
             swService: swService
             browserVisible: wallpaperSelector.steamWorkshopBrowserOpen
             onEscapePressed: {
@@ -785,7 +783,6 @@ Scope {
             }
 
             delegate: SliceDelegate {
-                colors: wallpaperSelector.colors
                 expandedWidth: wallpaperSelector.expandedWidth
                 sliceWidth: wallpaperSelector.sliceWidth
                 skewOffset: wallpaperSelector.skewOffset
@@ -1049,7 +1046,6 @@ Scope {
                         property int flatIdx: hexCol.colIdx * hexListView._rows + rowIdx
 
                         hexRadius: hexListView._r
-                        colors: wallpaperSelector.colors
                         service: wallpaperSelector.selectorService
                         itemData: service.filteredModel.get(flatIdx)
                         isSelected: hexCol.colIdx === hexListView._selectedCol && rowIdx === hexListView._selectedRow
@@ -1314,7 +1310,7 @@ Scope {
 
                 contentItem: Rectangle {
                     radius: 2
-                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.primary.r, wallpaperSelector.colors.primary.g, wallpaperSelector.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                    color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
                 }
 
             }
@@ -1421,14 +1417,14 @@ Scope {
                     radius: 6
                     color: "transparent"
                     border.width: thumbGridView.hoveredIdx === gridThumbDelegate.index ? 2 : 0
-                    border.color: wallpaperSelector.colors ? wallpaperSelector.colors.primary : "#ff8800"
+                    border.color: Colors.primary
                     visible: !_pulledOut
 
                     Rectangle {
                         anchors.fill: parent
                         anchors.margins: gridCardRect.border.width
                         radius: 5
-                        color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surface.r, wallpaperSelector.colors.surface.g, wallpaperSelector.colors.surface.b, 0.6) : Qt.rgba(0.12, 0.14, 0.18, 0.6)
+                        color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.6)
                         clip: true
 
                         Image {
@@ -1481,7 +1477,7 @@ Scope {
                             anchors.fill: parent
                             radius: 6
                             visible: gridThumbImg.status !== Image.Ready
-                            color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceVariant.r, wallpaperSelector.colors.surfaceVariant.g, wallpaperSelector.colors.surfaceVariant.b, 0.8) : Qt.rgba(0.18, 0.2, 0.25, 0.8)
+                            color: Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.8)
 
                             Rectangle {
                                 id: gridShimmer
@@ -1501,7 +1497,7 @@ Scope {
 
                                     GradientStop {
                                         position: 0.5
-                                        color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceText.r, wallpaperSelector.colors.surfaceText.g, wallpaperSelector.colors.surfaceText.b, 0.08) : Qt.rgba(1, 1, 1, 0.08)
+                                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.08)
                                     }
 
                                     GradientStop {
@@ -1526,7 +1522,7 @@ Scope {
                                 text: "\u{f0553}"
                                 font.family: Style.fontFamilyNerdIcons
                                 font.pixelSize: 22
-                                color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceText.r, wallpaperSelector.colors.surfaceText.g, wallpaperSelector.colors.surfaceText.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)
+                                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.15)
                             }
 
                         }
@@ -1591,7 +1587,7 @@ Scope {
                                 font.family: Style.fontFamily
                                 font.pixelSize: 8
                                 font.weight: Font.Bold
-                                color: wallpaperSelector.colors ? wallpaperSelector.colors.primary : "#ff8800"
+                                color: Colors.primary
                             }
 
                         }
@@ -1603,9 +1599,9 @@ Scope {
                             width: 18
                             height: 18
                             radius: 9
-                            color: gridThumbDelegate.videoActive ? (wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent) : Qt.rgba(0, 0, 0, 0.7)
+                            color: gridThumbDelegate.videoActive ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.7)
                             border.width: 1
-                            border.color: gridThumbDelegate.videoActive ? "transparent" : (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.primary.r, wallpaperSelector.colors.primary.g, wallpaperSelector.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.4))
+                            border.color: gridThumbDelegate.videoActive ? "transparent" : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6))
                             visible: gridThumbDelegate.hasVideo
                             z: 5
 
@@ -1614,7 +1610,7 @@ Scope {
                                 anchors.horizontalCenterOffset: 1
                                 text: "\u25b6"
                                 font.pixelSize: 7
-                                color: gridThumbDelegate.videoActive ? (wallpaperSelector.colors ? wallpaperSelector.colors.primaryText : "#000") : (wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent)
+                                color: gridThumbDelegate.videoActive ? (Colors.primaryText) : (Colors.primary)
                             }
 
                             Behavior on color {
@@ -1633,7 +1629,7 @@ Scope {
                             text: "\u{f0134}"
                             font.family: Style.fontFamilyNerdIcons
                             font.pixelSize: 14
-                            color: wallpaperSelector.colors ? wallpaperSelector.colors.primary : "#ff8800"
+                            color: Colors.primary
                             visible: gridThumbDelegate.model.favourite === true
                         }
 
@@ -1887,7 +1883,7 @@ Scope {
                     Rectangle {
                         anchors.fill: parent
                         radius: 12
-                        color: wallpaperSelector.colors ? wallpaperSelector.colors.surfaceContainer : "#1a1a2e"
+                        color: Colors.surfaceContainer
                         clip: true
 
                         Image {
@@ -1908,7 +1904,7 @@ Scope {
                         radius: 12
                         color: "transparent"
                         border.width: 2
-                        border.color: wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent
+                        border.color: Colors.primary
                     }
 
                 }
@@ -1922,7 +1918,7 @@ Scope {
                     Rectangle {
                         anchors.fill: parent
                         radius: 12
-                        color: wallpaperSelector.colors ? wallpaperSelector.colors.surfaceContainer : "#1a1a2e"
+                        color: Colors.surfaceContainer
                         clip: true
 
                         MouseArea {
@@ -1953,7 +1949,7 @@ Scope {
                             Text {
                                 width: parent.width
                                 text: gridBackOverlay.overlayData ? gridBackOverlay.overlayData.name.replace(/\.[^/.]+$/, "").toUpperCase() : ""
-                                color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
+                                color: Colors.tertiary
                                 font.family: Style.fontFamily
                                 font.pixelSize: 15
                                 font.weight: Font.Bold
@@ -1971,7 +1967,7 @@ Scope {
 
                                 Text {
                                     text: gridBackOverlay.overlayData ? FileMetadataService.formatExt(gridBackOverlay.overlayData.name) : ""
-                                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.tertiary.r, wallpaperSelector.colors.tertiary.g, wallpaperSelector.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                                    color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.Medium
@@ -1987,7 +1983,7 @@ Scope {
 
                                 Text {
                                     text: gridBackOverlay._gridMeta ? (gridBackOverlay._gridMeta.width + " \u00d7 " + gridBackOverlay._gridMeta.height) : "\u2013"
-                                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.tertiary.r, wallpaperSelector.colors.tertiary.g, wallpaperSelector.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                                    color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.Medium
@@ -2003,7 +1999,7 @@ Scope {
 
                                 Text {
                                     text: gridBackOverlay._gridMeta ? FileMetadataService.formatSize(gridBackOverlay._gridMeta.filesize) : "\u2013"
-                                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.tertiary.r, wallpaperSelector.colors.tertiary.g, wallpaperSelector.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                                    color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.Medium
@@ -2026,7 +2022,7 @@ Scope {
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: "FAVOURITE"
-                                    color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
+                                    color: Colors.tertiary
                                     font.family: Style.fontFamily
                                     font.pixelSize: 12
                                     font.weight: Font.Medium
@@ -2056,7 +2052,7 @@ Scope {
 
                                     Canvas {
                                         property bool isOn: gridFavToggle.checked
-                                        property color fillColor: isOn ? (wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent) : Qt.rgba(1, 1, 1, 0.15)
+                                        property color fillColor: isOn ? (Colors.primary) : Qt.rgba(1, 1, 1, 0.15)
 
                                         anchors.fill: parent
                                         onFillColorChanged: requestPaint()
@@ -2077,7 +2073,7 @@ Scope {
                                     }
 
                                     Canvas {
-                                        property color knobColor: gridFavToggle.checked ? (wallpaperSelector.colors ? wallpaperSelector.colors.primaryText : "#000") : (wallpaperSelector.colors ? wallpaperSelector.colors.surfaceText : "#fff")
+                                        property color knobColor: gridFavToggle.checked ? (Colors.primaryText) : (Colors.surfaceText)
 
                                         width: 20
                                         height: 16
@@ -2136,9 +2132,9 @@ Scope {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    color: gridTagField.activeFocus ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surface.r, wallpaperSelector.colors.surface.g, wallpaperSelector.colors.surface.b, 0.5) : Qt.rgba(0, 0, 0, 0.3)) : "transparent"
+                                    color: gridTagField.activeFocus ? (Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.5)) : "transparent"
                                     border.width: 1
-                                    border.color: gridTagField.activeFocus ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.primary.r, wallpaperSelector.colors.primary.g, wallpaperSelector.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)) : (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.outline.r, wallpaperSelector.colors.outline.g, wallpaperSelector.colors.outline.b, 0.2) : Qt.rgba(1, 1, 1, 0.1))
+                                    border.color: gridTagField.activeFocus ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
 
                                     Behavior on color {
                                         ColorAnimation {
@@ -2169,7 +2165,7 @@ Scope {
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.letterSpacing: 0.3
-                                    color: wallpaperSelector.colors ? wallpaperSelector.colors.surfaceText : "#fff"
+                                    color: Colors.surfaceText
                                     clip: true
                                     onTextChanged: {
                                         if (_syncing)
@@ -2230,7 +2226,7 @@ Scope {
                                         font.family: Style.fontFamily
                                         font.pixelSize: 11
                                         font.letterSpacing: 1
-                                        color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceText.r, wallpaperSelector.colors.surfaceText.g, wallpaperSelector.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                         visible: !parent.text && !parent.activeFocus
                                     }
 
@@ -2288,9 +2284,9 @@ Scope {
                                                 width: _gridTagTxt.implicitWidth + 30
                                                 height: 28
                                                 radius: 4
-                                                color: hovered ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceVariant.r, wallpaperSelector.colors.surfaceVariant.g, wallpaperSelector.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15)) : "transparent"
+                                                color: hovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)) : "transparent"
                                                 border.width: 1
-                                                border.color: hovered ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.primary.r, wallpaperSelector.colors.primary.g, wallpaperSelector.colors.primary.b, 0.7) : Qt.rgba(1, 1, 1, 0.3)) : (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.outline.r, wallpaperSelector.colors.outline.g, wallpaperSelector.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.15))
+                                                border.color: hovered ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.7)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.5))
 
                                                 Text {
                                                     id: _gridTagTxt
@@ -2299,7 +2295,7 @@ Scope {
                                                     anchors.leftMargin: 8
                                                     anchors.verticalCenter: parent.verticalCenter
                                                     text: modelData.toUpperCase()
-                                                    color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
+                                                    color: Colors.tertiary
                                                     font.family: Style.fontFamily
                                                     font.pixelSize: 12
                                                     font.weight: Font.Medium
@@ -2313,7 +2309,7 @@ Scope {
                                                     text: "\u{f0156}"
                                                     font.family: Style.fontFamilyNerdIcons
                                                     font.pixelSize: 11
-                                                    color: parent.hovered ? (wallpaperSelector.colors ? wallpaperSelector.colors.primary : "#ff6b6b") : Qt.rgba(1, 1, 1, 0.25)
+                                                    color: parent.hovered ? (Colors.primary) : Qt.rgba(1, 1, 1, 0.25)
 
                                                     Behavior on color {
                                                         ColorAnimation {
@@ -2387,7 +2383,6 @@ Scope {
 
                                 ActionButton {
                                     width: gridBackOverlay.overlayData && gridBackOverlay.overlayData.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                                    colors: wallpaperSelector.colors
                                     icon: "\u{f0208}"
                                     label: "VIEW"
                                     onClicked: {
@@ -2402,7 +2397,6 @@ Scope {
 
                                 ActionButton {
                                     width: gridBackOverlay.overlayData && gridBackOverlay.overlayData.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                                    colors: wallpaperSelector.colors
                                     icon: "\u{f0a79}"
                                     label: "DELETE"
                                     danger: true
@@ -2418,7 +2412,6 @@ Scope {
                                 ActionButton {
                                     visible: gridBackOverlay.overlayData && gridBackOverlay.overlayData.type === "we"
                                     width: visible ? (parent.width - parent.spacing * 2) / 3 : 0
-                                    colors: wallpaperSelector.colors
                                     icon: "\u{f0bef}"
                                     label: "STEAM"
                                     onClicked: {
@@ -2438,7 +2431,7 @@ Scope {
                         radius: 12
                         color: "transparent"
                         border.width: 2.5
-                        border.color: wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent
+                        border.color: Colors.primary
                     }
 
                     transform: Rotation {
@@ -2788,7 +2781,7 @@ Scope {
 
                         ShapePath {
                             fillColor: "transparent"
-                            strokeColor: wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent
+                            strokeColor: Colors.primary
                             strokeWidth: 2
                             startX: hexBackOverlay.bigR * 2
                             startY: hexCard.height / 2
@@ -2851,7 +2844,7 @@ Scope {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: wallpaperSelector.colors ? wallpaperSelector.colors.surfaceContainer : "#1a1a2e"
+                            color: Colors.surfaceContainer
                         }
 
                         Image {
@@ -2875,7 +2868,7 @@ Scope {
                             Text {
                                 width: parent.width
                                 text: hexBackOverlay.overlayData ? hexBackOverlay.overlayData.name.replace(/\.[^/.]+$/, "").toUpperCase() : ""
-                                color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
+                                color: Colors.tertiary
                                 font.family: Style.fontFamily
                                 font.pixelSize: 15
                                 font.weight: Font.Bold
@@ -2893,7 +2886,7 @@ Scope {
 
                                 Text {
                                     text: hexBackOverlay.overlayData ? FileMetadataService.formatExt(hexBackOverlay.overlayData.name) : ""
-                                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.tertiary.r, wallpaperSelector.colors.tertiary.g, wallpaperSelector.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                                    color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.Medium
@@ -2909,7 +2902,7 @@ Scope {
 
                                 Text {
                                     text: hexBackOverlay._hexMeta ? (hexBackOverlay._hexMeta.width + " \u00d7 " + hexBackOverlay._hexMeta.height) : "\u2013"
-                                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.tertiary.r, wallpaperSelector.colors.tertiary.g, wallpaperSelector.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                                    color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.Medium
@@ -2925,7 +2918,7 @@ Scope {
 
                                 Text {
                                     text: hexBackOverlay._hexMeta ? FileMetadataService.formatSize(hexBackOverlay._hexMeta.filesize) : "\u2013"
-                                    color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.tertiary.r, wallpaperSelector.colors.tertiary.g, wallpaperSelector.colors.tertiary.b, 0.6) : Qt.rgba(1, 1, 1, 0.35)
+                                    color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.Medium
@@ -2948,7 +2941,7 @@ Scope {
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: "FAVOURITE"
-                                    color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
+                                    color: Colors.tertiary
                                     font.family: Style.fontFamily
                                     font.pixelSize: 12
                                     font.weight: Font.Medium
@@ -2978,7 +2971,7 @@ Scope {
 
                                     Canvas {
                                         property bool isOn: overlayFavToggle.checked
-                                        property color fillColor: isOn ? (wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent) : Qt.rgba(1, 1, 1, 0.15)
+                                        property color fillColor: isOn ? (Colors.primary) : Qt.rgba(1, 1, 1, 0.15)
 
                                         anchors.fill: parent
                                         onFillColorChanged: requestPaint()
@@ -2999,7 +2992,7 @@ Scope {
                                     }
 
                                     Canvas {
-                                        property color knobColor: overlayFavToggle.checked ? (wallpaperSelector.colors ? wallpaperSelector.colors.primaryText : "#000") : (wallpaperSelector.colors ? wallpaperSelector.colors.surfaceText : "#fff")
+                                        property color knobColor: overlayFavToggle.checked ? (Colors.primaryText) : (Colors.surfaceText)
 
                                         width: 20
                                         height: 16
@@ -3058,9 +3051,9 @@ Scope {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    color: overlayTagField.activeFocus ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surface.r, wallpaperSelector.colors.surface.g, wallpaperSelector.colors.surface.b, 0.5) : Qt.rgba(0, 0, 0, 0.3)) : "transparent"
+                                    color: overlayTagField.activeFocus ? (Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.5)) : "transparent"
                                     border.width: 1
-                                    border.color: overlayTagField.activeFocus ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.primary.r, wallpaperSelector.colors.primary.g, wallpaperSelector.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)) : (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.outline.r, wallpaperSelector.colors.outline.g, wallpaperSelector.colors.outline.b, 0.2) : Qt.rgba(1, 1, 1, 0.1))
+                                    border.color: overlayTagField.activeFocus ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
 
                                     Behavior on color {
                                         ColorAnimation {
@@ -3091,7 +3084,7 @@ Scope {
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
                                     font.letterSpacing: 0.3
-                                    color: wallpaperSelector.colors ? wallpaperSelector.colors.surfaceText : "#fff"
+                                    color: Colors.surfaceText
                                     clip: true
                                     onTextChanged: {
                                         if (_syncing)
@@ -3152,7 +3145,7 @@ Scope {
                                         font.family: Style.fontFamily
                                         font.pixelSize: 11
                                         font.letterSpacing: 1
-                                        color: wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceText.r, wallpaperSelector.colors.surfaceText.g, wallpaperSelector.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                         visible: !parent.text && !parent.activeFocus
                                     }
 
@@ -3210,9 +3203,9 @@ Scope {
                                                 width: _tagTxt.implicitWidth + 30
                                                 height: 28
                                                 radius: 4
-                                                color: hovered ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.surfaceVariant.r, wallpaperSelector.colors.surfaceVariant.g, wallpaperSelector.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15)) : "transparent"
+                                                color: hovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)) : "transparent"
                                                 border.width: 1
-                                                border.color: hovered ? (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.primary.r, wallpaperSelector.colors.primary.g, wallpaperSelector.colors.primary.b, 0.7) : Qt.rgba(1, 1, 1, 0.3)) : (wallpaperSelector.colors ? Qt.rgba(wallpaperSelector.colors.outline.r, wallpaperSelector.colors.outline.g, wallpaperSelector.colors.outline.b, 0.5) : Qt.rgba(1, 1, 1, 0.15))
+                                                border.color: hovered ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.7)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.5))
 
                                                 Text {
                                                     id: _tagTxt
@@ -3221,7 +3214,7 @@ Scope {
                                                     anchors.leftMargin: 8
                                                     anchors.verticalCenter: parent.verticalCenter
                                                     text: modelData.toUpperCase()
-                                                    color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
+                                                    color: Colors.tertiary
                                                     font.family: Style.fontFamily
                                                     font.pixelSize: 12
                                                     font.weight: Font.Medium
@@ -3235,7 +3228,7 @@ Scope {
                                                     text: "\u{f0156}"
                                                     font.family: Style.fontFamilyNerdIcons
                                                     font.pixelSize: 11
-                                                    color: parent.hovered ? (wallpaperSelector.colors ? wallpaperSelector.colors.primary : "#ff6b6b") : Qt.rgba(1, 1, 1, 0.25)
+                                                    color: parent.hovered ? (Colors.primary) : Qt.rgba(1, 1, 1, 0.25)
 
                                                     Behavior on color {
                                                         ColorAnimation {
@@ -3309,7 +3302,6 @@ Scope {
 
                                 ActionButton {
                                     width: hexBackOverlay.overlayData && hexBackOverlay.overlayData.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                                    colors: wallpaperSelector.colors
                                     icon: "\u{f0208}"
                                     label: "VIEW"
                                     onClicked: {
@@ -3324,7 +3316,6 @@ Scope {
 
                                 ActionButton {
                                     width: hexBackOverlay.overlayData && hexBackOverlay.overlayData.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                                    colors: wallpaperSelector.colors
                                     icon: "\u{f0a79}"
                                     label: "DELETE"
                                     danger: true
@@ -3340,7 +3331,6 @@ Scope {
                                 ActionButton {
                                     visible: hexBackOverlay.overlayData && hexBackOverlay.overlayData.type === "we"
                                     width: visible ? (parent.width - parent.spacing * 2) / 3 : 0
-                                    colors: wallpaperSelector.colors
                                     icon: "\u{f0bef}"
                                     label: "STEAM"
                                     onClicked: {
@@ -3369,7 +3359,7 @@ Scope {
 
                         ShapePath {
                             fillColor: "transparent"
-                            strokeColor: wallpaperSelector.colors ? wallpaperSelector.colors.primary : Style.fallbackAccent
+                            strokeColor: Colors.primary
                             strokeWidth: 2.5
                             startX: hexBackOverlay.bigR * 2
                             startY: hexCard.height / 2

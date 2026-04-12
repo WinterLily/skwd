@@ -35,33 +35,8 @@ QtObject {
         return o;
     }
     property var _configReadyConn
-
-    _configReadyConn: Connections {
-        function onConfigLoadedChanged() {
-            if (Config.configLoaded && !watcher.watching)
-                Qt.callLater(watcher.start);
-
-        }
-
-        target: Config
-    }
-
     property bool _initialised: false
     property var _monitor
-
-    _monitor: Process {
-        onExited: (code, status) => {
-            watcher.watching = false;
-            watcher._initialised = false;
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return watcher._handleLine(data);
-            }
-        }
-
-    }
 
     signal fileAdded(string name, string path, string type)
     signal fileRemoved(string name, string type)
@@ -257,6 +232,30 @@ QtObject {
 
             }
         }
+    }
+
+    _configReadyConn: Connections {
+        function onConfigLoadedChanged() {
+            if (Config.configLoaded && !watcher.watching)
+                Qt.callLater(watcher.start);
+
+        }
+
+        target: Config
+    }
+
+    _monitor: Process {
+        onExited: (code, status) => {
+            watcher.watching = false;
+            watcher._initialised = false;
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return watcher._handleLine(data);
+            }
+        }
+
     }
 
 }

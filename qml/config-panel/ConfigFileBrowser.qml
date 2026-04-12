@@ -5,7 +5,6 @@ Rectangle {
     id: root
 
     property var panel
-    property var colors
 
     anchors.fill: parent
     color: Qt.rgba(0, 0, 0, 0.85)
@@ -22,9 +21,9 @@ Rectangle {
         height: 560
         anchors.centerIn: parent
         radius: 12
-        color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.95) : Qt.rgba(0.1, 0.12, 0.18, 0.95)
+        color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.95)
         border.width: 1
-        border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.1)
+        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2)
 
         MouseArea {
             anchors.fill: parent
@@ -47,7 +46,7 @@ Rectangle {
                     font.pixelSize: 16
                     font.weight: Font.Bold
                     font.letterSpacing: 1
-                    color: root.colors ? root.colors.primary : "#4fc3f7"
+                    color: Colors.primary
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -60,7 +59,7 @@ Rectangle {
                     width: fbCloseLbl.implicitWidth + 16
                     height: 28
                     radius: 6
-                    color: fbCloseMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.error.r, root.colors.error.g, root.colors.error.b, 0.15) : Qt.rgba(1, 0.3, 0.3, 0.15)) : "transparent"
+                    color: fbCloseMouse.containsMouse ? (Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.15)) : "transparent"
                     anchors.verticalCenter: parent.verticalCenter
 
                     Text {
@@ -71,7 +70,7 @@ Rectangle {
                         font.family: Style.fontFamily
                         font.pixelSize: 14
                         font.weight: Font.Bold
-                        color: root.colors ? root.colors.error : "#ff6b6b"
+                        color: Colors.error
                     }
 
                     MouseArea {
@@ -91,7 +90,7 @@ Rectangle {
                 width: parent.width
                 height: 34
                 radius: 6
-                color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+                color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
 
                 Row {
                     anchors.fill: parent
@@ -103,7 +102,7 @@ Rectangle {
                         text: "󰉖"
                         font.family: Style.fontFamilyNerdIcons
                         font.pixelSize: 14
-                        color: root.colors ? root.colors.primary : "#4fc3f7"
+                        color: Colors.primary
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -136,7 +135,7 @@ Rectangle {
                                 text: "/"
                                 font.family: Style.fontFamily
                                 font.pixelSize: 11
-                                color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.3)
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: index > 0
                             }
@@ -148,7 +147,7 @@ Rectangle {
                                 font.weight: index === (root.panel._fileBrowserCurrentDir.split("/").filter(function(p) {
                                     return p.length > 0;
                                 }).length - 1) ? Font.Bold : Font.Normal
-                                color: crumbMouse.containsMouse ? (root.colors ? root.colors.primary : "#4fc3f7") : (root.colors ? root.colors.tertiary : "#8bceff")
+                                color: crumbMouse.containsMouse ? (Colors.primary) : (Colors.tertiary)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 MouseArea {
@@ -189,7 +188,7 @@ Rectangle {
                     width: 4
                     height: Math.max(20, fbFlickable.visibleArea.heightRatio * fbFlickable.height)
                     radius: 2
-                    color: root.colors ? root.colors.primary : "#fff"
+                    color: Colors.primary
                     opacity: 0.5
                     z: 10
                 }
@@ -221,9 +220,9 @@ Rectangle {
                                 width: dirLabel.implicitWidth + 36
                                 height: 30
                                 radius: 6
-                                color: dirMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)) : (root.colors ? Qt.rgba(root.colors.surfaceVariant.r, root.colors.surfaceVariant.g, root.colors.surfaceVariant.b, 0.25) : Qt.rgba(1, 1, 1, 0.05))
+                                color: dirMouse.containsMouse ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)) : (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.25))
                                 border.width: dirMouse.containsMouse ? 1 : 0
-                                border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.15)
+                                border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)
 
                                 Row {
                                     id: dirLabel
@@ -235,7 +234,7 @@ Rectangle {
                                         text: modelData.name === ".." ? "󰁍" : "󰉋"
                                         font.family: Style.fontFamilyNerdIcons
                                         font.pixelSize: 14
-                                        color: root.colors ? root.colors.primary : "#4fc3f7"
+                                        color: Colors.primary
                                         anchors.verticalCenter: parent.verticalCenter
                                     }
 
@@ -244,7 +243,7 @@ Rectangle {
                                         font.family: Style.fontFamily
                                         font.pixelSize: 11
                                         font.weight: Font.Medium
-                                        color: root.colors ? root.colors.tertiary : "#8bceff"
+                                        color: Colors.tertiary
                                         anchors.verticalCenter: parent.verticalCenter
                                         maximumLineCount: 1
                                         elide: Text.ElideRight
@@ -282,7 +281,7 @@ Rectangle {
                     Rectangle {
                         width: parent.width
                         height: 1
-                        color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.1) : Qt.rgba(1, 1, 1, 0.05)
+                        color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.1)
                         visible: {
                             var hasDirs = false, hasFiles = false;
                             for (var i = 0; i < root.panel._fileBrowserEntries.length; i++) {
@@ -308,9 +307,9 @@ Rectangle {
                                 width: 140
                                 height: 120
                                 radius: 8
-                                color: imgMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.12)) : (root.colors ? Qt.rgba(root.colors.surfaceVariant.r, root.colors.surfaceVariant.g, root.colors.surfaceVariant.b, 0.2) : Qt.rgba(1, 1, 1, 0.04))
+                                color: imgMouse.containsMouse ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2)) : (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.2))
                                 border.width: imgMouse.containsMouse ? 1 : 0
-                                border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+                                border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                                 clip: true
 
                                 Image {
@@ -348,7 +347,7 @@ Rectangle {
                                         text: modelData.name
                                         font.family: Style.fontFamily
                                         font.pixelSize: 9
-                                        color: root.colors ? root.colors.surfaceText : "#ccc"
+                                        color: Colors.surfaceText
                                         elide: Text.ElideMiddle
                                     }
 
@@ -381,7 +380,7 @@ Rectangle {
                         text: "No images in this directory"
                         font.family: Style.fontFamily
                         font.pixelSize: 12
-                        color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.3)
                         topPadding: 20
                         anchors.horizontalCenter: parent.horizontalCenter
                     }

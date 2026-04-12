@@ -20,121 +20,14 @@ QtObject {
     property var appConfig: ({
     })
     property var _appConfigFile
-
-    _appConfigFile: FileView {
-        path: service.configPath
-        preload: true
-        watchChanges: true
-        onFileChanged: _appConfigFile.reload()
-    }
-
     // Data model
     property var filteredModel
-
-    filteredModel: ListModel {
-    }
-
     // Processes
     property var _focusProcess
-
-    _focusProcess: Process {
-        command: ["true"]
-    }
-
     property var _closeProcess
-
-    _closeProcess: Process {
-        command: ["true"]
-    }
-
     property var _captureWindows
-
-    _captureWindows: Process {
-        command: ["sh", "-c", "true"]
-        onExited: {
-            service.screenshotCounter++;
-        }
-    }
-
     property var _fetchWindows
-
-    _fetchWindows: Process {
-        id: fetchWindows
-
-        property string buf: ""
-
-        command: [service.scriptsDir + "/bash/wm-action", "list-windows"]
-        running: false
-        onExited: {
-            try {
-                var windows = JSON.parse(fetchWindows.buf);
-                var comp = service.compositor;
-                if (comp === "hyprland") {
-                    for (var i = 0; i < windows.length; i++) {
-                        var w = windows[i];
-                        w.id = w.address;
-                        w.app_id = w.class || "";
-                        w.workspace_id = w.workspace ? w.workspace.id : 0;
-                        w.is_focused = w.focusHistoryID === 0;
-                        w.is_floating = w.floating || false;
-                    }
-                    windows.sort(function(a, b) {
-                        return (a.focusHistoryID || 0) - (b.focusHistoryID || 0);
-                    });
-                } else if (comp === "sway") {
-                    for (var i = 0; i < windows.length; i++) {
-                        var w = windows[i];
-                        w.app_id = w.app_id || "";
-                        w.workspace_id = w.num || 0;
-                        w.is_focused = w.focused || false;
-                        w.is_floating = w.type === "floating_con";
-                    }
-                } else if (comp === "kwin")
-                    // wm-action already outputs normalized field names for kwin
-                    // Just ensure focused window is sorted first for Alt+Tab ordering
-                    windows.sort(function(a, b) {
-                        if (a.is_focused && !b.is_focused)
-                            return -1;
-
-                        if (!a.is_focused && b.is_focused)
-                            return 1;
-
-                        return 0;
-                    });
-                else
-                    windows.sort(function(a, b) {
-                        var aTime = a.focus_timestamp ? (a.focus_timestamp.secs * 1e+09 + a.focus_timestamp.nanos) : 0;
-                        var bTime = b.focus_timestamp ? (b.focus_timestamp.secs * 1e+09 + b.focus_timestamp.nanos) : 0;
-                        return bTime - aTime;
-                    });
-                service.windowList = windows;
-            } catch (e) {
-                service.windowList = [];
-            }
-            service.buildModel();
-            if (service.compositor === "niri")
-                service.captureAllWindows();
-
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                fetchWindows.buf += data;
-            }
-        }
-
-    }
-
     property var _refreshTimer
-
-    _refreshTimer: Timer {
-        interval: 100
-        onTriggered: {
-            fetchWindows.buf = "";
-            fetchWindows.running = true;
-        }
-    }
 
     // Signals to view for scroll/focus management
     signal modelBuilt(int focusIndex)
@@ -241,6 +134,108 @@ QtObject {
         _closeProcess.running = true;
         preserveIndex = true;
         _refreshTimer.restart();
+    }
+
+    _appConfigFile: FileView {
+        path: service.configPath
+        preload: true
+        watchChanges: true
+        onFileChanged: _appConfigFile.reload()
+    }
+
+    filteredModel: ListModel {
+    }
+
+    _focusProcess: Process {
+        command: ["true"]
+    }
+
+    _closeProcess: Process {
+        command: ["true"]
+    }
+
+    _captureWindows: Process {
+        command: ["sh", "-c", "true"]
+        onExited: {
+            service.screenshotCounter++;
+        }
+    }
+
+    _fetchWindows: Process {
+        id: fetchWindows
+
+        property string buf: ""
+
+        command: [service.scriptsDir + "/bash/wm-action", "list-windows"]
+        running: false
+        onExited: {
+            try {
+                // wm-action already outputs normalized field names for kwin
+                // Just ensure focused window is sorted first for Alt+Tab ordering
+
+                var windows = JSON.parse(fetchWindows.buf);
+                var comp = service.compositor;
+                if (comp === "hyprland") {
+                    for (var i = 0; i < windows.length; i++) {
+                        var w = windows[i];
+                        w.id = w.address;
+                        w.app_id = w.class || "";
+                        w.workspace_id = w.workspace ? w.workspace.id : 0;
+                        w.is_focused = w.focusHistoryID === 0;
+                        w.is_floating = w.floating || false;
+                    }
+                    windows.sort(function(a, b) {
+                        return (a.focusHistoryID || 0) - (b.focusHistoryID || 0);
+                    });
+                } else if (comp === "sway") {
+                    for (var i = 0; i < windows.length; i++) {
+                        var w = windows[i];
+                        w.app_id = w.app_id || "";
+                        w.workspace_id = w.num || 0;
+                        w.is_focused = w.focused || false;
+                        w.is_floating = w.type === "floating_con";
+                    }
+                } else if (comp === "kwin")
+                    windows.sort(function(a, b) {
+                    if (a.is_focused && !b.is_focused)
+                        return -1;
+
+                    if (!a.is_focused && b.is_focused)
+                        return 1;
+
+                    return 0;
+                });
+                else
+                    windows.sort(function(a, b) {
+                    var aTime = a.focus_timestamp ? (a.focus_timestamp.secs * 1e+09 + a.focus_timestamp.nanos) : 0;
+                    var bTime = b.focus_timestamp ? (b.focus_timestamp.secs * 1e+09 + b.focus_timestamp.nanos) : 0;
+                    return bTime - aTime;
+                });
+                service.windowList = windows;
+            } catch (e) {
+                service.windowList = [];
+            }
+            service.buildModel();
+            if (service.compositor === "niri")
+                service.captureAllWindows();
+
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                fetchWindows.buf += data;
+            }
+        }
+
+    }
+
+    _refreshTimer: Timer {
+        interval: 100
+        onTriggered: {
+            fetchWindows.buf = "";
+            fetchWindows.running = true;
+        }
     }
 
 }

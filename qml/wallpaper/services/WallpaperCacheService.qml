@@ -25,121 +25,12 @@ QtObject {
     property var _deferredFiles: []
     property var _passedWallpaperData: null
     property var _weCleanProcess
-
-    _weCleanProcess: Process {
-        command: ["sh", "-c", "rm -rf " + DbService.shellQuote(service.weCacheDir) + "/* 2>/dev/null; true"]
-        onExited: service.rebuild(null)
-    }
-
     property var _forceCleanProcess
-
-    _forceCleanProcess: Process {
-        command: ["sh", "-c", "rm -rf " + DbService.shellQuote(service.thumbsDir) + "/* " + DbService.shellQuote(service.thumbsSmDir) + "/* " + DbService.shellQuote(service.videoCacheDir) + "/* " + DbService.shellQuote(service.weCacheDir) + "/* 2>/dev/null; true"]
-        onExited: service.rebuild(null)
-    }
-
     property var _weProbeComponent
-
-    _weProbeComponent: Component {
-        Process {
-            id: weProbe
-
-            property string _weId
-            property string _weDir
-            property string _stdout: ""
-
-            onExited: {
-                var lines = weProbe._stdout.trim().split("\n");
-                var title = lines[0] || "Unknown";
-                var preview = lines[1] || "";
-                if (!preview) {
-                    destroy();
-                    return ;
-                }
-                var src = weProbe._weDir + "/" + preview;
-                var item = {
-                    "type": "we",
-                    "src": src,
-                    "name": weProbe._weId,
-                    "mtime": "0",
-                    "thumbPath": service.weCacheDir + "/" + weProbe._weId + ".jpg",
-                    "title": title
-                };
-                service._launchIncrementalWorker(item);
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return weProbe._stdout += data;
-                }
-            }
-
-        }
-
-    }
-
     property var _incrementalWorkerComponent
-
-    _incrementalWorkerComponent: Component {
-        Process {
-            id: incWorker
-
-            property var _item
-            property string _stdout: ""
-
-            onExited: (code, status) => {
-                service.incrementalPending--;
-                service._incrementalActive--;
-                var lines = incWorker._stdout.trim().split("\n");
-                var mtime = parseInt(lines[0]) || 0;
-                var hueSat = lines.length > 1 ? lines[lines.length - 1].trim() : "0 0";
-                incWorker._item.mtime = String(mtime);
-                var result = service._parseWorkerOutput(hueSat, incWorker._item);
-                if (result) {
-                    result.mtime = mtime;
-                    service._writeOneResult(result);
-                    var key = DbService.cacheKey(result.thumb);
-                    service.fileProcessed(key, result);
-                } else {
-                }
-                service._drainIncrementalQueue();
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return incWorker._stdout += data;
-                }
-            }
-
-        }
-
-    }
-
     property var _mkdirs
-
-    _mkdirs: Process {
-        command: ["mkdir", "-p", service.thumbsDir, service.thumbsSmDir, service.weCacheDir, service.videoCacheDir]
-        onExited: service._scanFiles()
-    }
-
     property var _scanStdout: []
     property var _scanProcess
-
-    _scanProcess: Process {
-        onExited: service._processScanResult()
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return service._scanStdout.push(data);
-            }
-        }
-
-    }
-
     property var _pendingWorkItems: []
     property var _existingCache: ({
     })
@@ -147,35 +38,6 @@ QtObject {
     property int _activeJobs: 0
     property int _workIndex: 0
     property var _workerComponent
-
-    _workerComponent: Component {
-        Process {
-            id: workerProc
-
-            property var _item
-            property string _stdout: ""
-
-            onExited: {
-                var result = service._parseWorkerOutput(_stdout.trim(), _item);
-                if (result)
-                    service._writeOneResult(result);
-
-                service.progress++;
-                service._activeJobs--;
-                service._startWorkers();
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return workerProc._stdout += data;
-                }
-            }
-
-        }
-
-    }
 
     signal cacheReady(string result)
     signal fileProcessed(string key, var entry)
@@ -205,7 +67,8 @@ QtObject {
     function rescanWEItems() {
         if (running)
             return ;
- // Delete WE entries from meta table
+
+        // Delete WE entries from meta table
         DbService.exec("DELETE FROM meta WHERE type='we'");
         // Clear WE thumbnail cache
         _weCleanProcess.running = true;
@@ -338,13 +201,13 @@ QtObject {
             var parts = lines[i].split("\t");
             if (parts.length >= 5)
                 workItems.push({
-                    "type": parts[0],
-                    "src": parts[1],
-                    "name": parts[2],
-                    "mtime": parts[3],
-                    "thumbPath": parts[4],
-                    "title": parts[5] || ""
-                });
+                "type": parts[0],
+                "src": parts[1],
+                "name": parts[2],
+                "mtime": parts[3],
+                "thumbPath": parts[4],
+                "title": parts[5] || ""
+            });
 
         }
         if (workItems.length === 0) {
@@ -418,8 +281,8 @@ QtObject {
         }
         if (staleKeys.length > 0)
             DbService.exec("DELETE FROM meta WHERE key IN (" + staleKeys.map(function(k) {
-                return DbService.sqlStr(k);
-            }).join(",") + ");");
+            return DbService.sqlStr(k);
+        }).join(",") + ");");
 
         if (_workQueue.length === 0) {
             _finish("cached");
@@ -526,6 +389,138 @@ QtObject {
             _deferredFiles = [];
             processFiles(deferred);
         }
+    }
+
+    _weCleanProcess: Process {
+        command: ["sh", "-c", "rm -rf " + DbService.shellQuote(service.weCacheDir) + "/* 2>/dev/null; true"]
+        onExited: service.rebuild(null)
+    }
+
+    _forceCleanProcess: Process {
+        command: ["sh", "-c", "rm -rf " + DbService.shellQuote(service.thumbsDir) + "/* " + DbService.shellQuote(service.thumbsSmDir) + "/* " + DbService.shellQuote(service.videoCacheDir) + "/* " + DbService.shellQuote(service.weCacheDir) + "/* 2>/dev/null; true"]
+        onExited: service.rebuild(null)
+    }
+
+    _weProbeComponent: Component {
+        Process {
+            id: weProbe
+
+            property string _weId
+            property string _weDir
+            property string _stdout: ""
+
+            onExited: {
+                var lines = weProbe._stdout.trim().split("\n");
+                var title = lines[0] || "Unknown";
+                var preview = lines[1] || "";
+                if (!preview) {
+                    destroy();
+                    return ;
+                }
+                var src = weProbe._weDir + "/" + preview;
+                var item = {
+                    "type": "we",
+                    "src": src,
+                    "name": weProbe._weId,
+                    "mtime": "0",
+                    "thumbPath": service.weCacheDir + "/" + weProbe._weId + ".jpg",
+                    "title": title
+                };
+                service._launchIncrementalWorker(item);
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return weProbe._stdout += data;
+                }
+            }
+
+        }
+
+    }
+
+    _incrementalWorkerComponent: Component {
+        Process {
+            id: incWorker
+
+            property var _item
+            property string _stdout: ""
+
+            onExited: (code, status) => {
+                service.incrementalPending--;
+                service._incrementalActive--;
+                var lines = incWorker._stdout.trim().split("\n");
+                var mtime = parseInt(lines[0]) || 0;
+                var hueSat = lines.length > 1 ? lines[lines.length - 1].trim() : "0 0";
+                incWorker._item.mtime = String(mtime);
+                var result = service._parseWorkerOutput(hueSat, incWorker._item);
+                if (result) {
+                    result.mtime = mtime;
+                    service._writeOneResult(result);
+                    var key = DbService.cacheKey(result.thumb);
+                    service.fileProcessed(key, result);
+                } else {
+                }
+                service._drainIncrementalQueue();
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return incWorker._stdout += data;
+                }
+            }
+
+        }
+
+    }
+
+    _mkdirs: Process {
+        command: ["mkdir", "-p", service.thumbsDir, service.thumbsSmDir, service.weCacheDir, service.videoCacheDir]
+        onExited: service._scanFiles()
+    }
+
+    _scanProcess: Process {
+        onExited: service._processScanResult()
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return service._scanStdout.push(data);
+            }
+        }
+
+    }
+
+    _workerComponent: Component {
+        Process {
+            id: workerProc
+
+            property var _item
+            property string _stdout: ""
+
+            onExited: {
+                var result = service._parseWorkerOutput(_stdout.trim(), _item);
+                if (result)
+                    service._writeOneResult(result);
+
+                service.progress++;
+                service._activeJobs--;
+                service._startWorkers();
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return workerProc._stdout += data;
+                }
+            }
+
+        }
+
     }
 
 }

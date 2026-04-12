@@ -7,9 +7,9 @@ import QtQuick.Controls
 Item {
     id: filterBar
 
-    property var colors
     property var service
     property bool settingsOpen: false
+    property bool ollamaActive: false
     property bool wallhavenBrowserOpen: false
     property bool steamWorkshopBrowserOpen: false
     property bool cacheLoading: false
@@ -18,6 +18,10 @@ Item {
     property bool matugenRunning: false
     property int matugenProgress: 0
     property int matugenTotal: 0
+    property int ollamaProgress: 0
+    property int ollamaTotal: 0
+    property string ollamaEta: ""
+    property string ollamaLogLine: ""
     property bool videoConvertRunning: false
     property int videoConvertProgress: 0
     property int videoConvertTotal: 0
@@ -44,8 +48,8 @@ Item {
         id: _bgCanvas
 
         readonly property int _sk: 14
-        property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1)
-        property color accentColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+        property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+        property color accentColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6)
 
         x: 0
         y: 0
@@ -115,7 +119,6 @@ Item {
                 }]
 
                 FilterButton {
-                    colors: filterBar.colors
                     label: modelData.label
                     skew: filterBar._skew
                     isActive: filterBar.service ? filterBar.service.selectedTypeFilter === modelData.type : false
@@ -141,7 +144,6 @@ Item {
                 }]
 
                 FilterButton {
-                    colors: filterBar.colors
                     icon: modelData.icon
                     tooltip: modelData.label
                     skew: filterBar._skew
@@ -155,7 +157,6 @@ Item {
             }
 
             FilterButton {
-                colors: filterBar.colors
                 icon: "󰋑"
                 tooltip: "Favourites"
                 skew: filterBar._skew
@@ -181,7 +182,7 @@ Item {
                         id: _colorCanvas
 
                         property color cFill: parent.isSelected ? parent.hueBright : parent.hueColor
-                        property color bgCol: filterBar.colors ? filterBar.colors.surfaceContainer : Qt.rgba(0.1, 0.12, 0.18, 1)
+                        property color bgCol: Colors.surfaceContainer
                         property bool sel: parent.isSelected
                         property bool hov: parent.isHovered
 
@@ -244,7 +245,6 @@ Item {
             }
 
             FilterButton {
-                colors: filterBar.colors
                 icon: "\u{f0349}"
                 tooltip: "Tags"
                 skew: filterBar._skew
@@ -254,7 +254,6 @@ Item {
 
             FilterButton {
                 visible: Config.wallhavenEnabled
-                colors: filterBar.colors
                 icon: "\u{f01da}"
                 tooltip: "Browse wallhaven.cc"
                 skew: filterBar._skew
@@ -264,7 +263,6 @@ Item {
 
             FilterButton {
                 visible: Config.steamEnabled
-                colors: filterBar.colors
                 icon: "󰓓"
                 tooltip: "Browse Steam Workshop"
                 skew: filterBar._skew
@@ -273,7 +271,6 @@ Item {
             }
 
             FilterButton {
-                colors: filterBar.colors
                 icon: "\u{f0493}"
                 tooltip: "Settings"
                 skew: filterBar._skew
@@ -286,8 +283,8 @@ Item {
                 height: 24
 
                 Canvas {
-                    property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1)
-                    property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                    property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+                    property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
 
                     anchors.fill: parent
                     onFillColorChanged: requestPaint()
@@ -326,19 +323,19 @@ Item {
                     font.pixelSize: 10
                     font.weight: Font.Bold
                     font.letterSpacing: 0.5
-                    color: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceText.r, filterBar.colors.surfaceText.g, filterBar.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.5)
                 }
 
             }
 
             Item {
-                visible: filterBar.cacheLoading || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
+                visible: filterBar.cacheLoading || filterBar.ollamaActive || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
                 width: visible ? (_statusRow.width + 24 + filterBar._skew) : 0
                 height: 24
 
                 Canvas {
-                    property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1)
-                    property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                    property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+                    property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
 
                     anchors.fill: parent
                     visible: parent.visible
@@ -373,7 +370,7 @@ Item {
                         text: "󰔟"
                         font.pixelSize: 11
                         font.family: Style.fontFamilyNerdIcons
-                        color: filterBar.colors ? filterBar.colors.primary : Style.fallbackAccent
+                        color: Colors.primary
                         anchors.verticalCenter: parent.verticalCenter
 
                         RotationAnimation on rotation {
@@ -381,7 +378,7 @@ Item {
                             to: 360
                             duration: 1200
                             loops: Animation.Infinite
-                            running: filterBar.cacheLoading || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
+                            running: filterBar.cacheLoading || filterBar.ollamaActive || filterBar.matugenRunning || filterBar.videoConvertRunning || filterBar.imageOptimizeRunning
                         }
 
                     }
@@ -394,6 +391,12 @@ Item {
                                     parts.push("CACHE " + filterBar.cacheProgress + "/" + filterBar.cacheTotal);
                                 else
                                     parts.push("PROCESSING");
+                            }
+                            if (filterBar.ollamaActive) {
+                                if (filterBar.ollamaTotal > 0)
+                                    parts.push("OLLAMA " + filterBar.ollamaProgress + "/" + filterBar.ollamaTotal);
+                                else
+                                    parts.push("OLLAMA");
                             }
                             if (filterBar.matugenRunning) {
                                 if (filterBar.matugenTotal > 0)
@@ -419,7 +422,7 @@ Item {
                         font.pixelSize: 9
                         font.weight: Font.Bold
                         font.letterSpacing: 0.5
-                        color: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.8) : Qt.rgba(0.5, 0.76, 0.97, 0.8)
+                        color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.8)
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -433,8 +436,8 @@ Item {
                 height: 24
 
                 Canvas {
-                    property color fillColor: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceContainer.r, filterBar.colors.surfaceContainer.g, filterBar.colors.surfaceContainer.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1)
-                    property color strokeColor: filterBar.colors ? Qt.rgba(filterBar.colors.primary.r, filterBar.colors.primary.g, filterBar.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                    property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+                    property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
 
                     anchors.fill: parent
                     visible: parent.visible
@@ -470,7 +473,7 @@ Item {
                     font.letterSpacing: 0.3
                     elide: Text.ElideMiddle
                     maximumLineCount: 1
-                    color: filterBar.colors ? Qt.rgba(filterBar.colors.surfaceText.r, filterBar.colors.surfaceText.g, filterBar.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.5)
                 }
 
                 Behavior on width {
@@ -480,6 +483,75 @@ Item {
 
                 }
 
+            }
+
+            Item {
+                visible: filterBar.ollamaActive && filterBar.ollamaLogLine !== ""
+                width: visible ? (Math.min(_ollamaLogText.implicitWidth, 220) + 24 + filterBar._skew) : 0
+                height: 24
+
+                Canvas {
+                    property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+                    property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
+
+                    anchors.fill: parent
+                    visible: parent.visible
+                    onFillColorChanged: requestPaint()
+                    onStrokeColorChanged: requestPaint()
+                    onWidthChanged: requestPaint()
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        var sk = filterBar._skew;
+                        ctx.fillStyle = fillColor;
+                        ctx.strokeStyle = strokeColor;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(sk, 0);
+                        ctx.lineTo(width, 0);
+                        ctx.lineTo(width - sk, height);
+                        ctx.lineTo(0, height);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                }
+
+                Text {
+                    id: _ollamaLogText
+
+                    anchors.centerIn: parent
+                    width: Math.min(implicitWidth, 220)
+                    text: filterBar.ollamaLogLine
+                    font.family: Style.fontFamilyCode
+                    font.pixelSize: 8
+                    font.letterSpacing: 0.3
+                    elide: Text.ElideMiddle
+                    maximumLineCount: 1
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.5)
+                }
+
+                Behavior on width {
+                    NumberAnimation {
+                        duration: Style.animFast
+                    }
+
+                }
+
+            }
+
+            FilterButton {
+                visible: Config.ollamaEnabled
+                label: "O"
+                tooltip: filterBar.ollamaActive ? "Stop Ollama scan" : "Start Ollama scan"
+                skew: filterBar._skew
+                isActive: filterBar.ollamaActive
+                onClicked: {
+                    if (filterBar.ollamaActive)
+                        WallpaperAnalysisService.stop();
+                    else
+                        WallpaperAnalysisService.start();
+                }
             }
 
         }
@@ -495,13 +567,13 @@ Item {
             contentItem: Rectangle {
                 implicitHeight: 4
                 radius: 2
-                color: filterBar.colors ? filterBar.colors.primary : Qt.rgba(1, 1, 1, 1)
+                color: Colors.primary
             }
 
             background: Rectangle {
                 implicitHeight: 4
                 radius: 2
-                color: filterBar.colors ? filterBar.colors.surfaceContainer : Qt.rgba(0, 0, 0, 0.5)
+                color: Colors.surfaceContainer
             }
 
         }

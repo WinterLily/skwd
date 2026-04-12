@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+pragma Singleton
 
 // Dynamic Material Design 3 color palette. Reads matugen-generated colors.json
 // from cache and watches for changes, auto-updating all bound UI components.

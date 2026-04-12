@@ -26,6 +26,38 @@ QtObject {
     property real _prevIdle: 0
     property real _prevTotal: 0
     property var _cpuTimer
+    property var cpuStatFile
+    // ──────────────────────────────────────────────────
+    // Memory usage — /proc/meminfo
+    // ──────────────────────────────────────────────────
+    property var _memTimer
+    property var memInfoFile
+    // ──────────────────────────────────────────────────
+    // CPU temperature — probe hwmon0..15 for k10temp / zenpower / coretemp
+    // ──────────────────────────────────────────────────
+    readonly property var _cpuSensorNames: ["k10temp", "zenpower", "coretemp"]
+    property string _cpuTempPath: ""
+    property var cpuHwmonNameProbe
+    property var cpuTempPollTimer
+    property var cpuTempFile
+    // ──────────────────────────────────────────────────
+    // GPU — AMD sysfs only (amdgpu hwmon for temp, drm for utilization)
+    // ──────────────────────────────────────────────────
+    property string _gpuTempPath: ""
+    property string _gpuBusyPath: ""
+    property var gpuHwmonNameProbe
+    // Scan drm/card0..3 for gpu_busy_percent
+    property var amdBusyProbe
+    property var gpuTempPollTimer
+    property var gpuTempFile
+    property var gpuBusyPollTimer
+    property var gpuBusyFile
+
+    // ──────────────────────────────────────────────────
+    Component.onCompleted: {
+        cpuHwmonNameProbe.probe();
+        gpuHwmonNameProbe.probe();
+    }
 
     _cpuTimer: Timer {
         interval: 3000
@@ -34,8 +66,6 @@ QtObject {
         triggeredOnStart: true
         onTriggered: cpuStatFile.reload()
     }
-
-    property var cpuStatFile
 
     cpuStatFile: FileView {
         id: cpuStatFile
@@ -63,11 +93,6 @@ QtObject {
         }
     }
 
-    // ──────────────────────────────────────────────────
-    // Memory usage — /proc/meminfo
-    // ──────────────────────────────────────────────────
-    property var _memTimer
-
     _memTimer: Timer {
         interval: 3000
         repeat: true
@@ -75,8 +100,6 @@ QtObject {
         triggeredOnStart: true
         onTriggered: memInfoFile.reload()
     }
-
-    property var memInfoFile
 
     memInfoFile: FileView {
         id: memInfoFile
@@ -97,13 +120,6 @@ QtObject {
 
         }
     }
-
-    // ──────────────────────────────────────────────────
-    // CPU temperature — probe hwmon0..15 for k10temp / zenpower / coretemp
-    // ──────────────────────────────────────────────────
-    readonly property var _cpuSensorNames: ["k10temp", "zenpower", "coretemp"]
-    property string _cpuTempPath: ""
-    property var cpuHwmonNameProbe
 
     cpuHwmonNameProbe: FileView {
         id: cpuHwmonNameProbe
@@ -136,8 +152,6 @@ QtObject {
         }
     }
 
-    property var cpuTempPollTimer
-
     cpuTempPollTimer: Timer {
         id: cpuTempPollTimer
 
@@ -148,8 +162,6 @@ QtObject {
         onTriggered: cpuTempFile.reload()
     }
 
-    property var cpuTempFile
-
     cpuTempFile: FileView {
         id: cpuTempFile
 
@@ -157,13 +169,6 @@ QtObject {
         printErrors: false
         onLoaded: root.cpuTemp = Math.round(parseInt(text().trim()) / 1000)
     }
-
-    // ──────────────────────────────────────────────────
-    // GPU — AMD sysfs only (amdgpu hwmon for temp, drm for utilization)
-    // ──────────────────────────────────────────────────
-    property string _gpuTempPath: ""
-    property string _gpuBusyPath: ""
-    property var gpuHwmonNameProbe
 
     gpuHwmonNameProbe: FileView {
         id: gpuHwmonNameProbe
@@ -196,9 +201,6 @@ QtObject {
         }
     }
 
-    // Scan drm/card0..3 for gpu_busy_percent
-    property var amdBusyProbe
-
     amdBusyProbe: FileView {
         id: amdBusyProbe
 
@@ -223,8 +225,6 @@ QtObject {
         }
     }
 
-    property var gpuTempPollTimer
-
     gpuTempPollTimer: Timer {
         id: gpuTempPollTimer
 
@@ -235,8 +235,6 @@ QtObject {
         onTriggered: gpuTempFile.reload()
     }
 
-    property var gpuTempFile
-
     gpuTempFile: FileView {
         id: gpuTempFile
 
@@ -244,8 +242,6 @@ QtObject {
         printErrors: false
         onLoaded: root.gpuTemp = Math.round(parseInt(text().trim()) / 1000)
     }
-
-    property var gpuBusyPollTimer
 
     gpuBusyPollTimer: Timer {
         id: gpuBusyPollTimer
@@ -257,8 +253,6 @@ QtObject {
         onTriggered: gpuBusyFile.reload()
     }
 
-    property var gpuBusyFile
-
     gpuBusyFile: FileView {
         id: gpuBusyFile
 
@@ -267,9 +261,4 @@ QtObject {
         onLoaded: root.gpuUsage = parseInt(text().trim()) || 0
     }
 
-    // ──────────────────────────────────────────────────
-    Component.onCompleted: {
-        cpuHwmonNameProbe.probe();
-        gpuHwmonNameProbe.probe();
-    }
 }

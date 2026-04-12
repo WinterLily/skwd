@@ -8,7 +8,6 @@ import Quickshell.Io
 Item {
     id: browser
 
-    property var colors
     property var swService
     property bool browserVisible: false
     property var _previewWp: null
@@ -85,7 +84,6 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
 
             FilterButton {
-                colors: browser.colors
                 icon: "󰅁"
                 skew: 8
                 tooltip: "Back to wallpapers"
@@ -101,9 +99,9 @@ Item {
                 width: 200
                 height: 24
                 radius: 0
-                color: browser.colors ? Qt.rgba(browser.colors.surface.r, browser.colors.surface.g, browser.colors.surface.b, 0.8) : Qt.rgba(0.15, 0.17, 0.22, 0.8)
+                color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.8)
                 border.width: searchInput.activeFocus ? 2 : 1
-                border.color: searchInput.activeFocus ? (browser.colors ? browser.colors.primary : Style.fallbackAccent) : (browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.12))
+                border.color: searchInput.activeFocus ? (Colors.primary) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2))
 
                 TextInput {
                     id: searchInput
@@ -112,7 +110,7 @@ Item {
                     anchors.margins: 6
                     font.family: Style.fontFamily
                     font.pixelSize: 11
-                    color: browser.colors ? browser.colors.surfaceText : "#e0e0e0"
+                    color: Colors.surfaceText
                     clip: true
                     Keys.onReturnPressed: {
                         browser.swService.query = text;
@@ -126,7 +124,7 @@ Item {
                     anchors.margins: 6
                     font.family: Style.fontFamily
                     font.pixelSize: 11
-                    color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.35) : Qt.rgba(1, 1, 1, 0.3)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.35)
                     text: "SEARCH STEAM WORKSHOP..."
                     font.letterSpacing: 0.5
                     font.weight: Font.Medium
@@ -163,7 +161,6 @@ Item {
                 }]
 
                 FilterButton {
-                    colors: browser.colors
                     label: modelData.label
                     skew: 8
                     isActive: browser.swService ? browser.swService.sorting === modelData.key : false
@@ -182,7 +179,6 @@ Item {
 
             FilterDropdown {
                 visible: browser.swService && browser.swService.sorting === "trend"
-                colors: browser.colors
                 skew: 8
                 label: "PERIOD"
                 value: browser.swService ? browser.swService.trendDays : 7
@@ -233,7 +229,6 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
 
             FilterDropdown {
-                colors: browser.colors
                 skew: 8
                 label: "TYPE"
                 value: browser.swService ? browser.swService.requiredType : ""
@@ -282,7 +277,7 @@ Item {
                 font.pixelSize: 9
                 font.weight: Font.Bold
                 font.letterSpacing: 1.2
-                color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.35) : Qt.rgba(1, 1, 1, 0.25)
+                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.35)
                 anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -292,7 +287,6 @@ Item {
             }
 
             FilterButton {
-                colors: browser.colors
                 label: "SFW"
                 skew: 8
                 isActive: browser.swService ? !browser.swService.nsfwEnabled : true
@@ -303,7 +297,6 @@ Item {
             }
 
             FilterButton {
-                colors: browser.colors
                 label: "NSFW"
                 skew: 8
                 isActive: browser.swService ? browser.swService.nsfwEnabled : false
@@ -321,7 +314,6 @@ Item {
             }
 
             FilterDropdown {
-                colors: browser.colors
                 skew: 8
                 label: "RESOLUTION"
                 value: browser.swService ? browser.swService.requiredResolution : ""
@@ -377,7 +369,6 @@ Item {
             }
 
             FilterDropdown {
-                colors: browser.colors
                 skew: 8
                 label: "CATEGORY"
                 value: browser.swService ? browser.swService.requiredTag : ""
@@ -476,9 +467,9 @@ Item {
             radius: 4
             clip: true
             visible: _dlBarVisible
-            color: browser.swService && browser.swService.authPaused ? Qt.rgba(0.9, 0.2, 0.2, 0.15) : (browser.colors ? Qt.rgba(browser.colors.surface.r, browser.colors.surface.g, browser.colors.surface.b, 0.7) : Qt.rgba(0.12, 0.14, 0.18, 0.7))
+            color: browser.swService && browser.swService.authPaused ? Qt.rgba(0.9, 0.2, 0.2, 0.15) : Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.7)
             border.width: 1
-            border.color: browser.swService && browser.swService.authPaused ? Qt.rgba(0.9, 0.2, 0.2, 0.4) : (browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.08))
+            border.color: browser.swService && browser.swService.authPaused ? Qt.rgba(0.9, 0.2, 0.2, 0.4) : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.25)
 
             Rectangle {
                 id: _progressFill
@@ -492,7 +483,7 @@ Item {
                 visible: !browser.swService || !browser.swService.authPaused
                 width: _hasProgress ? parent.width * _realProgress : 0
                 radius: 4
-                color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.15) : Qt.rgba(1, 0.53, 0, 0.1)
+                color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
 
                 Behavior on width {
                     NumberAnimation {
@@ -514,7 +505,7 @@ Item {
                 width: parent.width * 0.25
                 radius: 4
                 visible: downloadStatusBar._dlBarVisible && !_progressFill._hasProgress && !(browser.swService && browser.swService.authPaused)
-                color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.12) : Qt.rgba(1, 0.53, 0, 0.08)
+                color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.12)
                 x: _pos * (parent.width - width)
 
                 SequentialAnimation on _pos {
@@ -547,7 +538,7 @@ Item {
                     text: browser.swService && browser.swService.authPaused ? "\u{f0341}" : "\u{f01da}"
                     font.family: Style.fontFamilyNerdIcons
                     font.pixelSize: 13
-                    color: browser.swService && browser.swService.authPaused ? "#ff6b6b" : (browser.colors ? browser.colors.primary : Style.fallbackAccent)
+                    color: browser.swService && browser.swService.authPaused ? "#ff6b6b" : (Colors.primary)
                 }
 
                 Text {
@@ -566,7 +557,7 @@ Item {
                     font.family: Style.fontFamily
                     font.pixelSize: 11
                     font.weight: Font.Medium
-                    color: browser.swService && browser.swService.authPaused ? "#ff6b6b" : (browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.8) : Qt.rgba(1, 1, 1, 0.7))
+                    color: browser.swService && browser.swService.authPaused ? "#ff6b6b" : Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.8)
                 }
 
                 Rectangle {
@@ -586,7 +577,7 @@ Item {
                         font.family: Style.fontFamily
                         font.pixelSize: 10
                         font.weight: Font.Medium
-                        color: browser.colors ? browser.colors.surfaceText : "#e0e0e0"
+                        color: Colors.surfaceText
                     }
 
                     MouseArea {
@@ -726,7 +717,7 @@ Item {
 
             contentItem: Rectangle {
                 radius: 2
-                color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
             }
 
         }
@@ -812,13 +803,13 @@ Item {
                 radius: 6
                 color: "transparent"
                 border.width: resultsGrid.currentIndex === thumbDelegate.index ? 2 : 0
-                border.color: browser.colors ? browser.colors.primary : "#ff8800"
+                border.color: Colors.primary
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: parent.border.width
                     radius: 5
-                    color: browser.colors ? Qt.rgba(browser.colors.surface.r, browser.colors.surface.g, browser.colors.surface.b, 0.6) : Qt.rgba(0.12, 0.14, 0.18, 0.6)
+                    color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.6)
                     clip: true
 
                     Image {
@@ -840,7 +831,7 @@ Item {
                         anchors.fill: parent
                         radius: 6
                         visible: thumbImg.status !== Image.Ready
-                        color: browser.colors ? Qt.rgba(browser.colors.surfaceVariant.r, browser.colors.surfaceVariant.g, browser.colors.surfaceVariant.b, 0.5) : Qt.rgba(0.18, 0.2, 0.25, 0.8)
+                        color: Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)
 
                         Rectangle {
                             id: shimmer
@@ -860,7 +851,7 @@ Item {
 
                                 GradientStop {
                                     position: 0.5
-                                    color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                                    color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
                                 }
 
                                 GradientStop {
@@ -885,7 +876,7 @@ Item {
                             text: "\u{f0553}"
                             font.family: Style.fontFamilyNerdIcons
                             font.pixelSize: 22
-                            color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)
+                            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.15)
                         }
 
                     }
@@ -928,7 +919,6 @@ Item {
                                 visible: thumbDelegate.dlStatus !== "downloading" && thumbDelegate.dlStatus !== "queued"
 
                                 ActionButton {
-                                    colors: browser.colors
                                     icon: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "\u{f012c}" : (thumbDelegate.dlStatus === "error" ? "\u{f0159}" : "\u{f01da}")
                                     label: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "Installed" : (thumbDelegate.dlStatus === "error" ? "Error" : "Install")
                                     tooltip: "Download via steamcmd"
@@ -948,7 +938,7 @@ Item {
                                 text: thumbDelegate.dlStatus === "queued" ? "Queued..." : (browser.swService.activeDownloadMessage || "Downloading...")
                                 font.family: Style.fontFamily
                                 font.pixelSize: 11
-                                color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                                color: Colors.primary
                             }
 
                             Row {
@@ -1021,7 +1011,7 @@ Item {
                         width: dlBadgeRow.implicitWidth + 8
                         height: 16
                         radius: 4
-                        color: browser.colors ? Qt.rgba(browser.colors.primary.r, browser.colors.primary.g, browser.colors.primary.b, 0.85) : Qt.rgba(0.3, 0.76, 0.97, 0.85)
+                        color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.85)
 
                         Row {
                             id: dlBadgeRow
@@ -1033,7 +1023,7 @@ Item {
                                 text: "\u{f012c}"
                                 font.family: Style.fontFamilyNerdIcons
                                 font.pixelSize: 10
-                                color: browser.colors ? browser.colors.primaryText : "#000"
+                                color: Colors.primaryText
                             }
 
                             Text {
@@ -1041,7 +1031,7 @@ Item {
                                 font.family: Style.fontFamily
                                 font.pixelSize: 8
                                 font.weight: Font.Medium
-                                color: browser.colors ? browser.colors.primaryText : "#000"
+                                color: Colors.primaryText
                             }
 
                         }
@@ -1062,7 +1052,7 @@ Item {
                             anchors.bottom: parent.bottom
                             width: parent.width * thumbDelegate.dlProgress
                             radius: 2
-                            color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                            color: Colors.primary
 
                             Behavior on width {
                                 NumberAnimation {
@@ -1120,7 +1110,7 @@ Item {
         text: "Search the Steam Workshop for Wallpaper Engine wallpapers"
         font.family: Style.fontFamily
         font.pixelSize: 12
-        color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.4)
         anchors.centerIn: resultsGrid
     }
 
@@ -1134,7 +1124,7 @@ Item {
             text: "\u{f051f}"
             font.family: Style.fontFamilyNerdIcons
             font.pixelSize: 128
-            color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+            color: Colors.primary
             opacity: browser.swService && browser.swService.loading ? 1 : 0
 
             Behavior on opacity {
@@ -1229,7 +1219,7 @@ Item {
             text: "\u{f051f}"
             font.family: Style.fontFamilyNerdIcons
             font.pixelSize: 40
-            color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+            color: Colors.primary
 
             RotationAnimation on rotation {
                 from: 0
@@ -1313,7 +1303,7 @@ Item {
                         text: "\u{f0899}"
                         font.family: Style.fontFamilyNerdIcons
                         font.pixelSize: 14
-                        color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                        color: Colors.primary
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -1335,7 +1325,7 @@ Item {
                         text: "\u{f02d1}"
                         font.family: Style.fontFamilyNerdIcons
                         font.pixelSize: 14
-                        color: browser.colors ? browser.colors.primary : Style.fallbackAccent
+                        color: Colors.primary
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -1406,7 +1396,6 @@ Item {
                     spacing: -3
 
                     ActionButton {
-                        colors: browser.colors
                         icon: (parent._dlSt === "done" || parent._isLocal) ? "\u{f012c}" : (parent._dlSt === "error" ? "\u{f0159}" : "\u{f01da}")
                         label: (parent._dlSt === "done" || parent._isLocal) ? "Installed" : (parent._dlSt === "downloading" ? (browser.swService.activeDownloadMessage || "Downloading...") : (parent._dlSt === "queued" ? "Queued..." : (parent._dlSt === "error" ? "Error" : "Install")))
                         tooltip: "Download via steamcmd"

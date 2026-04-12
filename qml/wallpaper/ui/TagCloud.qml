@@ -6,7 +6,6 @@ import QtQuick.Controls
 Rectangle {
     id: tagCloud
 
-    property var colors
     property var service
     property bool tagCloudVisible: false
     readonly property bool searchFocused: tagSearchInput.activeFocus
@@ -250,7 +249,7 @@ Rectangle {
             text: "\u{f0349}"
             font.family: Style.fontFamilyNerdIcons
             font.pixelSize: 14
-            color: tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceText.r, tagCloud.colors.surfaceText.g, tagCloud.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.5)
             anchors.verticalCenter: parent.verticalCenter
         }
 
@@ -260,9 +259,9 @@ Rectangle {
             width: parent.width - 30
             height: 26
             radius: 13
-            color: tagCloud.colors ? Qt.rgba(tagCloud.colors.surface.r, tagCloud.colors.surface.g, tagCloud.colors.surface.b, 0.5) : Qt.rgba(0, 0, 0, 0.3)
+            color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.5)
             border.width: tagSearchInput.activeFocus ? 1 : 0
-            border.color: tagCloud.colors ? Qt.rgba(tagCloud.colors.primary.r, tagCloud.colors.primary.g, tagCloud.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+            border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
 
             MouseArea {
                 anchors.fill: parent
@@ -280,7 +279,7 @@ Rectangle {
                 font.family: Style.fontFamily
                 font.pixelSize: 11
                 font.letterSpacing: 0.3
-                color: tagCloud.colors ? tagCloud.colors.surfaceText : "#fff"
+                color: Colors.surfaceText
                 clip: true
                 selectByMouse: true
                 onTextChanged: {
@@ -387,7 +386,7 @@ Rectangle {
                     verticalAlignment: Text.AlignVCenter
                     text: "Search tags..."
                     font: parent.font
-                    color: tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceText.r, tagCloud.colors.surfaceText.g, tagCloud.colors.surfaceText.b, 0.35) : Qt.rgba(1, 1, 1, 0.3)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.35)
                     visible: !parent.text && !parent.activeFocus
                 }
 
@@ -398,7 +397,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
                     font: tagSearchInput.font
-                    color: tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceText.r, tagCloud.colors.surfaceText.g, tagCloud.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                     visible: tagCloud._autoSuggestion.length > 0 && tagSearchInput.text.length > 0
                     text: {
                         if (!visible)
@@ -427,7 +426,7 @@ Rectangle {
                 text: "\u{f0156}"
                 font.family: Style.fontFamilyNerdIcons
                 font.pixelSize: 12
-                color: tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceText.r, tagCloud.colors.surfaceText.g, tagCloud.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.4)
                 visible: tagSearchInput.text.length > 0
 
                 MouseArea {
@@ -477,7 +476,7 @@ Rectangle {
                     property bool isSelected: modelData.selected
                     property bool isHovered: tagParaMouse.containsMouse
                     property int skew: 10
-                    readonly property color _resolvedActiveColor: tagCloud.colors ? tagCloud.colors.primary : Style.fallbackAccent
+                    readonly property color _resolvedActiveColor: Colors.primary
 
                     width: tagParaText.implicitWidth + 24 + skew
                     height: 24
@@ -486,8 +485,8 @@ Rectangle {
                     Canvas {
                         id: tagCanvas
 
-                        property color fillColor: tagParaChip.isSelected ? tagParaChip._resolvedActiveColor : (tagParaChip.isHovered ? (tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceVariant.r, tagCloud.colors.surfaceVariant.g, tagCloud.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15)) : (tagCloud.colors ? Qt.rgba(tagCloud.colors.surfaceContainer.r, tagCloud.colors.surfaceContainer.g, tagCloud.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)))
-                        property color strokeColor: tagParaChip.isSelected ? Qt.rgba(tagParaChip._resolvedActiveColor.r, tagParaChip._resolvedActiveColor.g, tagParaChip._resolvedActiveColor.b, 0.6) : (tagCloud.colors ? Qt.rgba(tagCloud.colors.primary.r, tagCloud.colors.primary.g, tagCloud.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08))
+                        property color fillColor: tagParaChip.isSelected ? tagParaChip._resolvedActiveColor : (tagParaChip.isHovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.6)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.85)))
+                        property color strokeColor: tagParaChip.isSelected ? Qt.rgba(tagParaChip._resolvedActiveColor.r, tagParaChip._resolvedActiveColor.g, tagParaChip._resolvedActiveColor.b, 0.6) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
 
                         anchors.fill: parent
                         onFillColorChanged: requestPaint()
@@ -516,7 +515,7 @@ Rectangle {
 
                         anchors.centerIn: parent
                         text: modelData.tag.toUpperCase()
-                        color: tagParaChip.isSelected ? (tagCloud.colors ? tagCloud.colors.primaryText : "#000") : (tagCloud.colors ? tagCloud.colors.tertiary : "#8bceff")
+                        color: tagParaChip.isSelected ? (Colors.primaryText) : (Colors.tertiary)
                         font.family: Style.fontFamily
                         font.pixelSize: 10
                         font.weight: tagParaChip.isSelected ? Font.Bold : Font.Bold

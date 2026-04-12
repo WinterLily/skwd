@@ -7,7 +7,6 @@ Rectangle {
     id: root
 
     property var panel
-    property var colors
     property var allIcons: []
     property var _filteredModel
 
@@ -80,9 +79,9 @@ Rectangle {
         height: 560
         anchors.centerIn: parent
         radius: 12
-        color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.95) : Qt.rgba(0.1, 0.12, 0.18, 0.95)
+        color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.95)
         border.width: 1
-        border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.1)
+        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2)
 
         MouseArea {
             anchors.fill: parent
@@ -106,7 +105,7 @@ Rectangle {
                     font.pixelSize: 16
                     font.weight: Font.Bold
                     font.letterSpacing: 1
-                    color: root.colors ? root.colors.primary : "#4fc3f7"
+                    color: Colors.primary
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -119,9 +118,9 @@ Rectangle {
                     width: 260
                     height: 30
                     radius: 6
-                    color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+                    color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
                     border.width: iconSearchInput.activeFocus ? 1 : 0
-                    border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                     anchors.verticalCenter: parent.verticalCenter
 
                     TextInput {
@@ -133,7 +132,7 @@ Rectangle {
                         verticalAlignment: TextInput.AlignVCenter
                         font.family: Style.fontFamily
                         font.pixelSize: 12
-                        color: root.colors ? root.colors.surfaceText : "#ddd"
+                        color: Colors.surfaceText
                         clip: true
                         selectByMouse: true
                         onTextChanged: {
@@ -147,7 +146,7 @@ Rectangle {
                             text: "󰍉 search icons by name..."
                             font.family: Style.fontFamilyIcons
                             font.pixelSize: 11
-                            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                             visible: !parent.text && !parent.activeFocus
                         }
 
@@ -164,9 +163,9 @@ Rectangle {
                     width: 120
                     height: 30
                     radius: 6
-                    color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+                    color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
                     border.width: manualIconInput.activeFocus ? 1 : 0
-                    border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                     anchors.verticalCenter: parent.verticalCenter
 
                     TextInput {
@@ -178,7 +177,7 @@ Rectangle {
                         verticalAlignment: TextInput.AlignVCenter
                         font.family: Style.fontFamilyIcons
                         font.pixelSize: 14
-                        color: root.colors ? root.colors.tertiary : "#8bceff"
+                        color: Colors.tertiary
                         clip: true
                         selectByMouse: true
 
@@ -188,7 +187,7 @@ Rectangle {
                             text: "paste glyph"
                             font.family: Style.fontFamily
                             font.pixelSize: 10
-                            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                             visible: !parent.text && !parent.activeFocus
                         }
 
@@ -200,7 +199,7 @@ Rectangle {
                     width: applyManualLabel.implicitWidth + 16
                     height: 30
                     radius: 6
-                    color: applyManualMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)) : (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.1))
+                    color: applyManualMouse.containsMouse ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
                     anchors.verticalCenter: parent.verticalCenter
                     visible: manualIconInput.text !== ""
 
@@ -212,7 +211,7 @@ Rectangle {
                         font.family: Style.fontFamily
                         font.pixelSize: 10
                         font.weight: Font.Bold
-                        color: root.colors ? root.colors.primary : "#4fc3f7"
+                        color: Colors.primary
                     }
 
                     MouseArea {
@@ -245,7 +244,7 @@ Rectangle {
                 text: root._filteredModel.count + " icons" + (root._searchText ? " matching \"" + root._searchText + "\"" : "")
                 font.family: Style.fontFamily
                 font.pixelSize: 10
-                color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.4)
             }
 
             // Icon grid
@@ -264,9 +263,9 @@ Rectangle {
                     width: 48
                     height: 48
                     radius: 8
-                    color: iconCellMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.25) : Qt.rgba(1, 1, 1, 0.15)) : (root.colors ? Qt.rgba(root.colors.surfaceVariant.r, root.colors.surfaceVariant.g, root.colors.surfaceVariant.b, 0.2) : Qt.rgba(1, 1, 1, 0.05))
+                    color: iconCellMouse.containsMouse ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.25)) : (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.2))
                     border.width: iconCellMouse.containsMouse ? 1 : 0
-                    border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
 
                     Text {
                         anchors.centerIn: parent
@@ -274,7 +273,7 @@ Rectangle {
                         text: model.glyph
                         font.family: Style.fontFamilyIcons
                         font.pixelSize: 22
-                        color: iconCellMouse.containsMouse ? (root.colors ? root.colors.primary : "#4fc3f7") : (root.colors ? root.colors.surfaceText : "#ddd")
+                        color: iconCellMouse.containsMouse ? (Colors.primary) : (Colors.surfaceText)
                     }
 
                     Text {
@@ -288,7 +287,7 @@ Rectangle {
                         }
                         font.family: Style.fontFamily
                         font.pixelSize: 7
-                        color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.35) : Qt.rgba(1, 1, 1, 0.25)
+                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.35)
                     }
 
                     MouseArea {

@@ -19,64 +19,9 @@ QtObject {
     property var _failedAuth: []
     property string _recoverOutput: ""
     property var _recoverProc
-
-    _recoverProc: Process {
-        onExited: function(exitCode) {
-            if (exitCode !== 0 || !svc._recoverOutput.trim())
-                return ;
-
-            try {
-                var obj = JSON.parse(svc._recoverOutput);
-                var downloads = obj.downloads || {
-                };
-                var ids = Object.keys(downloads);
-                var toQueue = [];
-                for (var i = 0; i < ids.length; i++) {
-                    var st = downloads[ids[i]].status;
-                    if (st === "queued" || st === "downloading" || st === "auth_error")
-                        toQueue.push(ids[i]);
-
-                }
-                if (toQueue.length > 0) {
-                    console.log("[SteamDownloadService] recovering " + toQueue.length + " incomplete downloads from status file");
-                    for (var j = 0; j < toQueue.length; j++) svc.requestDownload(toQueue[j])
-                }
-            } catch (e) {
-                console.log("[SteamDownloadService] recovery parse error: " + e.message);
-            }
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                svc._recoverOutput += data;
-            }
-        }
-
-    }
-
     readonly property string _requestFilePath: Config.wallCacheDir + "/wallpaper/steam-dl-request"
     property string _readResult: ""
     property var _requestReadProc
-
-    _requestReadProc: Process {
-        id: readProc
-
-        onExited: function(exitCode, exitStatus) {
-            var id = svc._readResult.trim().split("\n")[0] || "";
-            console.log("[SteamDownloadService] pickUpRequest read id=" + JSON.stringify(id));
-            svc._handleRequestData();
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                svc._readResult += data;
-            }
-        }
-
-    }
-
     property var _pendingSizes: ({
     })
     property var _activeDownloads: ({
@@ -85,10 +30,6 @@ QtObject {
     property bool _batchRunning: false
     property int _batchRemaining: 0
     property var _statusFileView
-
-    _statusFileView: FileView {
-        id: statusFile
-    }
 
     signal stateChanged()
     signal downloadFinished(string workshopId)
@@ -316,4 +257,62 @@ QtObject {
     }
 
     Component.onCompleted: _recoverQueue()
+
+    _recoverProc: Process {
+        onExited: function(exitCode) {
+            if (exitCode !== 0 || !svc._recoverOutput.trim())
+                return ;
+
+            try {
+                var obj = JSON.parse(svc._recoverOutput);
+                var downloads = obj.downloads || {
+                };
+                var ids = Object.keys(downloads);
+                var toQueue = [];
+                for (var i = 0; i < ids.length; i++) {
+                    var st = downloads[ids[i]].status;
+                    if (st === "queued" || st === "downloading" || st === "auth_error")
+                        toQueue.push(ids[i]);
+
+                }
+                if (toQueue.length > 0) {
+                    console.log("[SteamDownloadService] recovering " + toQueue.length + " incomplete downloads from status file");
+                    for (var j = 0; j < toQueue.length; j++) svc.requestDownload(toQueue[j])
+                }
+            } catch (e) {
+                console.log("[SteamDownloadService] recovery parse error: " + e.message);
+            }
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                svc._recoverOutput += data;
+            }
+        }
+
+    }
+
+    _requestReadProc: Process {
+        id: readProc
+
+        onExited: function(exitCode, exitStatus) {
+            var id = svc._readResult.trim().split("\n")[0] || "";
+            console.log("[SteamDownloadService] pickUpRequest read id=" + JSON.stringify(id));
+            svc._handleRequestData();
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                svc._readResult += data;
+            }
+        }
+
+    }
+
+    _statusFileView: FileView {
+        id: statusFile
+    }
+
 }

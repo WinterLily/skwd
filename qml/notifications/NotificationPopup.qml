@@ -12,7 +12,6 @@ Scope {
     id: notifScope
 
     // State and layout properties
-    property var colors
     property var notifications
     property string mainMonitor: Config.mainMonitor
     property bool barVisible: false
@@ -81,7 +80,7 @@ Scope {
             id: centerCard
 
             property bool animateIn: notifScope.centerOpen
-            property color lineColor: notifScope.colors ? notifScope.colors.primary : "#ffb4ab"
+            property color lineColor: Colors.primary
             property real slant: 28
 
             visible: notifScope.centerOpen
@@ -118,17 +117,16 @@ Scope {
                     ctx.lineTo(width, height);
                     ctx.lineTo(s, height);
                     ctx.closePath();
-                    var c = notifScope.colors;
-                    ctx.fillStyle = c ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1);
+                    ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1);
                     ctx.fill();
                 }
 
                 Connections {
-                    function onColorsChanged() {
+                    function onSurfaceChanged() {
                         centerBg.requestPaint();
                     }
 
-                    target: notifScope
+                    target: Colors
                 }
 
             }
@@ -251,7 +249,7 @@ Scope {
                     font.family: Style.fontFamily
                     font.weight: Font.Medium
                     font.pixelSize: 14
-                    color: notifScope.colors ? notifScope.colors.primary : "#ffb4ab"
+                    color: Colors.primary
                     Layout.fillWidth: true
                 }
 
@@ -259,9 +257,9 @@ Scope {
                     width: dismissAllText.implicitWidth + 16
                     height: 24
                     radius: 12
-                    color: dismissAllMouse.containsMouse ? (notifScope.colors ? notifScope.colors.primary : "#ffb4ab") : "transparent"
+                    color: dismissAllMouse.containsMouse ? (Colors.primary) : "transparent"
                     border.width: 1
-                    border.color: notifScope.colors ? notifScope.colors.primary : "#ffb4ab"
+                    border.color: Colors.primary
 
                     Text {
                         id: dismissAllText
@@ -271,7 +269,7 @@ Scope {
                         font.family: Style.fontFamily
                         font.weight: Font.Medium
                         font.pixelSize: 11
-                        color: dismissAllMouse.containsMouse ? (notifScope.colors ? notifScope.colors.primaryForeground : "#690005") : (notifScope.colors ? notifScope.colors.primary : "#ffb4ab")
+                        color: dismissAllMouse.containsMouse ? (Colors.primaryForeground) : (Colors.primary)
                     }
 
                     MouseArea {
@@ -315,7 +313,6 @@ Scope {
                             required property var modelData
 
                             notification: modelData
-                            colors: notifScope.colors
                             cardWidth: centerColumn.width
                             isPopup: false
                         }
@@ -331,7 +328,7 @@ Scope {
                     font.family: Style.fontFamily
                     font.weight: Font.Bold
                     font.pixelSize: 16
-                    color: notifScope.colors ? notifScope.colors.outline : "#666666"
+                    color: Colors.outline
                 }
 
             }
@@ -360,7 +357,6 @@ Scope {
                     required property int index
 
                     notification: modelData
-                    colors: notifScope.colors
                     cardWidth: notifScope.popupWidth
                     isPopup: true
                     visible: index >= notifScope.notifCount - notifScope.popupMaxVisible
@@ -378,7 +374,6 @@ Scope {
 
         // Card properties
         property var notification
-        property var colors
         property int cardWidth: 320
         property bool isPopup: true
         property real cardNaturalHeight: contentColumn.implicitHeight + 26
@@ -386,7 +381,7 @@ Scope {
         // Pause auto-expire on hover
         property bool hovered: cardMouse.containsMouse
         property real lineProgress: 0
-        property color lineColor: colors ? colors.primary : "#ffb4ab"
+        property color lineColor: Colors.primary
         property real slant: 28
 
         function animateDismiss() {
@@ -547,17 +542,16 @@ Scope {
                 ctx.lineTo(width, height);
                 ctx.lineTo(s, height);
                 ctx.closePath();
-                var c = card.colors;
-                ctx.fillStyle = c ? Qt.rgba(c.surface.r, c.surface.g, c.surface.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1);
+                ctx.fillStyle = Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1);
                 ctx.fill();
             }
 
             Connections {
-                function onColorsChanged() {
+                function onSurfaceChanged() {
                     cardBg.requestPaint();
                 }
 
-                target: card
+                target: Colors
             }
 
         }
@@ -663,14 +657,14 @@ Scope {
                         font.family: Style.fontFamily
                         font.weight: Font.Medium
                         font.pixelSize: 12
-                        color: card.colors ? card.colors.primary : "#ffb4ab"
+                        color: Colors.primary
                     }
 
                     Text {
                         text: "·"
                         font.pixelSize: 12
                         font.weight: Font.Medium
-                        color: card.colors ? card.colors.outline : "#666"
+                        color: Colors.outline
                         visible: summaryLabel.text !== ""
                     }
 
@@ -681,7 +675,7 @@ Scope {
                         font.family: Style.fontFamily
                         font.weight: Font.Medium
                         font.pixelSize: 12
-                        color: card.colors ? card.colors.tertiary : "#8bceff"
+                        color: Colors.tertiary
                         elide: Text.ElideRight
                         Layout.fillWidth: true
                         visible: text !== ""
@@ -690,7 +684,7 @@ Scope {
                     Text {
                         text: "✕"
                         font.pixelSize: 12
-                        color: closeMouse.containsMouse ? (card.colors ? card.colors.primary : "#ffb4ab") : (card.colors ? card.colors.outline : "#666")
+                        color: closeMouse.containsMouse ? (Colors.primary) : (Colors.outline)
 
                         MouseArea {
                             id: closeMouse
@@ -710,7 +704,7 @@ Scope {
                     text: card.notification ? (card.notification.body || "") : ""
                     font.family: Style.fontFamily
                     font.pixelSize: 12
-                    color: card.colors ? card.colors.surfaceVariantText : "#e2beba"
+                    color: Colors.surfaceVariantText
                     wrapMode: Text.Wrap
                     Layout.fillWidth: true
                     visible: text !== ""
@@ -734,7 +728,7 @@ Scope {
                             width: actionLabel.implicitWidth + 16
                             height: 24
                             radius: 12
-                            color: actionMouse.containsMouse ? (card.colors ? card.colors.primary : "#ffb4ab") : (card.colors ? Qt.rgba(card.colors.secondaryContainer.r, card.colors.secondaryContainer.g, card.colors.secondaryContainer.b, 0.5) : "#333")
+                            color: actionMouse.containsMouse ? (Colors.primary) : Qt.rgba(Colors.secondaryContainer.r, Colors.secondaryContainer.g, Colors.secondaryContainer.b, 0.5)
 
                             Text {
                                 id: actionLabel
@@ -744,7 +738,7 @@ Scope {
                                 font.family: Style.fontFamily
                                 font.weight: Font.Medium
                                 font.pixelSize: 11
-                                color: actionMouse.containsMouse ? (card.colors ? card.colors.primaryForeground : "#690005") : (card.colors ? card.colors.tertiary : "#8bceff")
+                                color: actionMouse.containsMouse ? (Colors.primaryForeground) : (Colors.tertiary)
                             }
 
                             MouseArea {

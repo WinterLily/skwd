@@ -15,8 +15,8 @@ import Qt.labs.platform
 import "qml"
 import "qml/bar"
 import "qml/bar/lyrics"
-import "qml/services"
 import "qml/wallpaper/services"
+import "qml/services"
 
 
 ShellRoot {
@@ -24,7 +24,6 @@ ShellRoot {
 
   property string homeDir: Config.homeDir
 
-  // IPC handlers — use `qs ipc call <target> <function>` from keybindings/scripts
   IpcHandler {
     target: "lock"
     function lock() { if (root.lockscreenInstance) root.lockscreenInstance.showing = true }
@@ -32,23 +31,25 @@ ShellRoot {
 
   IpcHandler {
     target: "powermenu"
-    function toggle() { if (root.powerMenuInstance) root.powerMenuInstance.showing = !root.powerMenuInstance.showing }
     function open()   { if (root.powerMenuInstance) root.powerMenuInstance.showing = true }
     function close()  { if (root.powerMenuInstance) root.powerMenuInstance.showing = false }
+    function toggle() { if (root.powerMenuInstance) root.powerMenuInstance.showing = !root.powerMenuInstance.showing }
   }
 
   IpcHandler {
     target: "launcher"
-    function toggle() { if (root.appLauncherInstance) root.appLauncherInstance.showing = !root.appLauncherInstance.showing }
-    function open()   { if (root.appLauncherInstance) root.appLauncherInstance.showing = true }
+    function open() {
+      if (root.appLauncherInstance) root.appLauncherInstance.showing = true
+    }
     function close()  { if (root.appLauncherInstance) root.appLauncherInstance.showing = false }
+    function toggle() { if (root.appLauncherInstance) root.appLauncherInstance.showing = !root.appLauncherInstance.showing }
   }
 
   IpcHandler {
     target: "bar"
-    function toggle() { root.barVisible = !root.barVisible }
     function show()   { root.barVisible = true }
     function hide()   { root.barVisible = false }
+    function toggle() { root.barVisible = !root.barVisible }
   }
 
   IpcHandler {
@@ -62,14 +63,16 @@ ShellRoot {
       if (root.windowSwitcherInstance) root.windowSwitcherInstance.open()
     }
     function next() {
-      if (!root.windowSwitcherInstance) return
-      if (!root.windowSwitcherInstance.showing) root.windowSwitcherInstance.open()
-      else root.windowSwitcherInstance.next()
+      if (root.windowSwitcherInstance) {
+        if (!root.windowSwitcherInstance.showing) root.windowSwitcherInstance.open()
+        else root.windowSwitcherInstance.next()
+      }
     }
     function prev() {
-      if (!root.windowSwitcherInstance) return
-      if (!root.windowSwitcherInstance.showing) root.windowSwitcherInstance.open()
-      else root.windowSwitcherInstance.prev()
+      if (root.windowSwitcherInstance) {
+        if (!root.windowSwitcherInstance.showing) root.windowSwitcherInstance.open()
+        else root.windowSwitcherInstance.prev()
+      }
     }
     function confirm() { if (root.windowSwitcherInstance) root.windowSwitcherInstance.confirm() }
     function cancel()  { if (root.windowSwitcherInstance) root.windowSwitcherInstance.cancel() }
@@ -84,8 +87,6 @@ ShellRoot {
   IpcHandler {
     target: "config"
     function toggle() { if (root.configPanelInstance) root.configPanelInstance.showing = !root.configPanelInstance.showing }
-    function open()   { if (root.configPanelInstance) root.configPanelInstance.showing = true }
-    function close()  { if (root.configPanelInstance) root.configPanelInstance.showing = false }
   }
 
   // Notification server
@@ -115,11 +116,6 @@ ShellRoot {
   property int notificationCount: notifications ? notifications.values.length : 0
   property bool hasNotifications: notificationCount > 0
 
-  // Color theme (loaded from matugen-generated palette)
-  Colors {
-    id: colors
-  }
-  property var colorsRef: colors
 
 
   // MPRIS music player detection - uses preferred player if active
@@ -281,7 +277,6 @@ ShellRoot {
     active: false
     source: "qml/wallpaper/ui/WallpaperSelector.qml"
     onLoaded: {
-      item.colors = Qt.binding(() => colors)
       item.showing = true
     }
   }
@@ -299,18 +294,6 @@ ShellRoot {
     function toggle() { wallpaperSelectorLoader.active = !wallpaperSelectorLoader.active }
     function open()   { wallpaperSelectorLoader.active = true }
     function close()  { wallpaperSelectorLoader.active = false }
-    function rescan() {
-      if (wallpaperSelectorLoader.item?.selectorService)
-        wallpaperSelectorLoader.item.selectorService.forceRescan()
-      else
-        WallpaperCacheService.forceRescan()
-    }
-    function rescanWE() {
-      if (wallpaperSelectorLoader.item?.selectorService)
-        wallpaperSelectorLoader.item.selectorService.rescanWE()
-      else
-        WallpaperCacheService.rescanWEItems()
-    }
   }
 
   IpcHandler {
@@ -327,14 +310,12 @@ ShellRoot {
     id: appLauncherLoader
     active: Config.appLauncherEnabled
     source: "qml/launcher/AppLauncher.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
   }
 
   Loader {
     id: lockscreenLoader
     active: Config.lockscreenEnabled
     source: "qml/lock/Lockscreen.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
   }
 
   Loader {
@@ -342,7 +323,6 @@ ShellRoot {
     active: Config.powerMenuEnabled
     source: "qml/power/PowerMenu.qml"
     onLoaded: {
-      item.colors = Qt.binding(() => colors)
       item.hideLockOption = Qt.binding(() => !!(root.lockscreenInstance && root.lockscreenInstance.showing))
     }
   }
@@ -351,14 +331,12 @@ ShellRoot {
     id: windowSwitcherLoader
     active: Config.windowSwitcherEnabled
     source: "qml/switcher/WindowSwitcher.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
   }
 
   Loader {
     id: smartHomeLoader
     active: Config.smartHomeEnabled
     source: "qml/smarthome/SmartHome.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
   }
 
   Loader {
@@ -366,7 +344,6 @@ ShellRoot {
     active: Config.notificationsEnabled
     source: "qml/notifications/NotificationPopup.qml"
     onLoaded: {
-      item.colors = Qt.binding(() => colors)
       item.notifications = Qt.binding(() => root.notifications)
       item.barVisible = Qt.binding(() => root.barVisible)
     }
@@ -376,7 +353,6 @@ ShellRoot {
     id: configPanelLoader
     active: true
     source: "qml/config-panel/ConfigPanel.qml"
-    onLoaded: item.colors = Qt.binding(() => colors)
   }
 
   // Component instance references (null until loaded)
@@ -484,7 +460,6 @@ ShellRoot {
       property var modelData
       screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
       visible: !(root.lockscreenInstance && root.lockscreenInstance.showing)
-      colors: root.colorsRef
       clock: root.clockRef
       barVisible: root.barVisible
       activePlayer: root.activePlayer

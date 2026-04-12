@@ -5,7 +5,6 @@ Rectangle {
     id: root
 
     property var panel
-    property var colors
 
     anchors.bottom: parent.bottom
     anchors.left: parent.left
@@ -20,7 +19,7 @@ Rectangle {
         anchors.leftMargin: 30
         anchors.rightMargin: 30
         height: 1
-        color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)
+        color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
     }
 
     Row {
@@ -38,8 +37,8 @@ Rectangle {
                 id: discardCanvas
 
                 property bool hovered: discardMouse.containsMouse
-                property color fillColor: hovered ? (root.colors ? Qt.rgba(root.colors.error.r, root.colors.error.g, root.colors.error.b, 0.2) : Qt.rgba(1, 0.3, 0.3, 0.2)) : "transparent"
-                property color strokeColor: root.colors ? Qt.rgba(root.colors.error.r, root.colors.error.g, root.colors.error.b, 0.5) : Qt.rgba(1, 0.3, 0.3, 0.5)
+                property color fillColor: hovered ? (Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.2)) : "transparent"
+                property color strokeColor: Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.5)
 
                 anchors.centerIn: parent
                 width: 120
@@ -71,7 +70,7 @@ Rectangle {
                 font.pixelSize: 11
                 font.weight: Font.Bold
                 font.letterSpacing: 0.5
-                color: root.colors ? root.colors.error : "#ff6b6b"
+                color: Colors.error
             }
 
             MouseArea {
@@ -98,8 +97,8 @@ Rectangle {
                 id: saveCanvas
 
                 property bool hovered: saveMouse.containsMouse
-                property color fillColor: hovered ? (root.colors ? root.colors.primary : "#4fc3f7") : (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.2) : Qt.rgba(0.3, 0.8, 1, 0.2))
-                property color strokeColor: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.6) : Qt.rgba(0.3, 0.8, 1, 0.6)
+                property color fillColor: hovered ? (Colors.primary) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2))
+                property color strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6)
 
                 anchors.centerIn: parent
                 width: 120
@@ -131,7 +130,7 @@ Rectangle {
                 font.pixelSize: 11
                 font.weight: Font.Bold
                 font.letterSpacing: 0.5
-                color: saveMouse.containsMouse ? (root.colors ? root.colors.primaryText : "#000") : (root.colors ? root.colors.primary : "#4fc3f7")
+                color: saveMouse.containsMouse ? (Colors.primaryText) : (Colors.primary)
             }
 
             MouseArea {

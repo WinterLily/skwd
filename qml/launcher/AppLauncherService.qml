@@ -21,154 +21,21 @@ QtObject {
     property int cacheTotal: 0
     // Data models
     property var appModel
-
-    appModel: ListModel {
-    }
-
     property var filteredModel
-
-    filteredModel: ListModel {
-    }
-
     // Frequency-based search ranking
     property string freqCachePath: cacheDir + "/app-launcher/freq.json"
     property var freqData: ({
     })
     property var _freqFile
-
-    _freqFile: FileView {
-        path: service.freqCachePath
-        preload: true
-    }
-
     // Cache builder process
     property var _buildCache
-
-    _buildCache: Process {
-        id: buildCache
-
-        command: ["python3", service.scriptsDir + "/python/build-app-cache"]
-        running: false
-        onRunningChanged: {
-            if (running) {
-                service.cacheLoading = true;
-                service.cacheProgress = 0;
-                service.cacheTotal = 0;
-            }
-        }
-        onExited: {
-            service.cacheLoading = false;
-            service.appModel.clear();
-            loadApps.running = true;
-        }
-
-        stdout: SplitParser {
-            onRead: (line) => {
-                if (line.startsWith("progress:")) {
-                    const parts = line.split(":");
-                    if (parts.length === 3) {
-                        service.cacheProgress = parseInt(parts[1]);
-                        service.cacheTotal = parseInt(parts[2]);
-                    }
-                }
-            }
-        }
-
-    }
-
     // JSONL cache loader process
     property var _loadApps
-
-    _loadApps: Process {
-        id: loadApps
-
-        command: ["bash", "-c", "if [ -f '" + service.cacheFile + "' ]; then cat '" + service.cacheFile + "'; fi"]
-        running: false
-        onRunningChanged: {
-            if (!running)
-                service.updateFilteredModel();
-
-        }
-        onExited: {
-            service.updateFilteredModel();
-        }
-
-        stdout: SplitParser {
-            onRead: (line) => {
-                try {
-                    var obj = JSON.parse(line);
-                    service.appModel.append({
-                        "name": obj.name || "",
-                        "exec": obj.exec || "",
-                        "icon": obj.icon || "",
-                        "thumb": obj.thumb || "",
-                        "iconPath": obj.iconPath || "",
-                        "categories": obj.categories || "",
-                        "source": obj.source || "desktop",
-                        "steamAppId": obj.steamAppId || "",
-                        "terminal": obj.terminal || false,
-                        "background": obj.background || "",
-                        "customIcon": obj.customIcon || "",
-                        "displayName": obj.displayName || "",
-                        "hidden": obj.hidden || false,
-                        "tags": obj.tags || ""
-                    });
-                } catch (e) {
-                }
-            }
-        }
-
-    }
-
     // Desktop file watcher
     property var _desktopWatcher
-
-    _desktopWatcher: Process {
-        id: desktopWatcher
-
-        running: true
-        command: ["bash", "-c", "dirs=(); for d in /usr/share/applications " + "\"$HOME/.local/share/applications\" " + "/var/lib/flatpak/exports/share/applications " + "\"$HOME/.local/share/flatpak/exports/share/applications\"; do " + "[ -d \"$d\" ] && dirs+=(\"$d\"); done; " + "[ ${#dirs[@]} -eq 0 ] && exit 1; " + "exec inotifywait -m -r -e create,delete,modify,moved_to,moved_from " + "--include '\\.desktop$' \"${dirs[@]}\""]
-        onExited: desktopWatcherRestart.start()
-
-        stdout: SplitParser {
-            onRead: (line) => {
-                desktopWatcherDebounce.restart();
-            }
-        }
-
-    }
-
     property var _desktopWatcherRestart
-
-    _desktopWatcherRestart: Timer {
-        id: desktopWatcherRestart
-
-        interval: 5000
-        onTriggered: desktopWatcher.running = true
-    }
-
     property var _appsJsonWatcher
-
-    _appsJsonWatcher: FileView {
-        path: service.configDir + "/data/apps.json"
-        preload: true
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: service._applyAppsConfig()
-    }
-
     property var _desktopWatcherDebounce
-
-    _desktopWatcherDebounce: Timer {
-        id: desktopWatcherDebounce
-
-        interval: 2000
-        onTriggered: {
-            if (!buildCache.running)
-                buildCache.running = true;
-
-        }
-    }
 
     // Signals to view for scroll management
     signal modelUpdated()
@@ -401,4 +268,130 @@ QtObject {
 
     onSearchTextChanged: updateFilteredModel()
     onSourceFilterChanged: updateFilteredModel()
+
+    appModel: ListModel {
+    }
+
+    filteredModel: ListModel {
+    }
+
+    _freqFile: FileView {
+        path: service.freqCachePath
+        preload: true
+    }
+
+    _buildCache: Process {
+        id: buildCache
+
+        command: ["python3", service.scriptsDir + "/python/build-app-cache"]
+        running: false
+        onRunningChanged: {
+            if (running) {
+                service.cacheLoading = true;
+                service.cacheProgress = 0;
+                service.cacheTotal = 0;
+            }
+        }
+        onExited: {
+            service.cacheLoading = false;
+            service.appModel.clear();
+            loadApps.running = true;
+        }
+
+        stdout: SplitParser {
+            onRead: (line) => {
+                if (line.startsWith("progress:")) {
+                    const parts = line.split(":");
+                    if (parts.length === 3) {
+                        service.cacheProgress = parseInt(parts[1]);
+                        service.cacheTotal = parseInt(parts[2]);
+                    }
+                }
+            }
+        }
+
+    }
+
+    _loadApps: Process {
+        id: loadApps
+
+        command: ["bash", "-c", "if [ -f '" + service.cacheFile + "' ]; then cat '" + service.cacheFile + "'; fi"]
+        running: false
+        onRunningChanged: {
+            if (!running)
+                service.updateFilteredModel();
+
+        }
+        onExited: {
+            service.updateFilteredModel();
+        }
+
+        stdout: SplitParser {
+            onRead: (line) => {
+                try {
+                    var obj = JSON.parse(line);
+                    service.appModel.append({
+                        "name": obj.name || "",
+                        "exec": obj.exec || "",
+                        "icon": obj.icon || "",
+                        "thumb": obj.thumb || "",
+                        "iconPath": obj.iconPath || "",
+                        "categories": obj.categories || "",
+                        "source": obj.source || "desktop",
+                        "steamAppId": obj.steamAppId || "",
+                        "terminal": obj.terminal || false,
+                        "background": obj.background || "",
+                        "customIcon": obj.customIcon || "",
+                        "displayName": obj.displayName || "",
+                        "hidden": obj.hidden || false,
+                        "tags": obj.tags || ""
+                    });
+                } catch (e) {
+                }
+            }
+        }
+
+    }
+
+    _desktopWatcher: Process {
+        id: desktopWatcher
+
+        running: true
+        command: ["bash", "-c", "dirs=(); for d in /usr/share/applications " + "\"$HOME/.local/share/applications\" " + "/var/lib/flatpak/exports/share/applications " + "\"$HOME/.local/share/flatpak/exports/share/applications\"; do " + "[ -d \"$d\" ] && dirs+=(\"$d\"); done; " + "[ ${#dirs[@]} -eq 0 ] && exit 1; " + "exec inotifywait -m -r -e create,delete,modify,moved_to,moved_from " + "--include '\\.desktop$' \"${dirs[@]}\""]
+        onExited: desktopWatcherRestart.start()
+
+        stdout: SplitParser {
+            onRead: (line) => {
+                desktopWatcherDebounce.restart();
+            }
+        }
+
+    }
+
+    _desktopWatcherRestart: Timer {
+        id: desktopWatcherRestart
+
+        interval: 5000
+        onTriggered: desktopWatcher.running = true
+    }
+
+    _appsJsonWatcher: FileView {
+        path: service.configDir + "/data/apps.json"
+        preload: true
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: service._applyAppsConfig()
+    }
+
+    _desktopWatcherDebounce: Timer {
+        id: desktopWatcherDebounce
+
+        interval: 2000
+        onTriggered: {
+            if (!buildCache.running)
+                buildCache.running = true;
+
+        }
+    }
+
 }

@@ -43,234 +43,25 @@ QtObject {
     property string _postListLoadAction: ""
     property var _wallpaperData: []
     property var filteredModel
-
-    filteredModel: ListModel {
-    }
-
     property var _pendingItems: []
     property bool filterTransitioning: false
     property bool _skipCrossfade: false
     property var _debouncedUpdate
-
-    _debouncedUpdate: Timer {
-        interval: 0
-        onTriggered: service.updateFilteredModel()
-    }
-
     property var _deferredStartTimer
-
-    _deferredStartTimer: Timer {
-        interval: 0
-        onTriggered: service.reloadMetadata()
-    }
-
     property var _daemonWaitTimer
-
-    _daemonWaitTimer: Timer {
-        interval: 1000
-        repeat: true
-        onTriggered: {
-            var rows = DbService.query("SELECT COUNT(*) AS cnt FROM meta WHERE type IS NOT NULL");
-            if (rows.length > 0 && parseInt(rows[0].cnt) > 0) {
-                _daemonWaitTimer.stop();
-                service.startCacheCheck();
-                return ;
-            }
-            if (!service.cacheReady) {
-                var state = DbService.query("SELECT val FROM state WHERE key='last_rebuild'");
-                if (state.length > 0) {
-                    cacheReady = true;
-                    cacheLoading = false;
-                    cacheResult = "cached";
-                    _deferredStartTimer.restart();
-                }
-            }
-        }
-    }
-
     property var _pendingNewItems: []
     property var _pendingMatugenItems: []
     property var _batchUpdateTimer
-
-    _batchUpdateTimer: Timer {
-        interval: 500
-        onTriggered: {
-            if (service._pendingNewItems.length === 0)
-                return ;
-
-            var items = service._pendingNewItems;
-            var matugenItems = service._pendingMatugenItems;
-            service._pendingNewItems = [];
-            service._pendingMatugenItems = [];
-            for (var i = 0; i < items.length; i++) service._wallpaperData.push(items[i])
-            service._wallpaperData = service._wallpaperData;
-            service.updateFilteredModel(true);
-            if (Config.matugenEnabled) {
-                for (var j = 0; j < matugenItems.length; j++) MatugenCacheService.processOne(matugenItems[j].path, matugenItems[j].key)
-            }
-        }
-    }
-
     property var _checkCacheConn
-
-    _checkCacheConn: Connections {
-        function onCacheReady(result) {
-            if (service._pendingNewItems.length > 0)
-                service._batchUpdateTimer.triggered();
-
-            service.cacheResult = result || "regenerated";
-            service.cacheReady = true;
-            service.cacheLoading = false;
-            service._postListLoadAction = (result === "regenerated") ? "regenerated" : "start";
-            service._loadListFile();
-        }
-
-        function onFileProcessed(key, entry) {
-            var newItem = {
-                "name": entry.name,
-                "type": entry.type,
-                "thumb": entry.thumb,
-                "path": entry.type === "static" ? service.wallpaperDir + "/" + entry.name : (entry.type === "video" ? service.videoDir + "/" + entry.name : ""),
-                "weId": entry.id || "",
-                "videoFile": entry.videoFile || "",
-                "mtime": entry.mtime || 0,
-                "hue": entry.group != null ? entry.group : 99,
-                "saturation": entry.sat || 0
-            };
-            service._pendingNewItems.push(newItem);
-            var matugenPath = (entry.type === "static") ? service.wallpaperDir + "/" + entry.name : entry.thumb;
-            service._pendingMatugenItems.push({
-                "path": matugenPath,
-                "key": key
-            });
-            service._batchUpdateTimer.restart();
-            // Auto-convert videos if enabled
-            if (Config.autoConvertVideos) {
-                if (entry.type === "video" && entry.videoFile)
-                    VideoConvertService.autoConvertFile(entry.videoFile);
-                else if (entry.type === "we" && entry.videoFile)
-                    VideoConvertService.autoConvertFile(entry.videoFile);
-            }
-        }
-
-        function onFileRemoved(key) {
-            MatugenCacheService.removeOne(key);
-            var data = service._wallpaperData;
-            for (var i = data.length - 1; i >= 0; i--) {
-                if (data[i].name === key) {
-                    data.splice(i, 1);
-                    service._wallpaperData = data;
-                    service.updateFilteredModel(true);
-                    return ;
-                }
-            }
-        }
-
-        target: WallpaperCacheService
-    }
-
     property var _watcherConn
-
-    _watcherConn: Connections {
-        function onFileAdded(name, path, type) {
-            WallpaperCacheService.processFiles([{
-                "name": name,
-                "src": path,
-                "type": type
-            }]);
-        }
-
-        function onFileRemoved(name, type) {
-            WallpaperCacheService.removeFiles([{
-                "name": name,
-                "type": type
-            }]);
-        }
-
-        function onWeItemAdded(weId, weDir) {
-            WallpaperCacheService.processWeItem(weId, weDir);
-        }
-
-        function onWeItemRemoved(weId) {
-            WallpaperCacheService.removeFiles([{
-                "name": weId,
-                "type": "we"
-            }]);
-        }
-
-        target: WatcherService
-    }
-
     property var _wcProgressBinding
-
-    _wcProgressBinding: Binding {
-        target: service
-        property: "cacheProgress"
-        value: WallpaperCacheService.progress
-        when: WallpaperCacheService.running
-    }
-
     property var _wcTotalBinding
-
-    _wcTotalBinding: Binding {
-        target: service
-        property: "cacheTotal"
-        value: WallpaperCacheService.total
-        when: WallpaperCacheService.running
-    }
-
     property var _deleteWallpaper
-
-    _deleteWallpaper: Process {
-        command: ["bash", "-c", "true"]
-    }
-
     property var _clearCache
-
-    _clearCache: Process {
-        id: clearCache
-
-        command: ["bash", "-c", "true"]
-        onExited: {
-            service.cacheReady = false;
-            service._wallpaperData = [];
-        }
-    }
-
     property var _unsubscribeWE
-
-    _unsubscribeWE: Process {
-        command: ["bash", "-c", "true"]
-    }
-
     property var _optimizeConn
-
-    _optimizeConn: Connections {
-        function onFinished(optimized, skipped, failed) {
-            if (optimized > 0)
-                service.refreshFromDb();
-
-        }
-
-        target: ImageOptimizeService
-    }
-
     property var _videoConvertConn
-
-    _videoConvertConn: Connections {
-        target: VideoConvertService
-    }
-
     property var _liveReloadTimer
-
-    _liveReloadTimer: Timer {
-        interval: 30000
-        running: service.showing
-        repeat: true
-        onTriggered: {
-            service.refreshFromDb();
-        }
-    }
 
     signal modelUpdated()
     signal wallpaperApplied()
@@ -337,21 +128,21 @@ QtObject {
             var r = rows[i];
             if (r.tags) {
                 try {
-                newTags[r.key] = JSON.parse(r.tags);
-            } catch (e) {
-            };
+                    newTags[r.key] = JSON.parse(r.tags);
+                } catch (e) {
+                }
             }
             if (r.colors) {
                 try {
-                newColors[r.key] = JSON.parse(r.colors);
-            } catch (e) {
-            };
+                    newColors[r.key] = JSON.parse(r.colors);
+                } catch (e) {
+                }
             }
             if (r.matugen) {
                 try {
-                newMatugen[r.key] = JSON.parse(r.matugen);
-            } catch (e) {
-            };
+                    newMatugen[r.key] = JSON.parse(r.matugen);
+                } catch (e) {
+                }
             }
             if (r.favourite === 1)
                 newFavs[r.key] = true;
@@ -491,17 +282,17 @@ QtObject {
         }
         if (sortMode === "date")
             items.sort(function(a, b) {
-                return b.mtime - a.mtime;
-            });
+            return b.mtime - a.mtime;
+        });
         else
             items.sort(function(a, b) {
-                var hueA = a.hue === 99 ? 100 : a.hue;
-                var hueB = b.hue === 99 ? 100 : b.hue;
-                if (hueA !== hueB)
-                    return hueA - hueB;
+            var hueA = a.hue === 99 ? 100 : a.hue;
+            var hueB = b.hue === 99 ? 100 : b.hue;
+            if (hueA !== hueB)
+                return hueA - hueB;
 
-                return b.saturation - a.saturation;
-            });
+            return b.saturation - a.saturation;
+        });
         _pendingItems = items;
         requestFilterUpdate();
     }
@@ -595,4 +386,200 @@ QtObject {
     onFavouriteFilterActiveChanged: _debouncedUpdate.restart()
     onSelectedColorFilterChanged: _debouncedUpdate.restart()
     onSelectedTypeFilterChanged: updateFilteredModel()
+
+    filteredModel: ListModel {
+    }
+
+    _debouncedUpdate: Timer {
+        interval: 0
+        onTriggered: service.updateFilteredModel()
+    }
+
+    _deferredStartTimer: Timer {
+        interval: 0
+        onTriggered: service.reloadMetadata()
+    }
+
+    _daemonWaitTimer: Timer {
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            var rows = DbService.query("SELECT COUNT(*) AS cnt FROM meta WHERE type IS NOT NULL");
+            if (rows.length > 0 && parseInt(rows[0].cnt) > 0) {
+                _daemonWaitTimer.stop();
+                service.startCacheCheck();
+                return ;
+            }
+            if (!service.cacheReady) {
+                var state = DbService.query("SELECT val FROM state WHERE key='last_rebuild'");
+                if (state.length > 0) {
+                    cacheReady = true;
+                    cacheLoading = false;
+                    cacheResult = "cached";
+                    _deferredStartTimer.restart();
+                }
+            }
+        }
+    }
+
+    _batchUpdateTimer: Timer {
+        interval: 500
+        onTriggered: {
+            if (service._pendingNewItems.length === 0)
+                return ;
+
+            var items = service._pendingNewItems;
+            var matugenItems = service._pendingMatugenItems;
+            service._pendingNewItems = [];
+            service._pendingMatugenItems = [];
+            for (var i = 0; i < items.length; i++) service._wallpaperData.push(items[i])
+            service._wallpaperData = service._wallpaperData;
+            service.updateFilteredModel(true);
+            if (Config.matugenEnabled) {
+                for (var j = 0; j < matugenItems.length; j++) MatugenCacheService.processOne(matugenItems[j].path, matugenItems[j].key)
+            }
+        }
+    }
+
+    _checkCacheConn: Connections {
+        function onCacheReady(result) {
+            if (service._pendingNewItems.length > 0)
+                service._batchUpdateTimer.triggered();
+
+            service.cacheResult = result || "regenerated";
+            service.cacheReady = true;
+            service.cacheLoading = false;
+            service._postListLoadAction = (result === "regenerated") ? "regenerated" : "start";
+            service._loadListFile();
+        }
+
+        function onFileProcessed(key, entry) {
+            var newItem = {
+                "name": entry.name,
+                "type": entry.type,
+                "thumb": entry.thumb,
+                "path": entry.type === "static" ? service.wallpaperDir + "/" + entry.name : (entry.type === "video" ? service.videoDir + "/" + entry.name : ""),
+                "weId": entry.id || "",
+                "videoFile": entry.videoFile || "",
+                "mtime": entry.mtime || 0,
+                "hue": entry.group != null ? entry.group : 99,
+                "saturation": entry.sat || 0
+            };
+            service._pendingNewItems.push(newItem);
+            var matugenPath = (entry.type === "static") ? service.wallpaperDir + "/" + entry.name : entry.thumb;
+            service._pendingMatugenItems.push({
+                "path": matugenPath,
+                "key": key
+            });
+            service._batchUpdateTimer.restart();
+            // Auto-convert videos if enabled
+            if (Config.autoConvertVideos) {
+                if (entry.type === "video" && entry.videoFile)
+                    VideoConvertService.autoConvertFile(entry.videoFile);
+                else if (entry.type === "we" && entry.videoFile)
+                    VideoConvertService.autoConvertFile(entry.videoFile);
+            }
+        }
+
+        function onFileRemoved(key) {
+            MatugenCacheService.removeOne(key);
+            var data = service._wallpaperData;
+            for (var i = data.length - 1; i >= 0; i--) {
+                if (data[i].name === key) {
+                    data.splice(i, 1);
+                    service._wallpaperData = data;
+                    service.updateFilteredModel(true);
+                    return ;
+                }
+            }
+        }
+
+        target: WallpaperCacheService
+    }
+
+    _watcherConn: Connections {
+        function onFileAdded(name, path, type) {
+            WallpaperCacheService.processFiles([{
+                "name": name,
+                "src": path,
+                "type": type
+            }]);
+        }
+
+        function onFileRemoved(name, type) {
+            WallpaperCacheService.removeFiles([{
+                "name": name,
+                "type": type
+            }]);
+        }
+
+        function onWeItemAdded(weId, weDir) {
+            WallpaperCacheService.processWeItem(weId, weDir);
+        }
+
+        function onWeItemRemoved(weId) {
+            WallpaperCacheService.removeFiles([{
+                "name": weId,
+                "type": "we"
+            }]);
+        }
+
+        target: WatcherService
+    }
+
+    _wcProgressBinding: Binding {
+        target: service
+        property: "cacheProgress"
+        value: WallpaperCacheService.progress
+        when: WallpaperCacheService.running
+    }
+
+    _wcTotalBinding: Binding {
+        target: service
+        property: "cacheTotal"
+        value: WallpaperCacheService.total
+        when: WallpaperCacheService.running
+    }
+
+    _deleteWallpaper: Process {
+        command: ["bash", "-c", "true"]
+    }
+
+    _clearCache: Process {
+        id: clearCache
+
+        command: ["bash", "-c", "true"]
+        onExited: {
+            service.cacheReady = false;
+            service._wallpaperData = [];
+        }
+    }
+
+    _unsubscribeWE: Process {
+        command: ["bash", "-c", "true"]
+    }
+
+    _optimizeConn: Connections {
+        function onFinished(optimized, skipped, failed) {
+            if (optimized > 0)
+                service.refreshFromDb();
+
+        }
+
+        target: ImageOptimizeService
+    }
+
+    _videoConvertConn: Connections {
+        target: VideoConvertService
+    }
+
+    _liveReloadTimer: Timer {
+        interval: 30000
+        running: service.showing
+        repeat: true
+        onTriggered: {
+            service.refreshFromDb();
+        }
+    }
+
 }

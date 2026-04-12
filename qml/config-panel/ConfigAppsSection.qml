@@ -5,21 +5,19 @@ Column {
     id: root
 
     property var panel
-    property var colors
 
     width: parent.width
     spacing: 6
 
     ConfigSectionTitle {
         text: "APP CUSTOMIZATION"
-        colors: root.colors
     }
 
     Text {
         text: "Customize how apps appear in the launcher and window switcher."
         font.family: Style.fontFamily
         font.pixelSize: 11
-        color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
+        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.5)
         bottomPadding: 6
     }
 
@@ -27,9 +25,9 @@ Column {
         width: parent.width
         height: 36
         radius: 8
-        color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+        color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
         border.width: appSearchInput.activeFocus ? 1 : 0
-        border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
 
         Row {
             anchors.fill: parent
@@ -41,7 +39,7 @@ Column {
                 text: "󰍉"
                 font.family: Style.fontFamilyNerdIcons
                 font.pixelSize: 14
-                color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.4)
                 anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -51,7 +49,7 @@ Column {
                 width: parent.width - 30
                 font.family: Style.fontFamily
                 font.pixelSize: 12
-                color: root.colors ? root.colors.surfaceText : "#fff"
+                color: Colors.surfaceText
                 clip: true
                 anchors.verticalCenter: parent.verticalCenter
                 selectByMouse: true
@@ -61,7 +59,7 @@ Column {
                     anchors.fill: parent
                     text: "Search apps..."
                     font: parent.font
-                    color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.25)
+                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.3)
                     visible: !parent.text && !parent.activeFocus
                 }
 
@@ -104,9 +102,9 @@ Column {
             width: root.width
             height: _matchesSearch ? appCardColumn.implicitHeight + 16 : 0
             radius: 10
-            color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+            color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
             border.width: 1
-            border.color: appExpanded ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)) : "transparent"
+            border.color: appExpanded ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)) : "transparent"
             visible: _matchesSearch || height > 1
             clip: true
             opacity: _matchesSearch ? 1 : 0
@@ -135,7 +133,7 @@ Column {
                     width: parent.width
                     height: 30
                     radius: 6
-                    color: appHeaderMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.surfaceVariant.r, root.colors.surfaceVariant.g, root.colors.surfaceVariant.b, 0.3) : Qt.rgba(1, 1, 1, 0.05)) : "transparent"
+                    color: appHeaderMouse.containsMouse ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.3)) : "transparent"
 
                     Row {
                         anchors.fill: parent
@@ -146,7 +144,7 @@ Column {
                             text: appCard.appExpanded ? "󰅀" : "󰅂"
                             font.family: Style.fontFamilyNerdIcons
                             font.pixelSize: 14
-                            color: root.colors ? root.colors.primary : "#4fc3f7"
+                            color: Colors.primary
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -156,7 +154,7 @@ Column {
                             font.pixelSize: 12
                             font.weight: Font.Bold
                             font.letterSpacing: 0.5
-                            color: root.colors ? root.colors.tertiary : "#8bceff"
+                            color: Colors.tertiary
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -176,7 +174,7 @@ Column {
                             }
                             font.family: Style.fontFamily
                             font.pixelSize: 10
-                            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.4)
                             anchors.verticalCenter: parent.verticalCenter
                             elide: Text.ElideRight
                             width: Math.max(0, parent.width - x - 80)
@@ -216,7 +214,6 @@ Column {
                             root.panel.hasUnsavedChanges = true;
                             root.panel.appsDataChanged();
                         }
-                        colors: root.colors
                     }
 
                     Item {
@@ -233,7 +230,7 @@ Column {
                                 font.family: Style.fontFamily
                                 font.pixelSize: 12
                                 font.weight: Font.Medium
-                                color: root.colors ? root.colors.surfaceText : "#ddd"
+                                color: Colors.surfaceText
                                 anchors.verticalCenter: parent.verticalCenter
                                 elide: Text.ElideRight
                             }
@@ -242,9 +239,9 @@ Column {
                                 width: 30
                                 height: 30
                                 radius: 6
-                                color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.8) : Qt.rgba(0.15, 0.15, 0.2, 0.8)
+                                color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.8)
                                 border.width: 1
-                                border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.15)
+                                border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 Text {
@@ -252,7 +249,7 @@ Column {
                                     text: appCard.appEntry.icon ?? ""
                                     font.family: Style.fontFamilyIcons
                                     font.pixelSize: 18
-                                    color: root.colors ? root.colors.primary : "#4fc3f7"
+                                    color: Colors.primary
                                     visible: (appCard.appEntry.icon ?? "") !== ""
                                 }
 
@@ -260,7 +257,7 @@ Column {
                                     anchors.centerIn: parent
                                     text: "?"
                                     font.pixelSize: 12
-                                    color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                                    color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.3)
                                     visible: (appCard.appEntry.icon ?? "") === ""
                                 }
 
@@ -270,9 +267,9 @@ Column {
                                 width: 80
                                 height: 30
                                 radius: 6
-                                color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+                                color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
                                 border.width: iconFieldInput.activeFocus ? 1 : 0
-                                border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+                                border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 TextInput {
@@ -284,7 +281,7 @@ Column {
                                     verticalAlignment: TextInput.AlignVCenter
                                     font.family: Style.fontFamilyIcons
                                     font.pixelSize: 14
-                                    color: root.colors ? root.colors.tertiary : "#8bceff"
+                                    color: Colors.tertiary
                                     clip: true
                                     text: appCard.appEntry.icon ?? ""
                                     selectByMouse: true
@@ -307,7 +304,7 @@ Column {
                                         text: "paste glyph"
                                         font.family: Style.fontFamily
                                         font.pixelSize: 10
-                                        color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                         visible: !parent.text && !parent.activeFocus
                                     }
 
@@ -319,9 +316,9 @@ Column {
                                 width: pickIconLabel.implicitWidth + 20
                                 height: 30
                                 radius: 6
-                                color: pickIconMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.15)) : (root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6))
+                                color: pickIconMouse.containsMouse ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6))
                                 border.width: 1
-                                border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.15)
+                                border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 Text {
@@ -331,7 +328,7 @@ Column {
                                     text: "PICK"
                                     font.family: Style.fontFamily
                                     font.pixelSize: 11
-                                    color: root.colors ? root.colors.tertiary : "#8bceff"
+                                    color: Colors.tertiary
                                 }
 
                                 MouseArea {
@@ -365,7 +362,6 @@ Column {
                             root.panel.hasUnsavedChanges = true;
                             root.panel.appsDataChanged();
                         }
-                        colors: root.colors
                     }
 
                     ConfigToggle {
@@ -383,7 +379,6 @@ Column {
                             root.panel.hasUnsavedChanges = true;
                             root.panel.appsDataChanged();
                         }
-                        colors: root.colors
                     }
 
                     Item {
@@ -406,7 +401,7 @@ Column {
                                     font.family: Style.fontFamily
                                     font.pixelSize: 12
                                     font.weight: Font.Medium
-                                    color: root.colors ? root.colors.surfaceText : "#ddd"
+                                    color: Colors.surfaceText
                                     anchors.verticalCenter: parent.verticalCenter
                                     elide: Text.ElideRight
                                 }
@@ -415,9 +410,9 @@ Column {
                                     width: parent.width - 172 - browseBtn.width - 12
                                     height: 30
                                     radius: 6
-                                    color: root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6)
+                                    color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6)
                                     border.width: bgPathInput.activeFocus ? 1 : 0
-                                    border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.3)
+                                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                                     anchors.verticalCenter: parent.verticalCenter
 
                                     TextInput {
@@ -429,7 +424,7 @@ Column {
                                         verticalAlignment: TextInput.AlignVCenter
                                         font.family: Style.fontFamilyCode
                                         font.pixelSize: 11
-                                        color: root.colors ? root.colors.tertiary : "#8bceff"
+                                        color: Colors.tertiary
                                         clip: true
                                         text: root.panel.getNested(root.panel.appsData, [appCard.appKey, "background"], "")
                                         selectByMouse: true
@@ -451,7 +446,7 @@ Column {
                                             verticalAlignment: Text.AlignVCenter
                                             text: "path to image"
                                             font: parent.font
-                                            color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.2)
+                                            color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                             visible: !parent.text && !parent.activeFocus
                                         }
 
@@ -465,9 +460,9 @@ Column {
                                     width: browseBtnLabel.implicitWidth + 20
                                     height: 30
                                     radius: 6
-                                    color: browseBtnMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.2) : Qt.rgba(1, 1, 1, 0.15)) : (root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6))
+                                    color: browseBtnMouse.containsMouse ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.2)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.6))
                                     border.width: 1
-                                    border.color: root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.15)
+                                    border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)
                                     anchors.verticalCenter: parent.verticalCenter
 
                                     Text {
@@ -477,7 +472,7 @@ Column {
                                         text: "BROWSE"
                                         font.family: Style.fontFamily
                                         font.pixelSize: 11
-                                        color: root.colors ? root.colors.tertiary : "#8bceff"
+                                        color: Colors.tertiary
                                     }
 
                                     MouseArea {
@@ -497,9 +492,9 @@ Column {
                                 width: parent.width
                                 height: root.panel.getNested(root.panel.appsData, [appCard.appKey, "background"], "") !== "" && bgPreviewImage.status === Image.Ready ? Math.min(width * (bgPreviewImage.sourceSize.height / Math.max(1, bgPreviewImage.sourceSize.width)), 400) : 60
                                 radius: 8
-                                color: bgDropArea.containsDrag ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.1)) : (root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.4) : Qt.rgba(0.1, 0.1, 0.15, 0.4))
+                                color: bgDropArea.containsDrag ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.4))
                                 border.width: 1
-                                border.color: bgDropArea.containsDrag ? (root.colors ? root.colors.primary : "#4fc3f7") : (root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.2) : Qt.rgba(1, 1, 1, 0.08))
+                                border.color: bgDropArea.containsDrag ? (Colors.primary) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
                                 clip: true
 
                                 Image {
@@ -531,7 +526,7 @@ Column {
                                         text: "󰕒"
                                         font.family: Style.fontFamilyIcons
                                         font.pixelSize: 22
-                                        color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.3)
                                         anchors.horizontalCenter: parent.horizontalCenter
                                     }
 
@@ -539,7 +534,7 @@ Column {
                                         text: "Drop image here or use BROWSE"
                                         font.family: Style.fontFamily
                                         font.pixelSize: 10
-                                        color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.25) : Qt.rgba(1, 1, 1, 0.15)
+                                        color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                         anchors.horizontalCenter: parent.horizontalCenter
                                     }
 
@@ -558,7 +553,7 @@ Column {
                                         radius: 4
                                         color: Qt.rgba(0, 0, 0, 0.7)
                                         border.width: 1
-                                        border.color: root.colors ? Qt.rgba(root.colors.error.r, root.colors.error.g, root.colors.error.b, 0.5) : Qt.rgba(1, 0.3, 0.3, 0.5)
+                                        border.color: Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.5)
 
                                         Text {
                                             id: clearBgLabel
@@ -568,7 +563,7 @@ Column {
                                             font.family: Style.fontFamily
                                             font.pixelSize: 9
                                             font.weight: Font.Bold
-                                            color: root.colors ? root.colors.error : "#ff6b6b"
+                                            color: Colors.error
                                         }
 
                                         MouseArea {

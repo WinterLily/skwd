@@ -18,250 +18,30 @@ QtObject {
     readonly property string _matugenConfig: cacheDir + "/matugen-config.toml"
     property bool _stateFileLoaded: false
     property var _stateFile
-
-    _stateFile: FileView {
-        path: service.cacheDir + "/last-wallpaper.json"
-        preload: true
-        onLoaded: {
-            service._stateFileLoaded = true;
-            service._tryRestore();
-        }
-    }
-
     property bool _restoring: false
     property bool _restoreRequested: false
     property var _pendingAction: null
     property var _killProcess
-
-    _killProcess: Process {
-        id: killProcess
-
-        onExited: {
-            if (service._pendingAction) {
-                var action = service._pendingAction;
-                service._pendingAction = null;
-                action();
-            }
-        }
-    }
-
     property bool _weKilling: false
     property var _awwwStderr: []
     property var _awwwProcess
-
-    _awwwProcess: Process {
-        id: awwwProcess
-
-        onExited: function(code, status) {
-            console.log("WallpaperApplyService: awww exited code=" + code + " status=" + status);
-            if (_awwwStderr.length > 0)
-                console.log("WallpaperApplyService: awww stderr:", _awwwStderr.join(""));
-
-            _awwwStderr = [];
-        }
-
-        stderr: SplitParser {
-            onRead: (data) => {
-                return service._awwwStderr.push(data);
-            }
-        }
-
-    }
-
     property var _mpvProcess
-
-    _mpvProcess: Process {
-        id: mpvProcess
-    }
-
     property var _awwwDaemonProcess
-
-    _awwwDaemonProcess: Process {
-        id: awwwDaemonProcess
-    }
-
     property var _weStderr: []
     property var _weStdout: []
     property var _weProcess
-
-    _weProcess: Process {
-        id: weProcess
-
-        onExited: function(code, status) {
-            var wasKilling = service._weKilling;
-            service._weKilling = false;
-            var out = service._weStdout.join("").trim();
-            var err = service._weStderr.join("").trim();
-            service._weStdout = [];
-            service._weStderr = [];
-            if (wasKilling)
-                return ;
-
-            if (out)
-                console.log("WallpaperApplyService: WE stdout:", out);
-
-            if (err)
-                console.log("WallpaperApplyService: WE stderr:", err);
-
-            if (code !== 0 && service._pendingWeId) {
-                console.log("WallpaperApplyService: WE scene exited code=" + code + " for id=" + service._pendingWeId + ", falling back to preview image");
-                service._applyWePreviewFallback(service._pendingWeId);
-            } else if (code === 0 && service._pendingWeId) {
-                console.log("WallpaperApplyService: WE scene exited cleanly (code=0) for id=" + service._pendingWeId);
-            }
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                return service._weStdout.push(data);
-            }
-        }
-
-        stderr: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                return service._weStderr.push(data);
-            }
-        }
-
-    }
-
     property string _pendingWeId: ""
     property var _weProjectStdout: []
     property var _weReadProject
-
-    _weReadProject: Process {
-        id: weReadProject
-
-        onExited: {
-            var text = _weProjectStdout.join("");
-            try {
-                var proj = JSON.parse(text);
-                var weType = (proj.type || "scene").toLowerCase();
-                var weFile = proj.file || "";
-                var id = service._pendingWeId;
-                var basePath = service.weDir + "/" + id;
-                console.log("WallpaperApplyService: WE project id=" + id + " type=" + weType + " file=" + weFile);
-                if (weType === "video" && weFile) {
-                    var videoPath = basePath + "/" + weFile;
-                    console.log("WallpaperApplyService: WE video path:", videoPath);
-                    _symLinkProcess.command = ["ln", "-sf", videoPath, service.videoDir + "/lockscreen-video.mp4"];
-                    _symLinkProcess.running = true;
-                    if (Config.isKDE) {
-                        service._applyKdeVideo(videoPath);
-                    } else {
-                        var opts = "loop";
-                        if (service.wallpaperMute)
-                            opts = "loop --mute=yes";
-
-                        weProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (service.wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(videoPath) + " </dev/null >/dev/null 2>&1 &"];
-                        weProcess.running = true;
-                    }
-                } else {
-                    _launchWEScene(id);
-                }
-            } catch (e) {
-                console.log("WallpaperApplyService: failed to parse project.json for id=" + service._pendingWeId + " error=" + e);
-                service._launchWEScene(service._pendingWeId);
-            }
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                return _weProjectStdout.push(data);
-            }
-        }
-
-    }
-
     property var _symLinkProcess
-
-    _symLinkProcess: Process {
-        id: symLinkProcess
-    }
-
     property string _wePreviewStdout: ""
     property var _wePreviewFallbackProc
-
-    _wePreviewFallbackProc: Process {
-        onExited: function(code) {
-            var preview = service._wePreviewStdout.trim();
-            service._wePreviewStdout = "";
-            if (code === 0 && preview) {
-                console.log("WallpaperApplyService: applying WE preview fallback:", preview);
-                service.applyStatic(preview);
-            }
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                return service._wePreviewStdout += data;
-            }
-        }
-
-    }
-
     property var _videoThumbStdout: []
     property var _videoThumbProcess
-
-    _videoThumbProcess: Process {
-        id: videoThumbProcess
-
-        onExited: function(code) {
-            if (code === 2) {
-                console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
-                return ;
-            }
-            service._propagateColors();
-        }
-    }
-
     property var _weFindPreviewStdout: []
     property var _weFindPreview
-
-    _weFindPreview: Process {
-        id: weFindPreview
-
-        onExited: {
-            var preview = _weFindPreviewStdout.join("").trim().split("\n")[0];
-            if (preview) {
-                _copyAndTheme.command = ["sh", "-c", "cp " + JSON.stringify(preview) + " " + JSON.stringify(service.wallpaperDir + "/wallpaper.jpg") + " 2>/dev/null; " + service._matugenCmd(preview)];
-                _copyAndTheme.running = true;
-            }
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                return _weFindPreviewStdout.push(data);
-            }
-        }
-
-    }
-
     property var _copyAndTheme
-
-    _copyAndTheme: Process {
-        id: copyAndThemeProcess
-
-        onExited: function(code) {
-            if (code === 2) {
-                console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
-                return ;
-            }
-            service._propagateColors();
-        }
-    }
-
     property var reloadComponent
-
-    reloadComponent: Component {
-        Process {
-        }
-
-    }
 
     signal wallpaperApplied(string type, string name, string path)
 
@@ -530,4 +310,213 @@ QtObject {
         _runPostProcessing(type, name, path);
         _restoring = false;
     }
+
+    _stateFile: FileView {
+        path: service.cacheDir + "/last-wallpaper.json"
+        preload: true
+        onLoaded: {
+            service._stateFileLoaded = true;
+            service._tryRestore();
+        }
+    }
+
+    _killProcess: Process {
+        id: killProcess
+
+        onExited: {
+            if (service._pendingAction) {
+                var action = service._pendingAction;
+                service._pendingAction = null;
+                action();
+            }
+        }
+    }
+
+    _awwwProcess: Process {
+        id: awwwProcess
+
+        onExited: function(code, status) {
+            console.log("WallpaperApplyService: awww exited code=" + code + " status=" + status);
+            if (_awwwStderr.length > 0)
+                console.log("WallpaperApplyService: awww stderr:", _awwwStderr.join(""));
+
+            _awwwStderr = [];
+        }
+
+        stderr: SplitParser {
+            onRead: (data) => {
+                return service._awwwStderr.push(data);
+            }
+        }
+
+    }
+
+    _mpvProcess: Process {
+        id: mpvProcess
+    }
+
+    _awwwDaemonProcess: Process {
+        id: awwwDaemonProcess
+    }
+
+    _weProcess: Process {
+        id: weProcess
+
+        onExited: function(code, status) {
+            var wasKilling = service._weKilling;
+            service._weKilling = false;
+            var out = service._weStdout.join("").trim();
+            var err = service._weStderr.join("").trim();
+            service._weStdout = [];
+            service._weStderr = [];
+            if (wasKilling)
+                return ;
+
+            if (out)
+                console.log("WallpaperApplyService: WE stdout:", out);
+
+            if (err)
+                console.log("WallpaperApplyService: WE stderr:", err);
+
+            if (code !== 0 && service._pendingWeId) {
+                console.log("WallpaperApplyService: WE scene exited code=" + code + " for id=" + service._pendingWeId + ", falling back to preview image");
+                service._applyWePreviewFallback(service._pendingWeId);
+            } else if (code === 0 && service._pendingWeId) {
+                console.log("WallpaperApplyService: WE scene exited cleanly (code=0) for id=" + service._pendingWeId);
+            }
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                return service._weStdout.push(data);
+            }
+        }
+
+        stderr: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                return service._weStderr.push(data);
+            }
+        }
+
+    }
+
+    _weReadProject: Process {
+        id: weReadProject
+
+        onExited: {
+            var text = _weProjectStdout.join("");
+            try {
+                var proj = JSON.parse(text);
+                var weType = (proj.type || "scene").toLowerCase();
+                var weFile = proj.file || "";
+                var id = service._pendingWeId;
+                var basePath = service.weDir + "/" + id;
+                console.log("WallpaperApplyService: WE project id=" + id + " type=" + weType + " file=" + weFile);
+                if (weType === "video" && weFile) {
+                    var videoPath = basePath + "/" + weFile;
+                    console.log("WallpaperApplyService: WE video path:", videoPath);
+                    _symLinkProcess.command = ["ln", "-sf", videoPath, service.videoDir + "/lockscreen-video.mp4"];
+                    _symLinkProcess.running = true;
+                    if (Config.isKDE) {
+                        service._applyKdeVideo(videoPath);
+                    } else {
+                        var opts = "loop";
+                        if (service.wallpaperMute)
+                            opts = "loop --mute=yes";
+
+                        weProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (service.wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(videoPath) + " </dev/null >/dev/null 2>&1 &"];
+                        weProcess.running = true;
+                    }
+                } else {
+                    _launchWEScene(id);
+                }
+            } catch (e) {
+                console.log("WallpaperApplyService: failed to parse project.json for id=" + service._pendingWeId + " error=" + e);
+                service._launchWEScene(service._pendingWeId);
+            }
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                return _weProjectStdout.push(data);
+            }
+        }
+
+    }
+
+    _symLinkProcess: Process {
+        id: symLinkProcess
+    }
+
+    _wePreviewFallbackProc: Process {
+        onExited: function(code) {
+            var preview = service._wePreviewStdout.trim();
+            service._wePreviewStdout = "";
+            if (code === 0 && preview) {
+                console.log("WallpaperApplyService: applying WE preview fallback:", preview);
+                service.applyStatic(preview);
+            }
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                return service._wePreviewStdout += data;
+            }
+        }
+
+    }
+
+    _videoThumbProcess: Process {
+        id: videoThumbProcess
+
+        onExited: function(code) {
+            if (code === 2) {
+                console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
+                return ;
+            }
+            service._propagateColors();
+        }
+    }
+
+    _weFindPreview: Process {
+        id: weFindPreview
+
+        onExited: {
+            var preview = _weFindPreviewStdout.join("").trim().split("\n")[0];
+            if (preview) {
+                _copyAndTheme.command = ["sh", "-c", "cp " + JSON.stringify(preview) + " " + JSON.stringify(service.wallpaperDir + "/wallpaper.jpg") + " 2>/dev/null; " + service._matugenCmd(preview)];
+                _copyAndTheme.running = true;
+            }
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                return _weFindPreviewStdout.push(data);
+            }
+        }
+
+    }
+
+    _copyAndTheme: Process {
+        id: copyAndThemeProcess
+
+        onExited: function(code) {
+            if (code === 2) {
+                console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
+                return ;
+            }
+            service._propagateColors();
+        }
+    }
+
+    reloadComponent: Component {
+        Process {
+        }
+
+    }
+
 }

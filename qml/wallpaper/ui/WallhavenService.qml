@@ -29,34 +29,6 @@ QtObject {
     })
     property string _localScanOutput: ""
     property var _localScanProc
-
-    _localScanProc: Process {
-        command: ["find", whService.wallpaperDir, "-maxdepth", "1", "-name", "wallhaven-*", "-printf", "%f\n"]
-        onExited: function(exitCode, exitStatus) {
-            var ids = {
-            };
-            var lines = whService._localScanOutput.split("\n");
-            for (var i = 0; i < lines.length; i++) {
-                var fname = lines[i].trim();
-                if (!fname)
-                    continue;
-
-                var m = fname.match(/^wallhaven-([a-zA-Z0-9]+)/);
-                if (m)
-                    ids[m[1]] = true;
-
-            }
-            whService.localWallhavenIds = ids;
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                whService._localScanOutput += data + "\n";
-            }
-        }
-
-    }
-
     readonly property var _allowedExts: ({
         "jpg": true,
         "jpeg": true,
@@ -73,69 +45,6 @@ QtObject {
     readonly property int _maxConcurrent: 3
     property string _searchOutput: ""
     property var _searchProcess
-
-    _searchProcess: Process {
-        command: ["curl", "-fsSL", whService._buildUrl()]
-        onRunningChanged: {
-            if (running)
-                whService._searchOutput = "";
-
-        }
-        onExited: function(exitCode, exitStatus) {
-            whService.loading = false;
-            if (exitCode !== 0) {
-                whService.errorText = "Network error (curl exit " + exitCode + ")";
-                whService.resultsUpdated();
-                return ;
-            }
-            try {
-                var json = JSON.parse(whService._searchOutput);
-                if (json.error) {
-                    whService.errorText = json.error;
-                } else {
-                    var newItems = (json.data || []).map(function(item) {
-                        return {
-                            "id": item.id,
-                            "url": item.url,
-                            "path": item.path,
-                            "resolution": item.resolution,
-                            "fileSize": item.file_size,
-                            "purity": item.purity,
-                            "category": item.category,
-                            "thumbLarge": item.thumbs ? item.thumbs.large : "",
-                            "thumbSmall": item.thumbs ? item.thumbs.small : "",
-                            "colors": item.colors || []
-                        };
-                    });
-                    // Filter out duplicates before concatenating
-                    var existingIds = {
-                    };
-                    for (var e = 0; e < whService.results.length; e++) {
-                        existingIds[whService.results[e].id] = true;
-                    }
-                    var uniqueNewItems = newItems.filter(function(item) {
-                        return !existingIds[item.id];
-                    });
-                    whService.results = whService.results.concat(uniqueNewItems);
-                    whService.lastPage = (json.meta && json.meta.last_page) ? json.meta.last_page : 1;
-                    whService.currentPage = (json.meta && json.meta.current_page) ? json.meta.current_page : 1;
-                    whService.errorText = "";
-                }
-            } catch (e) {
-                whService.errorText = "Parse error: " + e.message;
-            }
-            whService.resultsUpdated();
-            whService.scanLocalFiles();
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                whService._searchOutput += data;
-            }
-        }
-
-    }
 
     signal resultsUpdated()
     signal downloadFinished(string wallhavenId, string localPath)
@@ -285,6 +194,96 @@ QtObject {
             params.push("apikey=" + apiKey);
 
         return url + params.join("&");
+    }
+
+    _localScanProc: Process {
+        command: ["find", whService.wallpaperDir, "-maxdepth", "1", "-name", "wallhaven-*", "-printf", "%f\n"]
+        onExited: function(exitCode, exitStatus) {
+            var ids = {
+            };
+            var lines = whService._localScanOutput.split("\n");
+            for (var i = 0; i < lines.length; i++) {
+                var fname = lines[i].trim();
+                if (!fname)
+                    continue;
+
+                var m = fname.match(/^wallhaven-([a-zA-Z0-9]+)/);
+                if (m)
+                    ids[m[1]] = true;
+
+            }
+            whService.localWallhavenIds = ids;
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                whService._localScanOutput += data + "\n";
+            }
+        }
+
+    }
+
+    _searchProcess: Process {
+        command: ["curl", "-fsSL", whService._buildUrl()]
+        onRunningChanged: {
+            if (running)
+                whService._searchOutput = "";
+
+        }
+        onExited: function(exitCode, exitStatus) {
+            whService.loading = false;
+            if (exitCode !== 0) {
+                whService.errorText = "Network error (curl exit " + exitCode + ")";
+                whService.resultsUpdated();
+                return ;
+            }
+            try {
+                var json = JSON.parse(whService._searchOutput);
+                if (json.error) {
+                    whService.errorText = json.error;
+                } else {
+                    var newItems = (json.data || []).map(function(item) {
+                        return {
+                            "id": item.id,
+                            "url": item.url,
+                            "path": item.path,
+                            "resolution": item.resolution,
+                            "fileSize": item.file_size,
+                            "purity": item.purity,
+                            "category": item.category,
+                            "thumbLarge": item.thumbs ? item.thumbs.large : "",
+                            "thumbSmall": item.thumbs ? item.thumbs.small : "",
+                            "colors": item.colors || []
+                        };
+                    });
+                    // Filter out duplicates before concatenating
+                    var existingIds = {
+                    };
+                    for (var e = 0; e < whService.results.length; e++) {
+                        existingIds[whService.results[e].id] = true;
+                    }
+                    var uniqueNewItems = newItems.filter(function(item) {
+                        return !existingIds[item.id];
+                    });
+                    whService.results = whService.results.concat(uniqueNewItems);
+                    whService.lastPage = (json.meta && json.meta.last_page) ? json.meta.last_page : 1;
+                    whService.currentPage = (json.meta && json.meta.current_page) ? json.meta.current_page : 1;
+                    whService.errorText = "";
+                }
+            } catch (e) {
+                whService.errorText = "Parse error: " + e.message;
+            }
+            whService.resultsUpdated();
+            whService.scanLocalFiles();
+        }
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: (data) => {
+                whService._searchOutput += data;
+            }
+        }
+
     }
 
 }

@@ -1,5 +1,4 @@
 import ".."
-import "../components"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -14,7 +13,6 @@ Scope {
     id: appLauncher
 
     // External bindings
-    property var colors
     property bool showing: false
     property string mainMonitor: Config.mainMonitor
     property string activeMonitor: mainMonitor
@@ -222,8 +220,8 @@ Scope {
 
                         Canvas {
                             readonly property int _sk: 14
-                            property color fillColor: appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceContainer.r, appLauncher.colors.surfaceContainer.g, appLauncher.colors.surfaceContainer.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1)
-                            property color accentColor: appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+                            property color fillColor: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+                            property color accentColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6)
 
                             anchors.fill: parent
                             onFillColorChanged: requestPaint()
@@ -297,16 +295,16 @@ Scope {
                                     width: 32
                                     height: 24
                                     radius: 4
-                                    color: isSelected ? (appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7") : (isHovered ? (appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceVariant.r, appLauncher.colors.surfaceVariant.g, appLauncher.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15)) : "transparent")
+                                    color: isSelected ? (Colors.primary) : (isHovered ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5)) : "transparent")
                                     border.width: isSelected ? 0 : 1
-                                    border.color: isHovered ? (appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)) : "transparent"
+                                    border.color: isHovered ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)) : "transparent"
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: modelData.icon
                                         font.pixelSize: 14
                                         font.family: Style.fontFamilyIcons
-                                        color: parent.isSelected ? (appLauncher.colors ? appLauncher.colors.primaryText : "#000") : (appLauncher.colors ? appLauncher.colors.tertiary : "#8bceff")
+                                        color: parent.isSelected ? (Colors.primaryText) : (Colors.tertiary)
                                     }
 
                                     MouseArea {
@@ -346,7 +344,7 @@ Scope {
                         Rectangle {
                             width: 1
                             height: 20
-                            color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
+                            color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.3)
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -354,7 +352,7 @@ Scope {
                             text: "󰍉"
                             font.family: Style.fontFamilyIcons
                             font.pixelSize: 18
-                            color: appLauncher.colors ? appLauncher.colors.tertiary : "#8bceff"
+                            color: Colors.tertiary
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -434,7 +432,7 @@ Scope {
                                 anchors.fill: parent
                                 text: ""
                                 font: searchInput.font
-                                color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primaryText.r, appLauncher.colors.primaryText.g, appLauncher.colors.primaryText.b, 0.4) : Qt.rgba(1, 1, 1, 0.4)
+                                color: Qt.rgba(Colors.primaryText.r, Colors.primaryText.g, Colors.primaryText.b, 0.4)
                                 visible: !searchInput.text
                             }
 
@@ -445,7 +443,7 @@ Scope {
                             font.family: Style.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Medium
-                            color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primaryText.r, appLauncher.colors.primaryText.g, appLauncher.colors.primaryText.b, 0.5) : Qt.rgba(1, 1, 1, 0.5)
+                            color: Qt.rgba(Colors.primaryText.r, Colors.primaryText.g, Colors.primaryText.b, 0.5)
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -454,7 +452,7 @@ Scope {
                     // Cache loading overlay with progress bar
                     Rectangle {
                         anchors.fill: parent
-                        color: appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceContainer.r, appLauncher.colors.surfaceContainer.g, appLauncher.colors.surfaceContainer.b, 0.95) : Qt.rgba(0.08, 0.1, 0.14, 0.95)
+                        color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.95)
                         radius: 20
                         visible: service.cacheLoading
                         z: 50
@@ -473,7 +471,7 @@ Scope {
                                 anchors.bottom: parent.bottom
                                 radius: 2
                                 width: service.cacheTotal > 0 ? parent.width * (service.cacheProgress / service.cacheTotal) : 0
-                                color: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
+                                color: Colors.primary
 
                                 Behavior on width {
                                     NumberAnimation {
@@ -491,7 +489,7 @@ Scope {
                             anchors.centerIn: parent
                             anchors.verticalCenterOffset: -12
                             text: service.cacheTotal > 0 ? "LOADING APPS... " + service.cacheProgress + " / " + service.cacheTotal : "SCANNING..."
-                            color: appLauncher.colors ? appLauncher.colors.tertiary : "#8bceff"
+                            color: Colors.tertiary
                             font.family: Style.fontFamily
                             font.pixelSize: 12
                             font.weight: Font.Medium
@@ -734,12 +732,12 @@ Scope {
                             gradient: Gradient {
                                 GradientStop {
                                     position: 0
-                                    color: appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceContainer.r, appLauncher.colors.surfaceContainer.g, appLauncher.colors.surfaceContainer.b, 1) : "#1a1c2e"
+                                    color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
                                 }
 
                                 GradientStop {
                                     position: 1
-                                    color: appLauncher.colors ? Qt.rgba(appLauncher.colors.surface.r, appLauncher.colors.surface.g, appLauncher.colors.surface.b, 1) : "#0e1018"
+                                    color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1)
                                 }
 
                             }
@@ -751,7 +749,7 @@ Scope {
                             text: model.customIcon || ""
                             font.family: Style.fontFamilyIcons
                             font.pixelSize: 48
-                            color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.7) : Qt.rgba(1, 1, 1, 0.5)
+                            color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.7)
                             visible: model.customIcon !== "" && !bgImage.visible
                         }
 
@@ -851,7 +849,7 @@ Scope {
 
                         ShapePath {
                             fillColor: "transparent"
-                            strokeColor: delegateItem.isCurrent ? (appLauncher.colors ? appLauncher.colors.primary : "#8BC34A") : (delegateItem.isHovered ? Qt.rgba(appLauncher.colors ? appLauncher.colors.primary.r : 0.5, appLauncher.colors ? appLauncher.colors.primary.g : 0.76, appLauncher.colors ? appLauncher.colors.primary.b : 0.29, 0.4) : Qt.rgba(0, 0, 0, 0.6))
+                            strokeColor: delegateItem.isCurrent ? (Colors.primary) : (delegateItem.isHovered ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4) : Qt.rgba(0, 0, 0, 0.6))
                             strokeWidth: delegateItem.isCurrent ? 3 : 1
                             startX: appLauncher.skewOffset
                             startY: 0
@@ -895,9 +893,9 @@ Scope {
                         width: 22
                         height: 22
                         radius: 11
-                        color: model.source === "steam" ? (appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7") : Qt.rgba(0, 0, 0, 0.7)
+                        color: model.source === "steam" ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.7)
                         border.width: 1
-                        border.color: model.source === "steam" ? "transparent" : (appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.4))
+                        border.color: model.source === "steam" ? "transparent" : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6))
                         visible: model.source === "steam"
                         z: 10
 
@@ -906,7 +904,7 @@ Scope {
                             text: "󰓓"
                             font.family: Style.fontFamilyIcons
                             font.pixelSize: 12
-                            color: model.source === "steam" ? (appLauncher.colors ? appLauncher.colors.primaryText : "#000") : (appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7")
+                            color: model.source === "steam" ? (Colors.primaryText) : (Colors.primary)
                         }
 
                     }
@@ -923,7 +921,7 @@ Scope {
                         radius: 6
                         color: Qt.rgba(0, 0, 0, 0.75)
                         border.width: 1
-                        border.color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.5) : Qt.rgba(1, 1, 1, 0.2)
+                        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                         visible: delegateItem.isCurrent
                         opacity: delegateItem.isCurrent ? 1 : 0
 
@@ -936,7 +934,7 @@ Scope {
                             font.pixelSize: 12
                             font.weight: Font.Bold
                             font.letterSpacing: 0.5
-                            color: appLauncher.colors ? appLauncher.colors.tertiary : "#8bceff"
+                            color: Colors.tertiary
                             elide: Text.ElideMiddle
                             maximumLineCount: 1
                             width: Math.min(implicitWidth, delegateItem.width - 60)
@@ -962,7 +960,7 @@ Scope {
                         radius: 4
                         color: Qt.rgba(0, 0, 0, 0.75)
                         border.width: 1
-                        border.color: appLauncher.colors ? Qt.rgba(appLauncher.colors.primary.r, appLauncher.colors.primary.g, appLauncher.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+                        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
                         z: 10
 
                         Text {
@@ -974,7 +972,7 @@ Scope {
                             font.pixelSize: 9
                             font.weight: Font.Bold
                             font.letterSpacing: 0.5
-                            color: appLauncher.colors ? appLauncher.colors.tertiary : "#8bceff"
+                            color: Colors.tertiary
                         }
 
                     }
@@ -1186,32 +1184,81 @@ Scope {
                     Repeater {
                         model: Math.max(0, Math.min(hexListView._rows, service.filteredModel.count - hexCol.colIdx * hexListView._rows))
 
-                        HexItem {
+                        Item {
                             id: hexItem
 
                             property int rowIdx: index
                             property int flatIdx: hexCol.colIdx * hexListView._rows + rowIdx
                             property var appData: flatIdx < service.filteredModel.count ? service.filteredModel.get(flatIdx) : null
+                            property bool isSelected: hexCol.colIdx === hexListView._selectedCol && rowIdx === hexListView._selectedRow
+                            property bool isHovered: hexItemMouse.containsMouse
+                            readonly property real _r: hexListView._r
+                            readonly property real _cx: _r
+                            readonly property real _cy: height / 2
+                            readonly property real _cos30: 0.866025
+                            readonly property real _sin30: 0.5
 
-                            radius: hexListView._r
+                            width: hexListView._hexW
+                            height: hexListView._hexH
                             x: 0
                             y: hexListView._yOffset + rowIdx * hexListView._stepY + (hexCol.colIdx % 2 !== 0 ? hexListView._stepY / 2 : 0) + hexCol._arcOffset
                             scale: hexCol._colScale
                             transformOrigin: hexCol._nearLeft ? Item.Left : Item.Right
                             opacity: hexCol._colScale < 0.01 ? 0 : 1
-                            isSelected: hexCol.colIdx === hexListView._selectedCol && rowIdx === hexListView._selectedRow
-                            selectedBorderColor: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
-                            borderColor: Qt.rgba(0, 0, 0, 0.5)
-                            accentColor: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
-                            onHovered: {
-                                hexListView._selectedCol = hexCol.colIdx;
-                                hexListView._selectedRow = rowIdx;
-                            }
-                            onClicked: {
-                                if (hexItem.appData) {
-                                    service.launchApp(hexItem.appData.exec, hexItem.appData.terminal, hexItem.appData.name);
-                                    appLauncher.showing = false;
+
+                            Item {
+                                id: hexItemMask
+
+                                width: parent.width
+                                height: parent.height
+                                visible: false
+                                layer.enabled: true
+
+                                Shape {
+                                    anchors.fill: parent
+                                    antialiasing: true
+                                    preferredRendererType: Shape.CurveRenderer
+
+                                    ShapePath {
+                                        fillColor: "white"
+                                        strokeColor: "transparent"
+                                        startX: hexItem._cx + hexItem._r
+                                        startY: hexItem._cy
+
+                                        PathLine {
+                                            x: hexItem._cx + hexItem._r * hexItem._sin30
+                                            y: hexItem._cy - hexItem._r * hexItem._cos30
+                                        }
+
+                                        PathLine {
+                                            x: hexItem._cx - hexItem._r * hexItem._sin30
+                                            y: hexItem._cy - hexItem._r * hexItem._cos30
+                                        }
+
+                                        PathLine {
+                                            x: hexItem._cx - hexItem._r
+                                            y: hexItem._cy
+                                        }
+
+                                        PathLine {
+                                            x: hexItem._cx - hexItem._r * hexItem._sin30
+                                            y: hexItem._cy + hexItem._r * hexItem._cos30
+                                        }
+
+                                        PathLine {
+                                            x: hexItem._cx + hexItem._r * hexItem._sin30
+                                            y: hexItem._cy + hexItem._r * hexItem._cos30
+                                        }
+
+                                        PathLine {
+                                            x: hexItem._cx + hexItem._r
+                                            y: hexItem._cy
+                                        }
+
+                                    }
+
                                 }
+
                             }
 
                             Item {
@@ -1221,15 +1268,15 @@ Scope {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    color: appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceContainer.r, appLauncher.colors.surfaceContainer.g, appLauncher.colors.surfaceContainer.b, 1) : Qt.rgba(0.1, 0.12, 0.18, 1)
+                                    color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
                                 }
 
                                 Image {
                                     id: hexIconImg
 
                                     anchors.centerIn: parent
-                                    width: hexItem.radius * 1.1
-                                    height: hexItem.radius * 1.1
+                                    width: hexItem._r * 1.1
+                                    height: hexItem._r * 1.1
                                     source: hexItem.appData && hexItem.appData.iconPath ? "file://" + hexItem.appData.iconPath : ""
                                     fillMode: Image.PreserveAspectFit
                                     smooth: true
@@ -1239,15 +1286,15 @@ Scope {
                                 Text {
                                     anchors.centerIn: parent
                                     text: hexItem.appData ? hexItem.appData.name.substring(0, 1).toUpperCase() : "?"
-                                    font.pixelSize: hexItem.radius * 0.65
+                                    font.pixelSize: hexItem._r * 0.65
                                     font.weight: Font.Bold
-                                    color: appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7"
+                                    color: Colors.primary
                                     visible: hexIconImg.status !== Image.Ready
                                 }
 
                                 layer.effect: MultiEffect {
                                     maskEnabled: true
-                                    maskSource: hexItem.mask
+                                    maskSource: hexItemMask
                                     maskThresholdMin: 0.3
                                     maskSpreadAtMin: 0.3
                                 }
@@ -1275,9 +1322,91 @@ Scope {
 
                                 layer.effect: MultiEffect {
                                     maskEnabled: true
-                                    maskSource: hexItem.mask
+                                    maskSource: hexItemMask
                                     maskThresholdMin: 0.3
                                     maskSpreadAtMin: 0.3
+                                }
+
+                            }
+
+                            Shape {
+                                anchors.fill: parent
+                                antialiasing: true
+                                preferredRendererType: Shape.CurveRenderer
+
+                                ShapePath {
+                                    fillColor: "transparent"
+                                    strokeColor: hexItem.isSelected ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.5)
+                                    strokeWidth: hexItem.isSelected ? 3 : 1.5
+                                    startX: hexItem._cx + hexItem._r
+                                    startY: hexItem._cy
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r * hexItem._sin30
+                                        y: hexItem._cy - hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r * hexItem._sin30
+                                        y: hexItem._cy - hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r
+                                        y: hexItem._cy
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r * hexItem._sin30
+                                        y: hexItem._cy + hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r * hexItem._sin30
+                                        y: hexItem._cy + hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r
+                                        y: hexItem._cy
+                                    }
+
+                                    Behavior on strokeColor {
+                                        ColorAnimation {
+                                            duration: 100
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            // Accent colour rim: bottom-left and bottom edges
+                            Shape {
+                                anchors.fill: parent
+                                antialiasing: true
+                                preferredRendererType: Shape.CurveRenderer
+
+                                ShapePath {
+                                    fillColor: "transparent"
+                                    strokeColor: Colors.primary
+                                    strokeWidth: 3
+                                    capStyle: ShapePath.RoundCap
+                                    joinStyle: ShapePath.RoundJoin
+                                    startX: hexItem._cx - hexItem._r
+                                    startY: hexItem._cy
+
+                                    PathLine {
+                                        x: hexItem._cx - hexItem._r * hexItem._sin30
+                                        y: hexItem._cy + hexItem._r * hexItem._cos30
+                                    }
+
+                                    PathLine {
+                                        x: hexItem._cx + hexItem._r * hexItem._sin30
+                                        y: hexItem._cy + hexItem._r * hexItem._cos30
+                                    }
+
                                 }
 
                             }
@@ -1290,11 +1419,37 @@ Scope {
                                 font.family: Style.fontFamily
                                 font.pixelSize: 9
                                 font.weight: Font.Medium
-                                color: hexItem.isSelected ? (appLauncher.colors ? appLauncher.colors.primary : "#4fc3f7") : (appLauncher.colors ? Qt.rgba(appLauncher.colors.surfaceText.r, appLauncher.colors.surfaceText.g, appLauncher.colors.surfaceText.b, 0.7) : Qt.rgba(1, 1, 1, 0.6))
+                                color: hexItem.isSelected ? (Colors.primary) : (Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.7))
                                 maximumLineCount: 1
                                 elide: Text.ElideRight
                                 width: hexListView._hexW + hexListView._gridSpacing
                                 horizontalAlignment: Text.AlignHCenter
+                            }
+
+                            MouseArea {
+                                id: hexItemMouse
+
+                                function contains(point) {
+                                    var dx = Math.abs(point.x - hexItem._cx);
+                                    var dy = Math.abs(point.y - hexItem._cy);
+                                    return dy <= hexItem._cos30 * hexItem._r && dx <= hexItem._r - dy * 0.57735;
+                                }
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onContainsMouseChanged: {
+                                    if (containsMouse) {
+                                        hexListView._selectedCol = hexCol.colIdx;
+                                        hexListView._selectedRow = rowIdx;
+                                    }
+                                }
+                                onClicked: {
+                                    if (hexItem.appData) {
+                                        service.launchApp(hexItem.appData.exec, hexItem.appData.terminal, hexItem.appData.name);
+                                        appLauncher.showing = false;
+                                    }
+                                }
                             }
 
                         }

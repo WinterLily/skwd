@@ -6,7 +6,6 @@ import QtQuick.Shapes
 Row {
     id: root
 
-    property var colors
     property string label: ""
     property bool checked: false
     property var onToggle
@@ -27,8 +26,8 @@ Row {
             anchors.fill: parent
 
             ShapePath {
-                fillColor: root.checked ? (root.colors ? root.colors.primary : Style.fallbackAccent) : (root.colors ? Qt.rgba(root.colors.surfaceVariant.r, root.colors.surfaceVariant.g, root.colors.surfaceVariant.b, 0.6) : Qt.rgba(0.3, 0.3, 0.35, 0.6))
-                strokeColor: root.checked ? (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.8) : Style.fallbackAccent) : (root.colors ? Qt.rgba(root.colors.outline.r, root.colors.outline.g, root.colors.outline.b, 0.3) : Qt.rgba(1, 1, 1, 0.1))
+                fillColor: root.checked ? (Colors.primary) : (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.6))
+                strokeColor: root.checked ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.8)) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.3))
                 strokeWidth: 1
                 startX: root._skew
                 startY: 0
@@ -69,7 +68,7 @@ Row {
                 anchors.fill: parent
 
                 ShapePath {
-                    fillColor: root.checked ? (root.colors ? root.colors.primaryText : "#000") : (root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.7) : Qt.rgba(1, 1, 1, 0.5))
+                    fillColor: root.checked ? (Colors.primaryText) : (Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.7))
                     strokeWidth: 0
                     startX: root._skew * 0.6
                     startY: 0
@@ -126,7 +125,7 @@ Row {
         font.family: Style.fontFamily
         font.pixelSize: 11
         font.weight: Font.Medium
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+        color: Colors.tertiary
     }
 
 }

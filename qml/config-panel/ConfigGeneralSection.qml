@@ -5,14 +5,12 @@ Column {
     id: root
 
     property var panel
-    property var colors
 
     width: parent.width
     spacing: 8
 
     ConfigSectionTitle {
         text: "GENERAL"
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -22,7 +20,6 @@ Column {
             panel.setNested(panel.configData, ["compositor"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -32,7 +29,6 @@ Column {
             panel.setNested(panel.configData, ["terminal"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -42,7 +38,6 @@ Column {
             panel.setNested(panel.configData, ["monitor"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigToggle {
@@ -52,13 +47,11 @@ Column {
             panel.setNested(panel.configData, ["wallpaperMute"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigSectionTitle {
         text: "PATHS"
         topPad: 16
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -69,7 +62,6 @@ Column {
             panel.setNested(panel.configData, ["paths", "scripts"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -79,7 +71,6 @@ Column {
             panel.setNested(panel.configData, ["paths", "cache"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -89,7 +80,6 @@ Column {
             panel.setNested(panel.configData, ["paths", "wallpaper"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -99,7 +89,6 @@ Column {
             panel.setNested(panel.configData, ["paths", "steamWorkshop"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -109,7 +98,6 @@ Column {
             panel.setNested(panel.configData, ["paths", "steamWeAssets"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -119,13 +107,34 @@ Column {
             panel.setNested(panel.configData, ["paths", "steam"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
+    }
+
+    ConfigSectionTitle {
+        text: "OLLAMA"
+        topPad: 16
+    }
+
+    ConfigTextField {
+        label: "URL"
+        value: panel.getNested(panel.configData, ["ollama", "url"], "")
+        onEdited: (v) => {
+            panel.setNested(panel.configData, ["ollama", "url"], v);
+            panel.configDataChanged();
+        }
+    }
+
+    ConfigTextField {
+        label: "Model"
+        value: panel.getNested(panel.configData, ["ollama", "model"], "")
+        onEdited: (v) => {
+            panel.setNested(panel.configData, ["ollama", "model"], v);
+            panel.configDataChanged();
+        }
     }
 
     ConfigSectionTitle {
         text: "MATUGEN"
         topPad: 16
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -135,7 +144,6 @@ Column {
             panel.setNested(panel.configData, ["matugen", "schemeType"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
     ConfigTextField {
@@ -145,7 +153,6 @@ Column {
             panel.setNested(panel.configData, ["matugen", "kdeColorScheme"], v);
             panel.configDataChanged();
         }
-        colors: root.colors
     }
 
 }

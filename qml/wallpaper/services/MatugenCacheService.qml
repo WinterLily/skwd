@@ -20,62 +20,10 @@ QtObject {
     property var _unsavedKeys: []
     property var _scanStdout: []
     property var _scanProcess
-
-    _scanProcess: Process {
-        command: ["sh", "-c", service._buildScanScript()]
-        onExited: service._buildQueue()
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                var line = data.trim();
-                if (line)
-                    service._scanStdout.push(line);
-
-            }
-        }
-
-    }
-
     property var _workQueue: []
     property int _workIndex: 0
     property int _activeJobs: 0
     property var _workerComponent
-
-    _workerComponent: Component {
-        Process {
-            id: workerProc
-
-            property var _item
-            property string _stdout: ""
-
-            onExited: {
-                service._processMatugenOutput(_stdout, _item);
-                if (_item.single) {
-                    service._saveCache();
-                    if (service._cache[_item.key])
-                        service.oneReady(_item.key, service._cache[_item.key]);
-
-                } else {
-                    service.progress++;
-                    service._activeJobs--;
-                    if (service.progress % 50 === 0)
-                        service._saveCache();
-
-                    service._startWorkers();
-                }
-                destroy();
-            }
-
-            stdout: SplitParser {
-                splitMarker: ""
-                onRead: (data) => {
-                    return workerProc._stdout += data;
-                }
-            }
-
-        }
-
-    }
 
     signal cacheReady()
     signal oneReady(string key, var colors)
@@ -249,6 +197,57 @@ QtObject {
         _saveCache();
         running = false;
         cacheReady();
+    }
+
+    _scanProcess: Process {
+        command: ["sh", "-c", service._buildScanScript()]
+        onExited: service._buildQueue()
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                var line = data.trim();
+                if (line)
+                    service._scanStdout.push(line);
+
+            }
+        }
+
+    }
+
+    _workerComponent: Component {
+        Process {
+            id: workerProc
+
+            property var _item
+            property string _stdout: ""
+
+            onExited: {
+                service._processMatugenOutput(_stdout, _item);
+                if (_item.single) {
+                    service._saveCache();
+                    if (service._cache[_item.key])
+                        service.oneReady(_item.key, service._cache[_item.key]);
+
+                } else {
+                    service.progress++;
+                    service._activeJobs--;
+                    if (service.progress % 50 === 0)
+                        service._saveCache();
+
+                    service._startWorkers();
+                }
+                destroy();
+            }
+
+            stdout: SplitParser {
+                splitMarker: ""
+                onRead: (data) => {
+                    return workerProc._stdout += data;
+                }
+            }
+
+        }
+
     }
 
 }

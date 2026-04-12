@@ -5,7 +5,6 @@ import QtQuick
 Rectangle {
     id: root
 
-    property var colors
     property bool cacheLoading: false
     property int cacheProgress: 0
     property int cacheTotal: 0
@@ -13,7 +12,7 @@ Rectangle {
     width: 400
     height: 40
     radius: 20
-    color: colors ? Qt.rgba(colors.surfaceContainer.r, colors.surfaceContainer.g, colors.surfaceContainer.b, 0.9) : Qt.rgba(0, 0, 0, 0.8)
+    color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.9)
     visible: cacheLoading
     opacity: cacheLoading ? 1 : 0
 
@@ -32,7 +31,7 @@ Rectangle {
             anchors.bottom: parent.bottom
             radius: 2
             width: root.cacheTotal > 0 ? parent.width * (root.cacheProgress / root.cacheTotal) : 0
-            color: root.colors ? root.colors.primary : Style.fallbackAccent
+            color: Colors.primary
 
             Behavior on width {
                 NumberAnimation {
@@ -50,7 +49,7 @@ Rectangle {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -12
         text: root.cacheTotal > 0 ? "PROCESSING WALLPAPERS... " + root.cacheProgress + " / " + root.cacheTotal : "PROCESSING EXISTING WALLPAPERS... PLEASE WAIT"
-        color: root.colors ? root.colors.tertiary : "#8bceff"
+        color: Colors.tertiary
         font.family: Style.fontFamily
         font.pixelSize: 12
         font.weight: Font.Medium

@@ -14,33 +14,7 @@ QtObject {
         return url.toString().replace("file://", "");
     }
     property var _markerCheck
-
-    _markerCheck: Process {
-        id: markerCheck
-
-        onExited: function(code, status) {
-            if (code === 0) {
-                bootstrap._done = true;
-                console.log("Bootstrap already ran, skipping");
-            } else {
-                bootstrap._run();
-            }
-        }
-    }
-
     property var _proc
-
-    _proc: Process {
-        id: proc
-
-        onExited: function(code, status) {
-            bootstrap._done = true;
-            if (code === 0)
-                console.log("Bootstrap setup complete");
-            else
-                console.warn("Bootstrap setup finished with errors (exit " + code + ")");
-        }
-    }
 
     function _run() {
         var src = _sourceDataDir;
@@ -61,4 +35,30 @@ QtObject {
         markerCheck.command = ["test", "-f", _markerFile];
         markerCheck.running = true;
     }
+
+    _markerCheck: Process {
+        id: markerCheck
+
+        onExited: function(code, status) {
+            if (code === 0) {
+                bootstrap._done = true;
+                console.log("Bootstrap already ran, skipping");
+            } else {
+                bootstrap._run();
+            }
+        }
+    }
+
+    _proc: Process {
+        id: proc
+
+        onExited: function(code, status) {
+            bootstrap._done = true;
+            if (code === 0)
+                console.log("Bootstrap setup complete");
+            else
+                console.warn("Bootstrap setup finished with errors (exit " + code + ")");
+        }
+    }
+
 }

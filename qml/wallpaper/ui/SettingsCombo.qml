@@ -5,7 +5,6 @@ import QtQuick
 Column {
     id: root
 
-    property var colors
     property string label: ""
     property string value: ""
     property var model: []
@@ -19,7 +18,7 @@ Column {
         font.family: Style.fontFamily
         font.pixelSize: 11
         font.weight: Font.Medium
-        color: root.colors ? root.colors.tertiary : Qt.rgba(1, 1, 1, 0.5)
+        color: Colors.tertiary
     }
 
     Flow {
@@ -39,8 +38,8 @@ Column {
                 Canvas {
                     id: _comboCanvas
 
-                    property color fillColor: parent._comboIsActive ? (root.colors ? root.colors.primary : Style.fallbackAccent) : (_comboMouse.containsMouse ? (root.colors ? Qt.rgba(root.colors.surfaceVariant.r, root.colors.surfaceVariant.g, root.colors.surfaceVariant.b, 0.6) : Qt.rgba(1, 1, 1, 0.15)) : (root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.85) : Qt.rgba(0.1, 0.12, 0.18, 0.85)))
-                    property color strokeColor: parent._comboIsActive ? Qt.rgba(fillColor.r, fillColor.g, fillColor.b, 0.6) : (root.colors ? Qt.rgba(root.colors.primary.r, root.colors.primary.g, root.colors.primary.b, 0.15) : Qt.rgba(1, 1, 1, 0.08))
+                    property color fillColor: parent._comboIsActive ? (Colors.primary) : (_comboMouse.containsMouse ? (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.6)) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.85)))
+                    property color strokeColor: parent._comboIsActive ? Qt.rgba(fillColor.r, fillColor.g, fillColor.b, 0.6) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
 
                     anchors.fill: parent
                     onFillColorChanged: requestPaint()
@@ -73,7 +72,7 @@ Column {
                     font.pixelSize: 10
                     font.weight: Font.Bold
                     font.letterSpacing: 0.5
-                    color: parent._comboIsActive ? (root.colors ? root.colors.primaryText : "#000") : (root.colors ? root.colors.tertiary : "#8bceff")
+                    color: parent._comboIsActive ? (Colors.primaryText) : (Colors.tertiary)
                 }
 
                 MouseArea {

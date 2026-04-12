@@ -5,7 +5,6 @@ import QtQuick
 Item {
     id: btn
 
-    property var colors
     property string icon: ""
     property string label: ""
     property int skew: 5
@@ -22,8 +21,8 @@ Item {
     Canvas {
         id: _canvas
 
-        property color fillColor: btn.isHovered ? (btn.danger ? Qt.rgba(1, 0.3, 0.3, 0.25) : (btn.colors ? Qt.rgba(btn.colors.surfaceVariant.r, btn.colors.surfaceVariant.g, btn.colors.surfaceVariant.b, 0.5) : Qt.rgba(1, 1, 1, 0.15))) : (btn.colors ? Qt.rgba(btn.colors.surfaceContainer.r, btn.colors.surfaceContainer.g, btn.colors.surfaceContainer.b, 0.7) : Qt.rgba(0.1, 0.12, 0.18, 0.7))
-        property color strokeColor: btn.isHovered ? (btn.danger ? Qt.rgba(1, 0.3, 0.3, 0.4) : (btn.colors ? Qt.rgba(btn.colors.primary.r, btn.colors.primary.g, btn.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2))) : (btn.colors ? Qt.rgba(btn.colors.outline.r, btn.colors.outline.g, btn.colors.outline.b, 0.2) : Qt.rgba(1, 1, 1, 0.08))
+        property color fillColor: btn.isHovered ? (btn.danger ? Qt.rgba(1, 0.3, 0.3, 0.25) : (Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5))) : (Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.7))
+        property color strokeColor: btn.isHovered ? (btn.danger ? Qt.rgba(1, 0.3, 0.3, 0.4) : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4))) : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
 
         anchors.fill: parent
         onFillColorChanged: requestPaint()
@@ -57,7 +56,7 @@ Item {
             text: btn.icon
             font.family: Style.fontFamilyNerdIcons
             font.pixelSize: 12
-            color: btn.danger && btn.isHovered ? "#ff6b6b" : (btn.colors ? btn.colors.tertiary : "#8bceff")
+            color: btn.danger && btn.isHovered ? "#ff6b6b" : (Colors.tertiary)
             anchors.verticalCenter: parent.verticalCenter
 
             Behavior on color {
@@ -75,7 +74,7 @@ Item {
             font.pixelSize: 11
             font.weight: Font.Bold
             font.letterSpacing: 0.5
-            color: btn.danger && btn.isHovered ? "#ff6b6b" : (btn.colors ? btn.colors.tertiary : "#8bceff")
+            color: btn.danger && btn.isHovered ? "#ff6b6b" : (Colors.tertiary)
             anchors.verticalCenter: parent.verticalCenter
 
             Behavior on color {

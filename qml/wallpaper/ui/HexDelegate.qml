@@ -1,57 +1,34 @@
 import ".."
 import "../.."
-import "../../components"
 import "../services"
 import QtMultimedia
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
 
-HexItem {
+Item {
     id: hexItem
 
-    property var colors
     property var service
+    property int hexRadius: 140
     property var itemData
     property bool isSelected: false
+    property bool isHovered: hexMouse.containsMouse
     property bool pulledOut: false
     property real parallaxX: 0
     property real parallaxY: 0
-    // ── Geometry driven by caller ─────────────────────────────
-    property real hexRadius: 140
-    // ── Video preview ─────────────────────────────────────────
     property string videoPath: itemData && itemData.videoFile ? itemData.videoFile : ""
     property bool hasVideo: videoPath.length > 0 && Config.videoPreviewEnabled
     property bool videoActive: false
+    readonly property real _r: hexRadius
+    readonly property real _cx: _r
+    readonly property real _cy: height / 2
+    readonly property real _cos30: 0.866025
+    readonly property real _sin30: 0.5
 
     signal flipRequested(var data, real gx, real gy, var sourceItem)
     signal hoverSelected()
 
-    radius: hexRadius
-    // ── Border & accent driven by colors ──────────────────────
-    selectedBorderColor: colors ? colors.primary : Style.fallbackAccent
-    borderColor: Qt.rgba(0, 0, 0, 0.5)
-    accentColor: colors ? colors.primary : Style.fallbackAccent
-    // ── Mouse ─────────────────────────────────────────────────
-    onHovered: hexItem.hoverSelected()
-    onClicked: (mouse) => {
-        if (!itemData)
-            return ;
-
-        if (itemData.type === "we")
-            service.applyWE(itemData.weId);
-        else if (itemData.type === "video")
-            service.applyVideo(itemData.path);
-        else
-            service.applyStatic(itemData.path);
-    }
-    onRightClicked: (mouse) => {
-        if (!itemData)
-            return ;
-
-        var gp = hexItem.mapToItem(null, hexItem.cx, hexItem.cy);
-        hexItem.flipRequested(itemData, gp.x, gp.y, hexItem);
-    }
     onIsSelectedChanged: {
         if (isSelected && hasVideo) {
             _videoDelayTimer.restart();
@@ -60,6 +37,8 @@ HexItem {
             videoActive = false;
         }
     }
+    width: hexRadius * 2
+    height: Math.ceil(hexRadius * 1.73205)
 
     Timer {
         id: _videoDelayTimer
@@ -68,8 +47,64 @@ HexItem {
         onTriggered: hexItem.videoActive = true
     }
 
-    // ── Wallpaper image (clipped to hex) ─────────────────────
     Item {
+        id: hexMask
+
+        width: hexItem.width
+        height: hexItem.height
+        visible: false
+        layer.enabled: true
+
+        Shape {
+            anchors.fill: parent
+            antialiasing: true
+            preferredRendererType: Shape.CurveRenderer
+
+            ShapePath {
+                fillColor: "white"
+                strokeColor: "transparent"
+                startX: hexItem._cx + hexItem._r
+                startY: hexItem._cy
+
+                PathLine {
+                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                    y: hexItem._cy - hexItem._r * hexItem._cos30
+                }
+
+                PathLine {
+                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                    y: hexItem._cy - hexItem._r * hexItem._cos30
+                }
+
+                PathLine {
+                    x: hexItem._cx - hexItem._r
+                    y: hexItem._cy
+                }
+
+                PathLine {
+                    x: hexItem._cx - hexItem._r * hexItem._sin30
+                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                }
+
+                PathLine {
+                    x: hexItem._cx + hexItem._r * hexItem._sin30
+                    y: hexItem._cy + hexItem._r * hexItem._cos30
+                }
+
+                PathLine {
+                    x: hexItem._cx + hexItem._r
+                    y: hexItem._cy
+                }
+
+            }
+
+        }
+
+    }
+
+    Item {
+        id: imageContainer
+
         anchors.fill: parent
         opacity: hexItem.pulledOut ? 0 : 1
         layer.enabled: true
@@ -100,14 +135,13 @@ HexItem {
 
         layer.effect: MultiEffect {
             maskEnabled: true
-            maskSource: hexItem.mask
+            maskSource: hexMask
             maskThresholdMin: 0.3
             maskSpreadAtMin: 0.3
         }
 
     }
 
-    // ── Video preview (clipped to hex) ────────────────────────
     Loader {
         id: _videoLoader
 
@@ -129,6 +163,8 @@ HexItem {
     }
 
     Item {
+        id: videoOverlay
+
         anchors.fill: parent
         visible: _videoLoader.active && _videoLoader.status === Loader.Ready
         opacity: hexItem.pulledOut ? 0 : 1
@@ -150,14 +186,13 @@ HexItem {
 
         layer.effect: MultiEffect {
             maskEnabled: true
-            maskSource: hexItem.mask
+            maskSource: hexMask
             maskThresholdMin: 0.3
             maskSpreadAtMin: 0.3
         }
 
     }
 
-    // ── Pulled-out placeholder (dashed outline, no image) ────
     Shape {
         anchors.fill: parent
         visible: hexItem.pulledOut
@@ -166,42 +201,42 @@ HexItem {
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
-            fillColor: hexItem.colors ? Qt.rgba(hexItem.colors.primary.r, hexItem.colors.primary.g, hexItem.colors.primary.b, 0.08) : Qt.rgba(1, 1, 1, 0.05)
-            strokeColor: hexItem.colors ? Qt.rgba(hexItem.colors.primary.r, hexItem.colors.primary.g, hexItem.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
+            fillColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.08)
+            strokeColor: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
             strokeWidth: 2
             strokeStyle: ShapePath.DashLine
             dashPattern: [4, 4]
-            startX: hexItem.cx + hexItem.radius
-            startY: hexItem.cy
+            startX: hexItem._cx + hexItem._r
+            startY: hexItem._cy
 
             PathLine {
-                x: hexItem.cx + hexItem.radius * hexItem._sin30
-                y: hexItem.cy - hexItem.radius * hexItem._cos30
+                x: hexItem._cx + hexItem._r * hexItem._sin30
+                y: hexItem._cy - hexItem._r * hexItem._cos30
             }
 
             PathLine {
-                x: hexItem.cx - hexItem.radius * hexItem._sin30
-                y: hexItem.cy - hexItem.radius * hexItem._cos30
+                x: hexItem._cx - hexItem._r * hexItem._sin30
+                y: hexItem._cy - hexItem._r * hexItem._cos30
             }
 
             PathLine {
-                x: hexItem.cx - hexItem.radius
-                y: hexItem.cy
+                x: hexItem._cx - hexItem._r
+                y: hexItem._cy
             }
 
             PathLine {
-                x: hexItem.cx - hexItem.radius * hexItem._sin30
-                y: hexItem.cy + hexItem.radius * hexItem._cos30
+                x: hexItem._cx - hexItem._r * hexItem._sin30
+                y: hexItem._cy + hexItem._r * hexItem._cos30
             }
 
             PathLine {
-                x: hexItem.cx + hexItem.radius * hexItem._sin30
-                y: hexItem.cy + hexItem.radius * hexItem._cos30
+                x: hexItem._cx + hexItem._r * hexItem._sin30
+                y: hexItem._cy + hexItem._r * hexItem._cos30
             }
 
             PathLine {
-                x: hexItem.cx + hexItem.radius
-                y: hexItem.cy
+                x: hexItem._cx + hexItem._r
+                y: hexItem._cy
             }
 
         }
@@ -215,19 +250,134 @@ HexItem {
 
     }
 
-    // ── Color dots ────────────────────────────────────────────
+    Shape {
+        id: hexBorder
+
+        anchors.fill: parent
+        antialiasing: true
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: hexItem.isSelected ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.5)
+            strokeWidth: hexItem.isSelected ? 3 : 1.5
+            startX: hexItem._cx + hexItem._r
+            startY: hexItem._cy
+
+            PathLine {
+                x: hexItem._cx + hexItem._r * hexItem._sin30
+                y: hexItem._cy - hexItem._r * hexItem._cos30
+            }
+
+            PathLine {
+                x: hexItem._cx - hexItem._r * hexItem._sin30
+                y: hexItem._cy - hexItem._r * hexItem._cos30
+            }
+
+            PathLine {
+                x: hexItem._cx - hexItem._r
+                y: hexItem._cy
+            }
+
+            PathLine {
+                x: hexItem._cx - hexItem._r * hexItem._sin30
+                y: hexItem._cy + hexItem._r * hexItem._cos30
+            }
+
+            PathLine {
+                x: hexItem._cx + hexItem._r * hexItem._sin30
+                y: hexItem._cy + hexItem._r * hexItem._cos30
+            }
+
+            PathLine {
+                x: hexItem._cx + hexItem._r
+                y: hexItem._cy
+            }
+
+            Behavior on strokeColor {
+                ColorAnimation {
+                    duration: Style.animFast
+                }
+
+            }
+
+        }
+
+    }
+
+    // Accent colour rim: bottom-left and bottom edges
+    Shape {
+        anchors.fill: parent
+        antialiasing: true
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: Colors.primary
+            strokeWidth: 3
+            capStyle: ShapePath.RoundCap
+            joinStyle: ShapePath.RoundJoin
+            startX: hexItem._cx - hexItem._r
+            startY: hexItem._cy
+
+            PathLine {
+                x: hexItem._cx - hexItem._r * hexItem._sin30
+                y: hexItem._cy + hexItem._r * hexItem._cos30
+            }
+
+            PathLine {
+                x: hexItem._cx + hexItem._r * hexItem._sin30
+                y: hexItem._cy + hexItem._r * hexItem._cos30
+            }
+
+        }
+
+    }
+
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: hexItem._r * 0.18
+        width: typeBadgeLabel.implicitWidth + 14
+        height: 18
+        radius: 9
+        color: Qt.rgba(0, 0, 0, 0.75)
+        border.width: 1
+        border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
+        z: 5
+
+        Text {
+            id: typeBadgeLabel
+
+            anchors.centerIn: parent
+            text: hexItem.itemData ? (hexItem.itemData.type === "static" ? "PIC" : ((hexItem.itemData.type === "video" || hexItem.itemData.videoFile) ? "VID" : "WE")) : ""
+            font.family: Style.fontFamily
+            font.pixelSize: 9
+            font.weight: Font.Bold
+            font.letterSpacing: 0.5
+            color: Colors.tertiary
+        }
+
+    }
+
     Row {
         property var _wpColors: {
-            if (!hexItem.service || !hexItem.itemData)
+            if (!hexItem.service)
+                return undefined;
+
+            if (!hexItem.itemData)
                 return undefined;
 
             var key = hexItem.itemData.weId ? hexItem.itemData.weId : ImageService.thumbKey(hexItem.itemData.thumb, hexItem.itemData.name);
-            return key ? hexItem.service.matugenDb[key] : undefined;
+            if (!key)
+                return undefined;
+
+            return hexItem.service.matugenDb[key];
         }
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: hexItem.radius * 0.18
+        anchors.topMargin: hexItem._r * 0.18
         spacing: 4
         z: 5
         visible: Config.wallpaperColorDots && _wpColors !== undefined
@@ -248,43 +398,15 @@ HexItem {
 
     }
 
-    // ── Type badge (PIC / VID / WE) ───────────────────────────
     Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: hexItem.radius * 0.18
-        width: _typeLabel.implicitWidth + 14
-        height: 18
-        radius: 9
-        color: Qt.rgba(0, 0, 0, 0.75)
-        border.width: 1
-        border.color: hexItem.colors ? Qt.rgba(hexItem.colors.primary.r, hexItem.colors.primary.g, hexItem.colors.primary.b, 0.4) : Qt.rgba(1, 1, 1, 0.2)
-        z: 5
-
-        Text {
-            id: _typeLabel
-
-            anchors.centerIn: parent
-            text: hexItem.itemData ? (hexItem.itemData.type === "static" ? "PIC" : ((hexItem.itemData.type === "video" || hexItem.itemData.videoFile) ? "VID" : "WE")) : ""
-            font.family: Style.fontFamily
-            font.pixelSize: 9
-            font.weight: Font.Bold
-            font.letterSpacing: 0.5
-            color: hexItem.colors ? hexItem.colors.tertiary : "#8bceff"
-        }
-
-    }
-
-    // ── Video-active indicator ────────────────────────────────
-    Rectangle {
-        x: hexItem.cx + hexItem.radius * hexItem._sin30 - width - 4
-        y: hexItem.cy - hexItem.radius * hexItem._cos30 + 8
+        x: hexItem._cx + hexItem._r * hexItem._sin30 - width - 4
+        y: hexItem._cy - hexItem._r * hexItem._cos30 + 8
         width: 20
         height: 20
         radius: 10
-        color: hexItem.videoActive ? (hexItem.colors ? hexItem.colors.primary : Style.fallbackAccent) : Qt.rgba(0, 0, 0, 0.7)
+        color: hexItem.videoActive ? (Colors.primary) : Qt.rgba(0, 0, 0, 0.7)
         border.width: 1
-        border.color: hexItem.videoActive ? "transparent" : (hexItem.colors ? Qt.rgba(hexItem.colors.primary.r, hexItem.colors.primary.g, hexItem.colors.primary.b, 0.6) : Qt.rgba(1, 1, 1, 0.4))
+        border.color: hexItem.videoActive ? "transparent" : (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6))
         visible: hexItem.hasVideo
         z: 5
 
@@ -293,7 +415,7 @@ HexItem {
             anchors.horizontalCenterOffset: 1
             text: "▶"
             font.pixelSize: 8
-            color: hexItem.videoActive ? (hexItem.colors ? hexItem.colors.primaryText : "#000") : (hexItem.colors ? hexItem.colors.primary : Style.fallbackAccent)
+            color: hexItem.videoActive ? (Colors.primaryText) : (Colors.primary)
         }
 
         Behavior on color {
@@ -303,6 +425,39 @@ HexItem {
 
         }
 
+    }
+
+    MouseArea {
+        id: hexMouse
+
+        function contains(point) {
+            var dx = Math.abs(point.x - hexItem._cx);
+            var dy = Math.abs(point.y - hexItem._cy);
+            return dy <= hexItem._cos30 * hexItem._r && dx <= hexItem._r - dy * 0.57735;
+        }
+
+        anchors.fill: parent
+        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        cursorShape: Qt.PointingHandCursor
+        onContainsMouseChanged: {
+            if (containsMouse)
+                hexItem.hoverSelected();
+
+        }
+        onClicked: function(mouse) {
+            if (mouse.button === Qt.RightButton && hexItem.itemData) {
+                var gp = hexItem.mapToItem(null, hexItem._cx, hexItem._cy);
+                hexItem.flipRequested(hexItem.itemData, gp.x, gp.y, hexItem);
+            } else if (mouse.button === Qt.LeftButton && hexItem.itemData) {
+                if (hexItem.itemData.type === "we")
+                    hexItem.service.applyWE(hexItem.itemData.weId);
+                else if (hexItem.itemData.type === "video")
+                    hexItem.service.applyVideo(hexItem.itemData.path);
+                else
+                    hexItem.service.applyStatic(hexItem.itemData.path);
+            }
+        }
     }
 
 }
