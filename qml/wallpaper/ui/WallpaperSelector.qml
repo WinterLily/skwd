@@ -96,8 +96,8 @@ Scope {
     property int _preCommitIndex: -1
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal wallpaperChanged()
-    signal uiReady()
+    signal wallpaperChanged
+    signal uiReady
 
     // Get active monitor via CompositorService
     function updateActiveMonitor() {
@@ -134,14 +134,9 @@ Scope {
 
     function _focusActiveList() {
         if (wallpaperSelector.tagCloudVisible)
-            return ;
+            return;
 
-        if (isHexMode)
-            hexView.focusList();
-        else if (isGridMode)
-            gridView.focusList();
-        else
-            sliceView.focusList();
+        hexView.focusList();
     }
 
     onShowingChanged: {
@@ -156,8 +151,6 @@ Scope {
             cardShowTimer.stop();
             cardVisible = false;
             settingsOpen = false;
-            lastContentX = sliceView.scrollX;
-            lastIndex = sliceView.currentIndex;
             gc();
         }
     }
@@ -189,7 +182,6 @@ Scope {
         showing: wallpaperSelector.showing
         onModelUpdated: {
             if (wallpaperSelector.showing && !wallpaperSelector.cardVisible) {
-                sliceView.suppressWidthAnim = true;
                 wallpaperSelector.cardVisible = true;
             }
             if (service.filteredModel.count > 0) {
@@ -201,33 +193,22 @@ Scope {
                     idx = Math.min(wallpaperSelector._preCommitIndex, service.filteredModel.count - 1);
                 }
                 wallpaperSelector._preCommitIndex = -1;
-                sliceView.positionAt(idx);
             }
-            if (service.filterTransitioning)
-                sliceView.startSnapshotFade();
-
         }
         onWallpaperApplied: wallpaperSelector.wallpaperChanged()
     }
 
     Connections {
         function onRequestFilterUpdate() {
-            if (service.filterTransitioning)
-                sliceView.abortFilterTransition();
-
-            wallpaperSelector._preCommitIndex = sliceView.currentIndex;
             // Fast path: no crossfade (hex/grid/browser modes, empty model, or flag)
             if (service._skipCrossfade || service.filteredModel.count === 0 || !wallpaperSelector.cardVisible || wallpaperSelector.anyBrowserOpen || wallpaperSelector.isHexMode || wallpaperSelector.isGridMode) {
                 service._skipCrossfade = false;
                 service.filterTransitioning = false;
                 service.commitFilteredModel();
-                return ;
+                return;
             }
             // Slow path: crossfade snapshot in slice view
             service.filterTransitioning = true;
-            sliceView.beginFilterTransition(function() {
-                service.commitFilteredModel();
-            });
         }
 
         target: service
@@ -252,7 +233,7 @@ Scope {
 
         id: selectorPanel
 
-        screen: Quickshell.screens.find((s) => {
+        screen: Quickshell.screens.find(s => {
             return s.name === wallpaperSelector.activeMonitor;
         }) ?? Quickshell.screens[0]
         visible: wallpaperSelector._panelVisible
@@ -286,9 +267,7 @@ Scope {
                 NumberAnimation {
                     duration: Style.animMedium
                 }
-
             }
-
         }
 
         // Click outside to dismiss / close browsers
@@ -341,8 +320,7 @@ Scope {
             // Absorb clicks inside the card so they don't dismiss
             MouseArea {
                 anchors.fill: parent
-                onClicked: {
-                }
+                onClicked: {}
             }
 
             Item {
@@ -381,7 +359,6 @@ Scope {
                         wallpaperSelector.settingsOpen = !wallpaperSelector.settingsOpen;
                         if (!wallpaperSelector.settingsOpen)
                             wallpaperSelector._focusActiveList();
-
                     }
                     onWallhavenToggled: {
                         wallpaperSelector.settingsOpen = false;
@@ -405,11 +382,8 @@ Scope {
                         NumberAnimation {
                             duration: Style.animNormal
                         }
-
                     }
-
                 }
-
             }
 
             CacheProgressBar {
@@ -420,7 +394,6 @@ Scope {
                 cacheProgress: service.cacheProgress
                 cacheTotal: service.cacheTotal
             }
-
         }
 
         SettingsPanel {
@@ -479,34 +452,6 @@ Scope {
             }
         }
 
-        WallpaperSliceView {
-            id: sliceView
-
-            service: service
-            containerItem: cardContainer
-            expandedWidth: wallpaperSelector.expandedWidth
-            sliceWidth: wallpaperSelector.sliceWidth
-            skewOffset: wallpaperSelector.skewOffset
-            sliceSpacing: wallpaperSelector.sliceSpacing
-            topBarHeight: wallpaperSelector.topBarHeight
-            cardVisible: wallpaperSelector.cardVisible
-            anyBrowserOpen: wallpaperSelector.anyBrowserOpen
-            isHexMode: wallpaperSelector.isHexMode
-            isGridMode: wallpaperSelector.isGridMode
-            tagCloudVisible: wallpaperSelector.tagCloudVisible
-            showing: wallpaperSelector.showing
-            restorePending: wallpaperSelector._restorePending
-            onEscapePressed: wallpaperSelector.showing = false
-            onTagCloudToggleRequested: {
-                wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
-                if (!wallpaperSelector.tagCloudVisible) {
-                    tagCloud.reset();
-                    wallpaperSelector._setSelectedTags([]);
-                }
-            }
-            onFocusRequested: wallpaperSelector._focusActiveList()
-        }
-
         WallpaperHexView {
             id: hexView
 
@@ -531,32 +476,6 @@ Scope {
             }
             onFocusRequested: wallpaperSelector._focusActiveList()
         }
-
-        WallpaperGridView {
-            id: gridView
-
-            service: service
-            containerItem: cardContainer
-            gridCellW: wallpaperSelector._gridCellW
-            gridCellH: wallpaperSelector._gridCellH
-            gridTotalW: wallpaperSelector._gridTotalW
-            topBarHeight: wallpaperSelector.topBarHeight
-            cardVisible: wallpaperSelector.cardVisible
-            anyBrowserOpen: wallpaperSelector.anyBrowserOpen
-            isGridMode: wallpaperSelector.isGridMode
-            tagCloudVisible: wallpaperSelector.tagCloudVisible
-            showing: wallpaperSelector.showing
-            onEscapePressed: wallpaperSelector.showing = false
-            onTagCloudToggleRequested: {
-                wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
-                if (!wallpaperSelector.tagCloudVisible) {
-                    tagCloud.reset();
-                    wallpaperSelector._setSelectedTags([]);
-                }
-            }
-            onFocusRequested: wallpaperSelector._focusActiveList()
-        }
-
     }
 
     Behavior on sliceWidth {
@@ -564,7 +483,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on expandedWidth {
@@ -572,7 +490,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on sliceHeight {
@@ -580,7 +497,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on skewOffset {
@@ -588,7 +504,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on sliceSpacing {
@@ -596,7 +511,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on hexRadius {
@@ -604,7 +518,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on hexRows {
@@ -612,7 +525,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on hexCols {
@@ -620,7 +532,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on _gridCellW {
@@ -628,7 +539,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on _gridCellH {
@@ -636,7 +546,6 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
 
     Behavior on _gridTotalW {
@@ -644,7 +553,5 @@ Scope {
             duration: Style.animExpand
             easing.type: Easing.OutCubic
         }
-
     }
-
 }
