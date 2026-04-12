@@ -1,17 +1,18 @@
+import "../services"
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
+// Window switcher service - uses CompositorService for native WM bindings
 QtObject {
     id: service
 
-    // External bindings
-    required property string scriptsDir
-    required property string compositor
+    // External bindings (reduced - compositor handled by CompositorService)
     required property string configPath
     required property string homeDir
     required property string cacheDir
     // Window list and selection state
-    property var windowList: []
+    property var windowList: CompositorService.windows
     property int selectedIndex: 0
     property bool preserveIndex: false
     property int screenshotCounter: 0
@@ -22,12 +23,8 @@ QtObject {
     property var _appConfigFile
     // Data model
     property var filteredModel
-    // Processes
-    property var _focusProcess
-    property var _closeProcess
+    // Screenshot capture process (only used for niri screenshots)
     property var _captureWindows
-    property var _fetchWindows
-    property var _refreshTimer
 
     // Signals to view for scroll/focus management
     signal modelBuilt(int focusIndex)
@@ -76,19 +73,19 @@ QtObject {
         return appId;
     }
 
-    // Build filtered model from window list
+    // Build filtered model from window list (already normalized by CompositorService)
     function buildModel() {
         var prevIdx = selectedIndex;
         filteredModel.clear();
         for (var i = 0; i < windowList.length; i++) {
             var w = windowList[i];
             filteredModel.append({
-                "winId": w.id || 0,
+                "winId": w.id || "",
                 "title": w.title || "",
-                "appId": w.app_id || "",
-                "workspaceId": w.workspace_id || 0,
-                "isFocused": w.is_focused || false,
-                "isFloating": w.is_floating || false
+                "appId": w.appId || "",
+                "workspaceId": w.workspaceId || 0,
+                "isFocused": w.isFocused || false,
+                "isFloating": w.isFloating || false
             });
         }
         var idx = 0;
@@ -104,11 +101,15 @@ QtObject {
     }
 
     function captureAllWindows() {
+        // Only niri supports window screenshots
+        if (!CompositorService.isNiri)
+            return ;
+
         var cmds = ["mkdir -p " + thumbDir];
         for (var i = 0; i < windowList.length; i++) {
             var w = windowList[i];
             if (w.id)
-                cmds.push(scriptsDir + "/bash/wm-action screenshot-window " + w.id + " " + thumbDir + "/" + w.id + ".png 2>/dev/null");
+                cmds.push("niri msg action screenshot-window --id " + w.id + " --path " + thumbDir + "/" + w.id + ".png 2>/dev/null");
 
         }
         _captureWindows.command = ["sh", "-c", cmds.join("; ")];
@@ -120,20 +121,37 @@ QtObject {
         selectedIndex = 0;
         preserveIndex = false;
         loadAppConfig();
-        _fetchWindows.buf = "";
-        _fetchWindows.running = true;
+        // Windows are already available via CompositorService.windows (reactive)
+        buildModel();
+        if (CompositorService.isNiri)
+            captureAllWindows();
+
     }
 
     function focusWindow(winId) {
-        _focusProcess.command = [scriptsDir + "/bash/wm-action", "focus-window", winId.toString()];
-        _focusProcess.running = true;
+        // Find window in list and use CompositorService
+        for (var i = 0; i < windowList.length; i++) {
+            if (windowList[i].id === winId) {
+                CompositorService.focusWindow(windowList[i]);
+                return ;
+            }
+        }
     }
 
     function closeWindow(winId) {
-        _closeProcess.command = [scriptsDir + "/bash/wm-action", "close-window", winId.toString()];
-        _closeProcess.running = true;
-        preserveIndex = true;
-        _refreshTimer.restart();
+        // Find window in list and use CompositorService
+        for (var i = 0; i < windowList.length; i++) {
+            if (windowList[i].id === winId) {
+                CompositorService.closeWindow(windowList[i]);
+                preserveIndex = true;
+                break;
+            }
+        }
+    }
+
+    // Rebuild model when window list changes
+    onWindowListChanged: {
+        buildModel();
     }
 
     _appConfigFile: FileView {
@@ -146,95 +164,10 @@ QtObject {
     filteredModel: ListModel {
     }
 
-    _focusProcess: Process {
-        command: ["true"]
-    }
-
-    _closeProcess: Process {
-        command: ["true"]
-    }
-
     _captureWindows: Process {
         command: ["sh", "-c", "true"]
         onExited: {
             service.screenshotCounter++;
-        }
-    }
-
-    _fetchWindows: Process {
-        id: fetchWindows
-
-        property string buf: ""
-
-        command: [service.scriptsDir + "/bash/wm-action", "list-windows"]
-        running: false
-        onExited: {
-            try {
-                // wm-action already outputs normalized field names for kwin
-                // Just ensure focused window is sorted first for Alt+Tab ordering
-
-                var windows = JSON.parse(fetchWindows.buf);
-                var comp = service.compositor;
-                if (comp === "hyprland") {
-                    for (var i = 0; i < windows.length; i++) {
-                        var w = windows[i];
-                        w.id = w.address;
-                        w.app_id = w.class || "";
-                        w.workspace_id = w.workspace ? w.workspace.id : 0;
-                        w.is_focused = w.focusHistoryID === 0;
-                        w.is_floating = w.floating || false;
-                    }
-                    windows.sort(function(a, b) {
-                        return (a.focusHistoryID || 0) - (b.focusHistoryID || 0);
-                    });
-                } else if (comp === "sway") {
-                    for (var i = 0; i < windows.length; i++) {
-                        var w = windows[i];
-                        w.app_id = w.app_id || "";
-                        w.workspace_id = w.num || 0;
-                        w.is_focused = w.focused || false;
-                        w.is_floating = w.type === "floating_con";
-                    }
-                } else if (comp === "kwin")
-                    windows.sort(function(a, b) {
-                    if (a.is_focused && !b.is_focused)
-                        return -1;
-
-                    if (!a.is_focused && b.is_focused)
-                        return 1;
-
-                    return 0;
-                });
-                else
-                    windows.sort(function(a, b) {
-                    var aTime = a.focus_timestamp ? (a.focus_timestamp.secs * 1e+09 + a.focus_timestamp.nanos) : 0;
-                    var bTime = b.focus_timestamp ? (b.focus_timestamp.secs * 1e+09 + b.focus_timestamp.nanos) : 0;
-                    return bTime - aTime;
-                });
-                service.windowList = windows;
-            } catch (e) {
-                service.windowList = [];
-            }
-            service.buildModel();
-            if (service.compositor === "niri")
-                service.captureAllWindows();
-
-        }
-
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: (data) => {
-                fetchWindows.buf += data;
-            }
-        }
-
-    }
-
-    _refreshTimer: Timer {
-        interval: 100
-        onTriggered: {
-            fetchWindows.buf = "";
-            fetchWindows.running = true;
         }
     }
 

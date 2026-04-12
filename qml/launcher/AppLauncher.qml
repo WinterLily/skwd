@@ -17,45 +17,6 @@ Scope {
     property string mainMonitor: Config.mainMonitor
     property string activeMonitor: mainMonitor
     property bool _panelVisible: false
-    // Query the active monitor when the launcher opens.
-    // _panelVisible stays false until this completes so the panels
-    // become visible with isActive already correct.
-    property var _activeMonitorProcess
-
-    _activeMonitorProcess: Process {
-        command: [Config.scriptsDir + "/bash/wm-action", "active-monitor"]
-        running: false
-        onExited: (code, status) => {
-            if (appLauncher.showing) {
-                // Verify activeMonitor resolves to a real screen; fall back to first screen
-                var screens = Quickshell.screens;
-                var matched = false;
-                for (var i = 0; i < screens.length; i++) {
-                    if (screens[i].name === appLauncher.activeMonitor) {
-                        matched = true;
-                        break;
-                    }
-                }
-                if (!matched && screens.length > 0) {
-                    console.warn("AppLauncher: activeMonitor '" + appLauncher.activeMonitor + "' not found in Quickshell.screens — falling back to '" + screens[0].name + "'");
-                    appLauncher.activeMonitor = screens[0].name;
-                }
-                appLauncher._panelVisible = true;
-                cardShowTimer.restart();
-            }
-        }
-
-        stdout: SplitParser {
-            onRead: (line) => {
-                var name = line.trim();
-                if (name && name !== "?")
-                    appLauncher.activeMonitor = name;
-
-            }
-        }
-
-    }
-
     // Slice geometry constants
     property int sliceWidth: 135
     property int expandedWidth: 924
@@ -88,6 +49,30 @@ Scope {
     property int lastContentX: 0
     property int lastIndex: 0
 
+    // Get active monitor via CompositorService when the launcher opens.
+    function updateActiveMonitor() {
+        // Get active output from CompositorService
+        var activeOutput = CompositorService.getActiveOutput();
+        if (activeOutput && activeOutput !== "?")
+            appLauncher.activeMonitor = activeOutput;
+
+        // Verify activeMonitor resolves to a real screen; fall back to first screen
+        var screens = Quickshell.screens;
+        var matched = false;
+        for (var i = 0; i < screens.length; i++) {
+            if (screens[i].name === appLauncher.activeMonitor) {
+                matched = true;
+                break;
+            }
+        }
+        if (!matched && screens.length > 0) {
+            console.warn("AppLauncher: activeMonitor '" + appLauncher.activeMonitor + "' not found in Quickshell.screens — falling back to '" + screens[0].name + "'");
+            appLauncher.activeMonitor = screens[0].name;
+        }
+        appLauncher._panelVisible = true;
+        cardShowTimer.restart();
+    }
+
     function resetScroll() {
         lastContentX = 0;
         lastIndex = 0;
@@ -98,7 +83,7 @@ Scope {
         if (showing) {
             _panelVisible = false;
             activeMonitor = mainMonitor;
-            _activeMonitorProcess.running = true;
+            updateActiveMonitor();
             service.searchText = "";
             service.loadFreqData();
             service.start();
@@ -108,6 +93,7 @@ Scope {
             service.searchText = "";
         }
     }
+
     // Service handles all data, search, caching, and launch logic
     AppLauncherService {
         id: service
@@ -138,6 +124,7 @@ Scope {
                 function onSearchTextChanged() {
                     if (searchPanel.searchText !== service.searchText)
                         searchPanel.searchText = service.searchText;
+
                 }
 
                 function onModelUpdated() {
@@ -153,6 +140,7 @@ Scope {
 
             Timer {
                 id: focusTimer
+
                 interval: 50
                 onTriggered: {
                     if (appLauncher.isHexMode)
@@ -252,9 +240,11 @@ Scope {
                         // Search panel (source filters + search input)
                         SearchPanel {
                             id: searchPanel
+
                             anchors.centerIn: parent
                             service: appLauncher.service
                         }
+
                     }
 
                     // Cache loading overlay with progress bar
@@ -342,6 +332,7 @@ Scope {
                 onVisibleChanged: {
                     if (visible)
                         searchPanel.searchInputItem.forceActiveFocus();
+
                 }
                 Keys.onPressed: (event) => {
                     if (event.key === Qt.Key_Escape) {
@@ -361,6 +352,7 @@ Scope {
                     if (event.key === Qt.Key_Backspace) {
                         if (searchPanel.searchText.length > 0)
                             searchPanel.searchText = searchPanel.searchText.slice(0, -1);
+
                         event.accepted = true;
                         return ;
                     }
@@ -394,7 +386,9 @@ Scope {
                     function onShowingChanged() {
                         if (appLauncher.showing && !appLauncher.isHexMode)
                             searchPanel.searchInputItem.forceActiveFocus();
+
                     }
+
                     target: appLauncher
                 }
 
@@ -843,6 +837,14 @@ Scope {
             // Hex grid layout
             HexGrid {
                 id: hexGrid
+
+                function resetToStart() {
+                    var startCol = Math.min(Math.floor(appLauncher.hexCols / 2), hexGrid.currentIndex);
+                    if (startCol >= 0)
+                        hexGrid.currentIndex = startCol;
+
+                }
+
                 service: appLauncher.service
                 hexRadius: appLauncher.hexRadius
                 hexRows: appLauncher.hexRows
@@ -850,7 +852,6 @@ Scope {
                 topBarHeight: appLauncher.topBarHeight
                 cardWidth: appLauncher.cardWidth
                 cardVisible: appLauncher.cardVisible && appLauncher.isHexMode
-
                 onEscapePressed: appLauncher.showing = false
                 onAppLaunched: appLauncher.showing = false
                 onSearchInputRequested: (text) => {
@@ -860,13 +861,7 @@ Scope {
                 onBackspaceRequested: {
                     if (searchPanel.searchText.length > 0)
                         searchPanel.searchText = searchPanel.searchText.slice(0, -1);
-                }
 
-                function resetToStart() {
-                    var startCol = Math.min(Math.floor(appLauncher.hexCols / 2), hexGrid.currentIndex);
-                    if (startCol >= 0) {
-                        hexGrid.currentIndex = startCol;
-                    }
                 }
             }
 

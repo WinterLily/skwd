@@ -18,63 +18,8 @@ Item {
     readonly property real _gridTotalW: _gridCellW * Config.wallhavenColumns
     property string _applyLookupResult: ""
     property var _applyLookupProc
-
-    _applyLookupProc: Process {
-        onExited: {
-            if (browser._applyLookupResult !== "")
-                WallpaperApplyService.applyStatic(browser._applyLookupResult);
-
-            browser._applyLookupResult = "";
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                browser._applyLookupResult = data.trim();
-            }
-        }
-
-    }
-
     property var _deleteLookupProc
-
-    _deleteLookupProc: Process {
-        property string _whId: ""
-        property string _foundPath: ""
-
-        onExited: {
-            if (_foundPath !== "") {
-                _deleteFileProc.command = ["rm", "-f", _foundPath];
-                _deleteFileProc.running = true;
-            }
-            if (_whId !== "" && browser.whService) {
-                var ids = browser.whService.localWallhavenIds;
-                delete ids[_whId];
-                browser.whService.localWallhavenIds = ids;
-                var st = browser.whService.downloadStatus;
-                delete st[_whId];
-                browser.whService.downloadStatus = st;
-            }
-            _foundPath = "";
-            _whId = "";
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                browser._deleteLookupProc._foundPath = data.trim();
-            }
-        }
-
-    }
-
     property var _deleteFileProc
-
-    _deleteFileProc: Process {
-        onExited: {
-            if (browser.whService)
-                browser.whService.scanLocalFiles();
-
-        }
-    }
 
     signal escapePressed()
 
@@ -124,6 +69,7 @@ Item {
             _previewWp = null;
         }
     }
+
     MouseArea {
         anchors.fill: parent
     }
@@ -1381,6 +1327,59 @@ Item {
         }
 
         target: browser.whService
+    }
+
+    _applyLookupProc: Process {
+        onExited: {
+            if (browser._applyLookupResult !== "")
+                WallpaperApplyService.applyStatic(browser._applyLookupResult);
+
+            browser._applyLookupResult = "";
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                browser._applyLookupResult = data.trim();
+            }
+        }
+
+    }
+
+    _deleteLookupProc: Process {
+        property string _whId: ""
+        property string _foundPath: ""
+
+        onExited: {
+            if (_foundPath !== "") {
+                _deleteFileProc.command = ["rm", "-f", _foundPath];
+                _deleteFileProc.running = true;
+            }
+            if (_whId !== "" && browser.whService) {
+                var ids = browser.whService.localWallhavenIds;
+                delete ids[_whId];
+                browser.whService.localWallhavenIds = ids;
+                var st = browser.whService.downloadStatus;
+                delete st[_whId];
+                browser.whService.downloadStatus = st;
+            }
+            _foundPath = "";
+            _whId = "";
+        }
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                browser._deleteLookupProc._foundPath = data.trim();
+            }
+        }
+
+    }
+
+    _deleteFileProc: Process {
+        onExited: {
+            if (browser.whService)
+                browser.whService.scanLocalFiles();
+
+        }
     }
 
     Behavior on opacity {

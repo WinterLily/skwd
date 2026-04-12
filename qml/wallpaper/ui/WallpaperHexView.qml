@@ -8,19 +8,19 @@ import QtQuick.Shapes
 // Owns the column-based ListView (each column is a Repeater of HexDelegate),
 // and the full-screen flip-card detail overlay (hexBackOverlay).
 Item {
+    // ── public functions ──────────────────────────────────────────────────────
+    // ── hex list view ─────────────────────────────────────────────────────────
+    // ── hex detail card overlay ───────────────────────────────────────────────
+
     id: root
 
-    anchors.fill: parent
-
     // ── inputs ───────────────────────────────────────────────────────────────
-    property var  service
-    property Item containerItem          // reference to cardContainer in selectorPanel
-
-    property int  hexRadius
-    property int  hexRows
-    property int  hexCols
-    property int  topBarHeight
-
+    property var service
+    property Item containerItem // reference to cardContainer in selectorPanel
+    property int hexRadius
+    property int hexRows
+    property int hexCols
+    property int topBarHeight
     property bool cardVisible
     property bool anyBrowserOpen
     property bool isHexMode
@@ -28,23 +28,21 @@ Item {
     property bool showing
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal escapePressed
-    signal tagCloudToggleRequested
-    signal focusRequested
-
-    // ── public functions ──────────────────────────────────────────────────────
+    signal escapePressed()
+    signal tagCloudToggleRequested()
+    signal focusRequested()
 
     function focusList() {
         _hexListView.forceActiveFocus();
     }
 
-    // ── hex list view ─────────────────────────────────────────────────────────
+    anchors.fill: parent
 
     ListView {
         id: _hexListView
 
-        property int  _rows: root.hexRows
-        property real _r:    root.hexRadius
+        property int _rows: root.hexRows
+        property real _r: root.hexRadius
         property real _gridSpacing: 14
         property real _hexW: _r * 2
         property real _hexH: Math.ceil(_r * 1.73205)
@@ -53,8 +51,8 @@ Item {
         property real _gridContentH: (_rows - 1) * _stepY + _hexH + _stepY / 2
         property real _yOffset: Math.max(0, (height - _gridContentH) / 2)
         property real _fadeZone: _stepX
-        property int  _selectedCol: currentIndex
-        property int  _selectedRow: 0
+        property int _selectedCol: currentIndex
+        property int _selectedRow: 0
 
         x: root.containerItem.x
         y: root.containerItem.y + root.topBarHeight + 15
@@ -71,6 +69,7 @@ Item {
         onVisibleChanged: {
             if (visible && !root.tagCloudVisible)
                 forceActiveFocus();
+
             if (visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
                 if (startCol >= 0) {
@@ -97,7 +96,6 @@ Item {
         preferredHighlightBegin: (width - _hexW) / 2
         preferredHighlightEnd: (width + _hexW) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
-
         Keys.onEscapePressed: root.escapePressed()
         Keys.onReturnPressed: {
             var flatIdx = _selectedCol * _rows + _selectedRow;
@@ -116,7 +114,7 @@ Item {
                 if (event.key === Qt.Key_Down) {
                     root.tagCloudToggleRequested();
                     event.accepted = true;
-                    return;
+                    return ;
                 } else if (event.key === Qt.Key_Left) {
                     if (root.service.selectedColorFilter === -1)
                         root.service.selectedColorFilter = 99;
@@ -127,7 +125,7 @@ Item {
                     else
                         root.service.selectedColorFilter--;
                     event.accepted = true;
-                    return;
+                    return ;
                 } else if (event.key === Qt.Key_Right) {
                     if (root.service.selectedColorFilter === -1)
                         root.service.selectedColorFilter = 0;
@@ -138,7 +136,7 @@ Item {
                     else
                         root.service.selectedColorFilter++;
                     event.accepted = true;
-                    return;
+                    return ;
                 }
             }
             if (event.key === Qt.Key_Left && !(event.modifiers & Qt.ShiftModifier)) {
@@ -147,7 +145,7 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Right && !(event.modifiers & Qt.ShiftModifier)) {
                 if (currentIndex < count - 1) {
@@ -155,20 +153,22 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Up && !(event.modifiers & Qt.ShiftModifier)) {
                 if (_selectedRow > 0)
                     _selectedRow--;
+
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Down && !(event.modifiers & Qt.ShiftModifier)) {
                 var maxRow = Math.min(_rows, root.service.filteredModel.count - _selectedCol * _rows) - 1;
                 if (_selectedRow < maxRow)
                     _selectedRow++;
+
                 event.accepted = true;
-                return;
+                return ;
             }
         }
 
@@ -185,34 +185,70 @@ Item {
                     _hexListView._selectedCol = _hexListView.currentIndex;
                 }
             }
-            onPressed:  function(mouse) { mouse.accepted = false; }
-            onReleased: function(mouse) { mouse.accepted = false; }
-            onClicked:  function(mouse) { mouse.accepted = false; }
+            onPressed: function(mouse) {
+                mouse.accepted = false;
+            }
+            onReleased: function(mouse) {
+                mouse.accepted = false;
+            }
+            onClicked: function(mouse) {
+                mouse.accepted = false;
+            }
         }
 
-        highlight: Item {}
+        highlight: Item {
+        }
 
-        header: Item { width: (_hexListView.width - _hexListView._hexW) / 2 }
-        footer: Item { width: (_hexListView.width - _hexListView._hexW) / 2 }
+        header: Item {
+            width: (_hexListView.width - _hexListView._hexW) / 2
+        }
+
+        footer: Item {
+            width: (_hexListView.width - _hexListView._hexW) / 2
+        }
 
         add: Transition {
-            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Style.animEnter; easing.type: Easing.OutCubic }
-            NumberAnimation { property: "scale";   from: 0.9; to: 1; duration: Style.animEnter; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Style.animEnter
+                easing.type: Easing.OutCubic
+            }
+
+            NumberAnimation {
+                property: "scale"
+                from: 0.9
+                to: 1
+                duration: Style.animEnter
+                easing.type: Easing.OutCubic
+            }
+
         }
 
         remove: Transition {
-            NumberAnimation { property: "opacity"; to: 0; duration: Style.animNormal; easing.type: Easing.InCubic }
+            NumberAnimation {
+                property: "opacity"
+                to: 0
+                duration: Style.animNormal
+                easing.type: Easing.InCubic
+            }
+
         }
 
         displaced: Transition {
-            NumberAnimation { properties: "x,y"; duration: Style.animMedium; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                properties: "x,y"
+                duration: Style.animMedium
+                easing.type: Easing.OutCubic
+            }
+
         }
 
         delegate: Item {
             id: hexCol
 
             property int colIdx: index
-
             readonly property real _colCenter: (x - _hexListView.contentX) + width * 0.5
             readonly property bool _insideView: _colCenter > -_hexListView._hexW && _colCenter < _hexListView.width + _hexListView._hexW
             readonly property bool _nearEdge: _colCenter < _hexListView._fadeZone || _colCenter > (_hexListView.width - _hexListView._fadeZone)
@@ -223,6 +259,7 @@ Item {
             readonly property real _arcOffset: {
                 if (_arcFactor === 0)
                     return 0;
+
                 var viewCenterX = _hexListView.width / 2;
                 var normalized = (_colCenter - viewCenterX) / Math.max(1, viewCenterX);
                 return -normalized * normalized * _hexListView._r * _arcFactor;
@@ -236,12 +273,12 @@ Item {
                 model: Math.max(0, Math.min(_hexListView._rows, root.service.filteredModel.count - hexCol.colIdx * _hexListView._rows))
 
                 HexDelegate {
-                    property int rowIdx:  index
+                    property int rowIdx: index
                     property int flatIdx: hexCol.colIdx * _hexListView._rows + rowIdx
 
                     hexRadius: _hexListView._r
-                    service:   root.service
-                    itemData:  root.service.filteredModel.get(flatIdx)
+                    service: root.service
+                    itemData: root.service.filteredModel.get(flatIdx)
                     isSelected: hexCol.colIdx === _hexListView._selectedCol && rowIdx === _hexListView._selectedRow
                     x: 0
                     y: _hexListView._yOffset + rowIdx * _hexListView._stepY + (hexCol.colIdx % 2 !== 0 ? _hexListView._stepY / 2 : 0) + hexCol._arcOffset
@@ -268,6 +305,7 @@ Item {
                         _hexListView._selectedRow = rowIdx;
                     }
                 }
+
             }
 
             Behavior on _colScale {
@@ -276,6 +314,7 @@ Item {
                     easing.type: Easing.OutBack
                     easing.overshoot: 1.5
                 }
+
             }
 
             Behavior on _arcFactor {
@@ -283,29 +322,31 @@ Item {
                     duration: Style.animExpand
                     easing.type: Easing.OutCubic
                 }
+
             }
+
         }
+
     }
 
-    // ── hex detail card overlay ───────────────────────────────────────────────
-
     Item {
+        // ── flip card ─────────────────────────────────────────────────────────
+
         id: _hexOverlay
 
-        property var    overlayData:     null
-        property string overlayItemKey:  ""
-        property var    _sourceItem:     null
-        property real   sourceX:         0
-        property real   sourceY:         0
-        property real   _openContentX:   0
-        property bool   overlayOpen:     false
-        property var    _hexMeta:        null
-
-        readonly property real bigR:    root.hexRadius * 3
-        readonly property real bigW:    bigR * 2
-        readonly property real bigH:    Math.ceil(bigR * 1.73205)
-        readonly property real _cos30:  0.866025
-        readonly property real _sin30:  0.5
+        property var overlayData: null
+        property string overlayItemKey: ""
+        property var _sourceItem: null
+        property real sourceX: 0
+        property real sourceY: 0
+        property real _openContentX: 0
+        property bool overlayOpen: false
+        property var _hexMeta: null
+        readonly property real bigR: root.hexRadius * 3
+        readonly property real bigW: bigR * 2
+        readonly property real bigH: Math.ceil(bigR * 1.73205)
+        readonly property real _cos30: 0.866025
+        readonly property real _sin30: 0.5
 
         function show(data, gx, gy, sourceItem) {
             overlayTagField.text = "";
@@ -331,16 +372,15 @@ Item {
         anchors.fill: parent
         visible: false
         z: 200
-
         onOverlayOpenChanged: {
             if (overlayOpen && overlayData && overlayData.type !== "we") {
                 var key = ImageService.thumbKey(overlayData.thumb, overlayData.name);
                 _hexMeta = FileMetadataService.getMetadata(key);
                 if (!_hexMeta)
                     FileMetadataService.probeIfNeeded(key, overlayData.path, overlayData.type === "video" ? "video" : "image");
+
             }
         }
-
         states: [
             State {
                 name: "hidden"
@@ -353,7 +393,12 @@ Item {
                     scale: root.hexRadius / _hexOverlay.bigR
                     opacity: 0
                 }
-                PropertyChanges { target: _cardRotation; angle: 0 }
+
+                PropertyChanges {
+                    target: _cardRotation
+                    angle: 0
+                }
+
             },
             State {
                 name: "visible"
@@ -366,22 +411,45 @@ Item {
                     scale: 1
                     opacity: 1
                 }
-                PropertyChanges { target: _cardRotation; angle: 180 }
+
+                PropertyChanges {
+                    target: _cardRotation
+                    angle: 180
+                }
+
             }
         ]
-
         transitions: [
             Transition {
                 from: "hidden"
                 to: "visible"
 
                 SequentialAnimation {
-                    PropertyAction { target: _hexOverlay; property: "visible"; value: true }
-                    ParallelAnimation {
-                        NumberAnimation { target: _hexCard; properties: "x,y,scale,opacity"; duration: Style.animSlow; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: _cardRotation; property: "angle"; duration: Style.animSlow; easing.type: Easing.InOutQuad }
+                    PropertyAction {
+                        target: _hexOverlay
+                        property: "visible"
+                        value: true
                     }
+
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: _hexCard
+                            properties: "x,y,scale,opacity"
+                            duration: Style.animSlow
+                            easing.type: Easing.OutCubic
+                        }
+
+                        NumberAnimation {
+                            target: _cardRotation
+                            property: "angle"
+                            duration: Style.animSlow
+                            easing.type: Easing.InOutQuad
+                        }
+
+                    }
+
                 }
+
             },
             Transition {
                 from: "visible"
@@ -389,30 +457,72 @@ Item {
 
                 SequentialAnimation {
                     ParallelAnimation {
-                        NumberAnimation { target: _hexCard; properties: "x,y,scale"; duration: Style.animSlow; easing.type: Easing.InOutCubic }
-                        NumberAnimation { target: _cardRotation; property: "angle"; duration: Style.animSlow; easing.type: Easing.InOutQuad }
-                        SequentialAnimation {
-                            PauseAnimation { duration: Style.animSlow * 0.7 }
-                            NumberAnimation { target: _hexCard; property: "opacity"; duration: Style.animSlow * 0.3; easing.type: Easing.InQuad }
+                        NumberAnimation {
+                            target: _hexCard
+                            properties: "x,y,scale"
+                            duration: Style.animSlow
+                            easing.type: Easing.InOutCubic
                         }
+
+                        NumberAnimation {
+                            target: _cardRotation
+                            property: "angle"
+                            duration: Style.animSlow
+                            easing.type: Easing.InOutQuad
+                        }
+
+                        SequentialAnimation {
+                            PauseAnimation {
+                                duration: Style.animSlow * 0.7
+                            }
+
+                            NumberAnimation {
+                                target: _hexCard
+                                property: "opacity"
+                                duration: Style.animSlow * 0.3
+                                easing.type: Easing.InQuad
+                            }
+
+                        }
+
                     }
-                    PropertyAction { target: _hexOverlay; property: "visible";        value: false }
-                    PropertyAction { target: _hexOverlay; property: "overlayItemKey"; value: "" }
-                    PropertyAction { target: _hexOverlay; property: "_sourceItem";    value: null }
+
+                    PropertyAction {
+                        target: _hexOverlay
+                        property: "visible"
+                        value: false
+                    }
+
+                    PropertyAction {
+                        target: _hexOverlay
+                        property: "overlayItemKey"
+                        value: ""
+                    }
+
+                    PropertyAction {
+                        target: _hexOverlay
+                        property: "_sourceItem"
+                        value: null
+                    }
+
                 }
+
             }
         ]
 
         Connections {
-            target: FileMetadataService
-            enabled: _hexOverlay.overlayOpen
             function onMetadataReady(key) {
                 if (!_hexOverlay.overlayData)
-                    return;
+                    return ;
+
                 var myKey = ImageService.thumbKey(_hexOverlay.overlayData.thumb, _hexOverlay.overlayData.name);
                 if (key === myKey)
                     _hexOverlay._hexMeta = FileMetadataService.getMetadata(key);
+
             }
+
+            target: FileMetadataService
+            enabled: _hexOverlay.overlayOpen
         }
 
         // dim background
@@ -426,10 +536,14 @@ Item {
                 onClicked: _hexOverlay.hide()
             }
 
-            Behavior on color { ColorAnimation { duration: Style.animNormal } }
-        }
+            Behavior on color {
+                ColorAnimation {
+                    duration: Style.animNormal
+                }
 
-        // ── flip card ─────────────────────────────────────────────────────────
+            }
+
+        }
 
         Item {
             id: _hexCard
@@ -458,14 +572,40 @@ Item {
                         startX: _hexOverlay.bigR * 2
                         startY: _hexCard.height / 2
 
-                        PathLine { x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: 0;                                                          y: _hexCard.height / 2 }
-                        PathLine { x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR * 2;                                      y: _hexCard.height / 2 }
+                        PathLine {
+                            x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: 0
+                            y: _hexCard.height / 2
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR * 2
+                            y: _hexCard.height / 2
+                        }
+
                     }
+
                 }
+
             }
 
             // Front face: thumbnail image clipped to hex
@@ -497,6 +637,7 @@ Item {
                         maskThresholdMin: 0.3
                         maskSpreadAtMin: 0.3
                     }
+
                 }
 
                 // Hex outline
@@ -512,14 +653,40 @@ Item {
                         startX: _hexOverlay.bigR * 2
                         startY: _hexCard.height / 2
 
-                        PathLine { x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: 0;                                                          y: _hexCard.height / 2 }
-                        PathLine { x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR * 2;                                      y: _hexCard.height / 2 }
+                        PathLine {
+                            x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: 0
+                            y: _hexCard.height / 2
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR * 2
+                            y: _hexCard.height / 2
+                        }
+
                     }
+
                 }
+
             }
 
             // Back face: metadata + actions (mirrored so it reads correctly after flip)
@@ -588,23 +755,51 @@ Item {
                             Text {
                                 text: _hexOverlay.overlayData ? FileMetadataService.formatExt(_hexOverlay.overlayData.name) : ""
                                 color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
-                                font.family: Style.fontFamily; font.pixelSize: 11; font.weight: Font.Medium; font.letterSpacing: 0.8
+                                font.family: Style.fontFamily
+                                font.pixelSize: 11
+                                font.weight: Font.Medium
+                                font.letterSpacing: 0.8
                             }
-                            Text { text: "  \u2022  "; color: Qt.rgba(1, 1, 1, 0.15); font.family: Style.fontFamily; font.pixelSize: 11 }
+
+                            Text {
+                                text: "  \u2022  "
+                                color: Qt.rgba(1, 1, 1, 0.15)
+                                font.family: Style.fontFamily
+                                font.pixelSize: 11
+                            }
+
                             Text {
                                 text: _hexOverlay._hexMeta ? (_hexOverlay._hexMeta.width + " \u00d7 " + _hexOverlay._hexMeta.height) : "\u2013"
                                 color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
-                                font.family: Style.fontFamily; font.pixelSize: 11; font.weight: Font.Medium; font.letterSpacing: 0.5
+                                font.family: Style.fontFamily
+                                font.pixelSize: 11
+                                font.weight: Font.Medium
+                                font.letterSpacing: 0.5
                             }
-                            Text { text: "  \u2022  "; color: Qt.rgba(1, 1, 1, 0.15); font.family: Style.fontFamily; font.pixelSize: 11 }
+
+                            Text {
+                                text: "  \u2022  "
+                                color: Qt.rgba(1, 1, 1, 0.15)
+                                font.family: Style.fontFamily
+                                font.pixelSize: 11
+                            }
+
                             Text {
                                 text: _hexOverlay._hexMeta ? FileMetadataService.formatSize(_hexOverlay._hexMeta.filesize) : "\u2013"
                                 color: Qt.rgba(Colors.tertiary.r, Colors.tertiary.g, Colors.tertiary.b, 0.6)
-                                font.family: Style.fontFamily; font.pixelSize: 11; font.weight: Font.Medium; font.letterSpacing: 0.5
+                                font.family: Style.fontFamily
+                                font.pixelSize: 11
+                                font.weight: Font.Medium
+                                font.letterSpacing: 0.5
                             }
+
                         }
 
-                        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.08) }
+                        Rectangle {
+                            width: parent.width
+                            height: 1
+                            color: Qt.rgba(1, 1, 1, 0.08)
+                        }
 
                         // Favourite toggle
                         Item {
@@ -616,7 +811,10 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "FAVOURITE"
                                 color: Colors.tertiary
-                                font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; font.letterSpacing: 0.5
+                                font.family: Style.fontFamily
+                                font.pixelSize: 12
+                                font.weight: Font.Medium
+                                font.letterSpacing: 0.5
                             }
 
                             Item {
@@ -630,18 +828,19 @@ Item {
                                 height: 22
 
                                 Connections {
-                                    target: _hexOverlay
                                     function onOverlayOpenChanged() {
                                         if (_hexOverlay.overlayOpen && _hexOverlay.overlayData) {
                                             var key = (_hexOverlay.overlayData.weId || "") !== "" ? _hexOverlay.overlayData.weId : _hexOverlay.overlayData.name;
                                             _overlayFavToggle.checked = root.service ? !!root.service.favouritesDb[key] : false;
                                         }
                                     }
+
+                                    target: _hexOverlay
                                 }
 
                                 // Track background
                                 Canvas {
-                                    property bool  isOn:      _overlayFavToggle.checked
+                                    property bool isOn: _overlayFavToggle.checked
                                     property color fillColor: isOn ? Colors.primary : Qt.rgba(1, 1, 1, 0.15)
 
                                     anchors.fill: parent
@@ -653,9 +852,12 @@ Item {
                                         var sk = 6;
                                         ctx.fillStyle = fillColor;
                                         ctx.beginPath();
-                                        ctx.moveTo(sk, 0); ctx.lineTo(width, 0);
-                                        ctx.lineTo(width - sk, height); ctx.lineTo(0, height);
-                                        ctx.closePath(); ctx.fill();
+                                        ctx.moveTo(sk, 0);
+                                        ctx.lineTo(width, 0);
+                                        ctx.lineTo(width - sk, height);
+                                        ctx.lineTo(0, height);
+                                        ctx.closePath();
+                                        ctx.fill();
                                     }
                                 }
 
@@ -663,7 +865,9 @@ Item {
                                 Canvas {
                                     property color knobColor: _overlayFavToggle.checked ? Colors.primaryText : Colors.surfaceText
 
-                                    width: 20; height: 16; y: 3
+                                    width: 20
+                                    height: 16
+                                    y: 3
                                     x: _overlayFavToggle.checked ? parent.width - width - 3 : 3
                                     onKnobColorChanged: requestPaint()
                                     onPaint: {
@@ -672,12 +876,22 @@ Item {
                                         var sk = 4;
                                         ctx.fillStyle = knobColor;
                                         ctx.beginPath();
-                                        ctx.moveTo(sk, 0); ctx.lineTo(width, 0);
-                                        ctx.lineTo(width - sk, height); ctx.lineTo(0, height);
-                                        ctx.closePath(); ctx.fill();
+                                        ctx.moveTo(sk, 0);
+                                        ctx.lineTo(width, 0);
+                                        ctx.lineTo(width - sk, height);
+                                        ctx.lineTo(0, height);
+                                        ctx.closePath();
+                                        ctx.fill();
                                     }
 
-                                    Behavior on x { NumberAnimation { duration: Style.animFast; easing.type: Easing.OutCubic } }
+                                    Behavior on x {
+                                        NumberAnimation {
+                                            duration: Style.animFast
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
                                 }
 
                                 MouseArea {
@@ -685,15 +899,22 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         if (!_hexOverlay.overlayData)
-                                            return;
+                                            return ;
+
                                         _overlayFavToggle.checked = !_overlayFavToggle.checked;
                                         root.service.toggleFavourite(_hexOverlay.overlayData.name, _hexOverlay.overlayData.weId || "");
                                     }
                                 }
+
                             }
+
                         }
 
-                        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.08) }
+                        Rectangle {
+                            width: parent.width
+                            height: 1
+                            color: Qt.rgba(1, 1, 1, 0.08)
+                        }
 
                         // Tag input field
                         Item {
@@ -706,34 +927,51 @@ Item {
                                 border.width: 1
                                 border.color: overlayTagField.activeFocus ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5) : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2)
 
-                                Behavior on color       { ColorAnimation { duration: Style.animVeryFast } }
-                                Behavior on border.color { ColorAnimation { duration: Style.animVeryFast } }
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Style.animVeryFast
+                                    }
+
+                                }
+
+                                Behavior on border.color {
+                                    ColorAnimation {
+                                        duration: Style.animVeryFast
+                                    }
+
+                                }
+
                             }
 
                             TextInput {
                                 id: overlayTagField
 
-                                property var  _sessionTags: []
-                                property bool _syncing:     false
+                                property var _sessionTags: []
+                                property bool _syncing: false
 
                                 anchors.fill: parent
                                 anchors.leftMargin: 10
                                 anchors.rightMargin: 10
                                 verticalAlignment: TextInput.AlignVCenter
-                                font.family: Style.fontFamily; font.pixelSize: 11; font.letterSpacing: 0.3
+                                font.family: Style.fontFamily
+                                font.pixelSize: 11
+                                font.letterSpacing: 0.3
                                 color: Colors.surfaceText
                                 clip: true
-
                                 onTextChanged: {
                                     if (_syncing || !_hexOverlay.overlayData)
-                                        return;
+                                        return ;
+
                                     var raw = text.toLowerCase();
-                                    var words = raw.split(/\s+/).filter(function(w) { return w.length > 0; });
+                                    var words = raw.split(/\s+/).filter(function(w) {
+                                        return w.length > 0;
+                                    });
                                     var wpTags = root.service.getWallpaperTags(_overlayTagsSection.wpName, _overlayTagsSection.wpWeId).slice();
                                     var changed = false;
                                     for (var i = 0; i < words.length; i++) {
                                         if (_sessionTags.indexOf(words[i]) === -1)
                                             _sessionTags.push(words[i]);
+
                                         if (wpTags.indexOf(words[i]) === -1) {
                                             wpTags.push(words[i]);
                                             changed = true;
@@ -743,17 +981,26 @@ Item {
                                     for (var k = 0; k < _sessionTags.length; k++) {
                                         if (words.indexOf(_sessionTags[k]) === -1)
                                             toRemove.push(_sessionTags[k]);
+
                                     }
                                     for (var r = 0; r < toRemove.length; r++) {
                                         var si = _sessionTags.indexOf(toRemove[r]);
-                                        if (si !== -1) _sessionTags.splice(si, 1);
+                                        if (si !== -1)
+                                            _sessionTags.splice(si, 1);
+
                                         var wi = wpTags.indexOf(toRemove[r]);
-                                        if (wi !== -1) { wpTags.splice(wi, 1); changed = true; }
+                                        if (wi !== -1) {
+                                            wpTags.splice(wi, 1);
+                                            changed = true;
+                                        }
                                     }
                                     if (changed)
                                         root.service.setWallpaperTags(_overlayTagsSection.wpName, _overlayTagsSection.wpWeId, wpTags);
+
                                 }
-                                Keys.onReturnPressed: function(event) { event.accepted = true; }
+                                Keys.onReturnPressed: function(event) {
+                                    event.accepted = true;
+                                }
                                 Keys.onEscapePressed: {
                                     text = "";
                                     _sessionTags = [];
@@ -764,10 +1011,13 @@ Item {
                                     anchors.fill: parent
                                     verticalAlignment: Text.AlignVCenter
                                     text: "+ ADD TAG"
-                                    font.family: Style.fontFamily; font.pixelSize: 11; font.letterSpacing: 1
+                                    font.family: Style.fontFamily
+                                    font.pixelSize: 11
+                                    font.letterSpacing: 1
                                     color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                     visible: !parent.text && !parent.activeFocus
                                 }
+
                             }
 
                             MouseArea {
@@ -776,20 +1026,23 @@ Item {
                                 z: -1
                                 onClicked: overlayTagField.forceActiveFocus()
                             }
+
                         }
 
                         // Current tags
                         Item {
                             id: _overlayTagsSection
 
-                            property string wpName:  _hexOverlay.overlayData ? _hexOverlay.overlayData.name : ""
-                            property string wpWeId:  _hexOverlay.overlayData ? (_hexOverlay.overlayData.weId || "") : ""
+                            property string wpName: _hexOverlay.overlayData ? _hexOverlay.overlayData.name : ""
+                            property string wpWeId: _hexOverlay.overlayData ? (_hexOverlay.overlayData.weId || "") : ""
                             property var currentTags: {
                                 if (!_hexOverlay.overlayOpen)
                                     return [];
+
                                 var db = root.service ? root.service.tagsDb : null;
                                 if (!db)
                                     return [];
+
                                 var key = _overlayTagsSection.wpWeId ? _overlayTagsSection.wpWeId : ImageService.thumbKey(_hexOverlay.overlayData ? _hexOverlay.overlayData.thumb : "", _overlayTagsSection.wpName);
                                 return db[key] || [];
                             }
@@ -807,6 +1060,7 @@ Item {
 
                                 Flow {
                                     id: _overlayTagsFlow
+
                                     width: parent.width
                                     spacing: 5
 
@@ -816,46 +1070,85 @@ Item {
                                         Rectangle {
                                             property bool hovered: _tagMa.containsMouse
 
-                                            width: _tagTxt.implicitWidth + 30; height: 28; radius: 4
+                                            width: _tagTxt.implicitWidth + 30
+                                            height: 28
+                                            radius: 4
                                             color: hovered ? Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5) : "transparent"
                                             border.width: 1
                                             border.color: hovered ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.7) : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.5)
 
                                             Text {
                                                 id: _tagTxt
-                                                anchors.left: parent.left; anchors.leftMargin: 8; anchors.verticalCenter: parent.verticalCenter
+
+                                                anchors.left: parent.left
+                                                anchors.leftMargin: 8
+                                                anchors.verticalCenter: parent.verticalCenter
                                                 text: modelData.toUpperCase()
                                                 color: Colors.tertiary
-                                                font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; font.letterSpacing: 0.5
+                                                font.family: Style.fontFamily
+                                                font.pixelSize: 12
+                                                font.weight: Font.Medium
+                                                font.letterSpacing: 0.5
                                             }
 
                                             Text {
-                                                anchors.right: parent.right; anchors.rightMargin: 6; anchors.verticalCenter: parent.verticalCenter
+                                                anchors.right: parent.right
+                                                anchors.rightMargin: 6
+                                                anchors.verticalCenter: parent.verticalCenter
                                                 text: "\u{f0156}"
-                                                font.family: Style.fontFamilyNerdIcons; font.pixelSize: 11
+                                                font.family: Style.fontFamilyNerdIcons
+                                                font.pixelSize: 11
                                                 color: parent.hovered ? Colors.primary : Qt.rgba(1, 1, 1, 0.25)
-                                                Behavior on color { ColorAnimation { duration: Style.animVeryFast } }
+
+                                                Behavior on color {
+                                                    ColorAnimation {
+                                                        duration: Style.animVeryFast
+                                                    }
+
+                                                }
+
                                             }
 
                                             MouseArea {
                                                 id: _tagMa
+
                                                 anchors.fill: parent
                                                 hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
                                                     var tags = root.service.getWallpaperTags(_overlayTagsSection.wpName, _overlayTagsSection.wpWeId).slice();
                                                     var idx = tags.indexOf(modelData);
-                                                    if (idx !== -1) tags.splice(idx, 1);
+                                                    if (idx !== -1)
+                                                        tags.splice(idx, 1);
+
                                                     root.service.setWallpaperTags(_overlayTagsSection.wpName, _overlayTagsSection.wpWeId, tags);
                                                 }
                                             }
 
-                                            Behavior on color       { ColorAnimation { duration: Style.animVeryFast } }
-                                            Behavior on border.color { ColorAnimation { duration: Style.animVeryFast } }
-                                            transform: Matrix4x4 { matrix: Qt.matrix4x4(1, -0.08, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1) }
+                                            Behavior on color {
+                                                ColorAnimation {
+                                                    duration: Style.animVeryFast
+                                                }
+
+                                            }
+
+                                            Behavior on border.color {
+                                                ColorAnimation {
+                                                    duration: Style.animVeryFast
+                                                }
+
+                                            }
+
+                                            transform: Matrix4x4 {
+                                                matrix: Qt.matrix4x4(1, -0.08, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+                                            }
+
                                         }
+
                                     }
+
                                 }
+
                             }
 
                             Text {
@@ -863,8 +1156,11 @@ Item {
                                 visible: _overlayTagsSection.currentTags.length === 0
                                 text: "NO TAGS"
                                 color: Qt.rgba(1, 1, 1, 0.15)
-                                font.family: Style.fontFamily; font.pixelSize: 12; font.letterSpacing: 2
+                                font.family: Style.fontFamily
+                                font.pixelSize: 12
+                                font.letterSpacing: 2
                             }
+
                         }
 
                         // Action buttons
@@ -875,33 +1171,45 @@ Item {
 
                             ActionButton {
                                 width: _hexOverlay.overlayData && _hexOverlay.overlayData.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                                icon: "\u{f0208}"; label: "VIEW"
+                                icon: "\u{f0208}"
+                                label: "VIEW"
                                 onClicked: {
-                                    if (!_hexOverlay.overlayData) return;
+                                    if (!_hexOverlay.overlayData)
+                                        return ;
+
                                     var p = _hexOverlay.overlayData.path;
                                     Qt.openUrlExternally(ImageService.fileUrl(p.substring(0, p.lastIndexOf("/"))));
                                     _hexOverlay.hide();
                                 }
                             }
+
                             ActionButton {
                                 width: _hexOverlay.overlayData && _hexOverlay.overlayData.type === "we" ? (parent.width - parent.spacing * 2) / 3 : (parent.width - parent.spacing) / 2
-                                icon: "\u{f0a79}"; label: "DELETE"; danger: true
+                                icon: "\u{f0a79}"
+                                label: "DELETE"
+                                danger: true
                                 onClicked: {
-                                    if (!_hexOverlay.overlayData) return;
+                                    if (!_hexOverlay.overlayData)
+                                        return ;
+
                                     root.service.deleteWallpaperItem(_hexOverlay.overlayData.type, _hexOverlay.overlayData.name, _hexOverlay.overlayData.weId || "");
                                     _hexOverlay.hide();
                                 }
                             }
+
                             ActionButton {
                                 visible: _hexOverlay.overlayData && _hexOverlay.overlayData.type === "we"
                                 width: visible ? (parent.width - parent.spacing * 2) / 3 : 0
-                                icon: "\u{f0bef}"; label: "STEAM"
+                                icon: "\u{f0bef}"
+                                label: "STEAM"
                                 onClicked: {
                                     root.service.openSteamPage(_hexOverlay.overlayData.weId || "");
                                     _hexOverlay.hide();
                                 }
                             }
+
                         }
+
                     }
 
                     layer.effect: MultiEffect {
@@ -910,6 +1218,7 @@ Item {
                         maskThresholdMin: 0.3
                         maskSpreadAtMin: 0.3
                     }
+
                 }
 
                 // Hex outline on back face
@@ -925,21 +1234,53 @@ Item {
                         startX: _hexOverlay.bigR * 2
                         startY: _hexCard.height / 2
 
-                        PathLine { x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: 0;                                                          y: _hexCard.height / 2 }
-                        PathLine { x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30; y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30 }
-                        PathLine { x: _hexOverlay.bigR * 2;                                      y: _hexCard.height / 2 }
+                        PathLine {
+                            x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 - _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: 0
+                            y: _hexCard.height / 2
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR - _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR + _hexOverlay.bigR * _hexOverlay._sin30
+                            y: _hexCard.height / 2 + _hexOverlay.bigR * _hexOverlay._cos30
+                        }
+
+                        PathLine {
+                            x: _hexOverlay.bigR * 2
+                            y: _hexCard.height / 2
+                        }
+
                     }
+
                 }
 
                 transform: Rotation {
                     origin.x: _backFace.width / 2
                     origin.y: _backFace.height / 2
                     angle: 180
-                    axis { x: 0; y: 1; z: 0 }
+
+                    axis {
+                        x: 0
+                        y: 1
+                        z: 0
+                    }
+
                 }
+
             }
 
             transform: Rotation {
@@ -948,8 +1289,17 @@ Item {
                 origin.x: _hexCard.width / 2
                 origin.y: _hexCard.height / 2
                 angle: 0
-                axis { x: 0; y: 1; z: 0 }
+
+                axis {
+                    x: 0
+                    y: 1
+                    z: 0
+                }
+
             }
+
         }
+
     }
+
 }

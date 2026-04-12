@@ -15,7 +15,6 @@ Item {
     property bool openDownward: false
     property string _lastConvertResult: ""
     property string _lastOptimizeResult: ""
-
     property int _tabSkew: 14
 
     signal closeRequested()
@@ -106,29 +105,29 @@ Item {
         };
         if (Config.displayMode === "slices")
             preset = {
-                "expandedWidth": Config.wallpaperExpandedWidth,
-                "sliceHeight": Config.wallpaperSliceHeight,
-                "sliceWidth": Config.wallpaperSliceWidth,
-                "visibleCount": Config.wallpaperVisibleCount,
-                "sliceSpacing": Config.wallpaperSliceSpacing,
-                "skewOffset": Config.wallpaperSkewOffset
-            };
+            "expandedWidth": Config.wallpaperExpandedWidth,
+            "sliceHeight": Config.wallpaperSliceHeight,
+            "sliceWidth": Config.wallpaperSliceWidth,
+            "visibleCount": Config.wallpaperVisibleCount,
+            "sliceSpacing": Config.wallpaperSliceSpacing,
+            "skewOffset": Config.wallpaperSkewOffset
+        };
         else if (Config.displayMode === "hex")
             preset = {
-                "hexRadius": Config.hexRadius,
-                "hexRows": Config.hexRows,
-                "hexCols": Config.hexCols,
-                "hexScrollStep": Config.hexScrollStep,
-                "hexArc": Config.hexArc,
-                "hexArcIntensity": Config.hexArcIntensity
-            };
+            "hexRadius": Config.hexRadius,
+            "hexRows": Config.hexRows,
+            "hexCols": Config.hexCols,
+            "hexScrollStep": Config.hexScrollStep,
+            "hexArc": Config.hexArc,
+            "hexArcIntensity": Config.hexArcIntensity
+        };
         else if (Config.displayMode === "wall")
             preset = {
-                "gridColumns": Config.gridColumns,
-                "gridRows": Config.gridRows,
-                "gridThumbWidth": Config.gridThumbWidth,
-                "gridThumbHeight": Config.gridThumbHeight
-            };
+            "gridColumns": Config.gridColumns,
+            "gridRows": Config.gridRows,
+            "gridThumbWidth": Config.gridThumbWidth,
+            "gridThumbHeight": Config.gridThumbHeight
+        };
         data.components.wallpaperSelector.customPresets[key] = preset;
         _selectorConfigFile.setText(JSON.stringify(data, null, 2) + "\n");
     }
@@ -185,6 +184,7 @@ Item {
     transformOrigin: openDownward ? Item.Top : Item.Bottom
     Keys.onEscapePressed: closeRequested()
     focus: settingsOpen
+
     Connections {
         function onMatugenEnabledChanged() {
             if (!Config.matugenEnabled && settingsPanel.activeTab === "matugen")

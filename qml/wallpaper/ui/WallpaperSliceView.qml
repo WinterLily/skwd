@@ -5,20 +5,19 @@ import QtQuick
 // Owns the horizontal ListView, the snapshot crossfade for filter transitions,
 // and the position-restore timer.  Communication upward is via signals.
 Item {
+    // ── public functions ──────────────────────────────────────────────────────
+    // ── internals ─────────────────────────────────────────────────────────────
+
     id: root
 
-    anchors.fill: parent
-
     // ── inputs ───────────────────────────────────────────────────────────────
-    property var  service
-    property Item containerItem          // reference to cardContainer in selectorPanel
-
-    property int  expandedWidth
-    property int  sliceWidth
-    property int  skewOffset
-    property int  sliceSpacing
-    property int  topBarHeight
-
+    property var service
+    property Item containerItem // reference to cardContainer in selectorPanel
+    property int expandedWidth
+    property int sliceWidth
+    property int skewOffset
+    property int sliceSpacing
+    property int topBarHeight
     property bool cardVisible
     property bool anyBrowserOpen
     property bool isHexMode
@@ -26,18 +25,15 @@ Item {
     property bool tagCloudVisible
     property bool showing
     property bool suppressWidthAnim
-    property bool restorePending         // WallpaperSelector sets true; read in onCountChanged
-
+    property bool restorePending // WallpaperSelector sets true; read in onCountChanged
     // ── read-only outputs ─────────────────────────────────────────────────────
     readonly property alias currentIndex: _listView.currentIndex
-    readonly property alias scrollX:      _listView.contentX
+    readonly property alias scrollX: _listView.contentX
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal escapePressed
-    signal tagCloudToggleRequested
-    signal focusRequested
-
-    // ── public functions ──────────────────────────────────────────────────────
+    signal escapePressed()
+    signal tagCloudToggleRequested()
+    signal focusRequested()
 
     function focusList() {
         _listView.forceActiveFocus();
@@ -77,7 +73,7 @@ Item {
         _snapshotFadeOut.start();
     }
 
-    // ── internals ─────────────────────────────────────────────────────────────
+    anchors.fill: parent
 
     NumberAnimation {
         id: _snapshotFadeOut
@@ -110,6 +106,7 @@ Item {
                 _listView.cacheBuffer = Math.round(root.expandedWidth / 2);
                 if (pendingCallback)
                     pendingCallback();
+
             }
         }
     }
@@ -129,7 +126,7 @@ Item {
     ListView {
         id: _listView
 
-        property int  visibleCount: Config.wallpaperVisibleCount
+        property int visibleCount: Config.wallpaperVisibleCount
         property bool keyboardNavActive: false
 
         x: (parent.width - width) / 2
@@ -154,12 +151,13 @@ Item {
         onVisibleChanged: {
             if (visible && !root.tagCloudVisible && !root.isHexMode)
                 forceActiveFocus();
+
         }
         onCountChanged: {
             if (count > 0 && root.showing && !root.restorePending)
                 currentIndex = Math.min(currentIndex, count - 1);
-        }
 
+        }
         Keys.onEscapePressed: root.escapePressed()
         Keys.onReturnPressed: {
             if (currentIndex >= 0 && currentIndex < root.service.filteredModel.count) {
@@ -177,7 +175,7 @@ Item {
                 if (event.key === Qt.Key_Down) {
                     root.tagCloudToggleRequested();
                     event.accepted = true;
-                    return;
+                    return ;
                 } else if (event.key === Qt.Key_Left) {
                     if (root.service.selectedColorFilter === -1)
                         root.service.selectedColorFilter = 99;
@@ -188,7 +186,7 @@ Item {
                     else
                         root.service.selectedColorFilter--;
                     event.accepted = true;
-                    return;
+                    return ;
                 } else if (event.key === Qt.Key_Right) {
                     if (root.service.selectedColorFilter === -1)
                         root.service.selectedColorFilter = 0;
@@ -199,22 +197,24 @@ Item {
                     else
                         root.service.selectedColorFilter++;
                     event.accepted = true;
-                    return;
+                    return ;
                 }
             }
             if (event.key === Qt.Key_Left && !(event.modifiers & Qt.ShiftModifier)) {
                 keyboardNavActive = true;
                 if (currentIndex > 0)
                     currentIndex--;
+
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Right && !(event.modifiers & Qt.ShiftModifier)) {
                 keyboardNavActive = true;
                 if (currentIndex < root.service.filteredModel.count - 1)
                     currentIndex++;
+
                 event.accepted = true;
-                return;
+                return ;
             }
         }
 
@@ -228,9 +228,15 @@ Item {
                 else if (wheel.angleDelta.y < 0 || wheel.angleDelta.x < 0)
                     _listView.currentIndex = Math.min(root.service.filteredModel.count - 1, _listView.currentIndex + step);
             }
-            onPressed:  function(mouse) { mouse.accepted = false; }
-            onReleased: function(mouse) { mouse.accepted = false; }
-            onClicked:  function(mouse) { mouse.accepted = false; }
+            onPressed: function(mouse) {
+                mouse.accepted = false;
+            }
+            onReleased: function(mouse) {
+                mouse.accepted = false;
+            }
+            onClicked: function(mouse) {
+                mouse.accepted = false;
+            }
         }
 
         Behavior on width {
@@ -238,33 +244,65 @@ Item {
                 duration: Style.animExpand
                 easing.type: Easing.OutCubic
             }
+
         }
 
-        highlight: Item {}
+        highlight: Item {
+        }
 
         add: Transition {
             enabled: !root.service.filterTransitioning
 
-            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Style.animEnter; easing.type: Easing.OutCubic }
-            NumberAnimation { property: "scale";   from: 0.85; to: 1; duration: Style.animEnter; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Style.animEnter
+                easing.type: Easing.OutCubic
+            }
+
+            NumberAnimation {
+                property: "scale"
+                from: 0.85
+                to: 1
+                duration: Style.animEnter
+                easing.type: Easing.OutCubic
+            }
+
         }
 
         remove: Transition {
             enabled: !root.service.filterTransitioning
 
-            NumberAnimation { property: "opacity"; to: 0; duration: Style.animNormal; easing.type: Easing.InCubic }
+            NumberAnimation {
+                property: "opacity"
+                to: 0
+                duration: Style.animNormal
+                easing.type: Easing.InCubic
+            }
+
         }
 
         displaced: Transition {
             enabled: !root.service.filterTransitioning
 
-            NumberAnimation { properties: "x,y"; duration: Style.animMedium; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                properties: "x,y"
+                duration: Style.animMedium
+                easing.type: Easing.OutCubic
+            }
+
         }
 
         move: Transition {
             enabled: !root.service.filterTransitioning
 
-            NumberAnimation { properties: "x,y"; duration: Style.animMedium; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                properties: "x,y"
+                duration: Style.animMedium
+                easing.type: Easing.OutCubic
+            }
+
         }
 
         header: Item {
@@ -278,12 +316,13 @@ Item {
         }
 
         delegate: SliceDelegate {
-            expandedWidth:     root.expandedWidth
-            sliceWidth:        root.sliceWidth
-            skewOffset:        root.skewOffset
-            service:           root.service
+            expandedWidth: root.expandedWidth
+            sliceWidth: root.sliceWidth
+            skewOffset: root.skewOffset
+            service: root.service
             suppressWidthAnim: root.suppressWidthAnim
         }
+
     }
 
     Image {
@@ -294,4 +333,5 @@ Item {
         opacity: 0
         z: _listView.z + 1
     }
+
 }

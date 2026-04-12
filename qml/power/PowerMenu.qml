@@ -24,7 +24,7 @@ Scope {
     property string iconFont: "Font Awesome 7 Free Solid"
     property var _commands: ({
         "lock": "loginctl lock-session",
-        "logout": Config.scriptsDir + "/bash/wm-action quit",
+        "logout": "quickshell ipc call session quit",
         "reboot": "systemctl reboot",
         "poweroff": "systemctl poweroff"
     })
@@ -75,46 +75,27 @@ Scope {
             selectedIndex = 0;
             _panelVisible = false;
             cardVisible = false;
-            _activeMonitorProcess.running = true;
-        } else {
-            _panelVisible = false;
-            cardVisible = false;
-        }
-    }
-
-    // Query the active monitor before making anything visible — mirrors AppLauncher exactly.
-    Process {
-        id: _activeMonitorProcess
-
-        command: [Config.scriptsDir + "/bash/wm-action", "active-monitor"]
-        onExited: {
-            if (!powerMenuScope.showing)
-                return ;
- // Validate the returned name against real screens; fall back to screens[0].
+            // Use CompositorService to get active output
+            var activeOutput = CompositorService.getActiveOutput();
+            // Validate the returned name against real screens; fall back to screens[0]
             var screens = Quickshell.screens;
             var matched = false;
             for (var i = 0; i < screens.length; i++) {
-                if (screens[i].name === powerMenuScope.activeMonitor) {
+                if (screens[i].name === activeOutput) {
                     matched = true;
                     break;
                 }
             }
             if (!matched && screens.length > 0)
-                powerMenuScope.activeMonitor = screens[0].name;
+                activeOutput = screens[0].name;
 
+            powerMenuScope.activeMonitor = activeOutput;
             powerMenuScope._panelVisible = true;
             cardShowTimer.restart();
+        } else {
+            _panelVisible = false;
+            cardVisible = false;
         }
-
-        stdout: SplitParser {
-            onRead: (line) => {
-                var name = line.trim();
-                if (name && name !== "?")
-                    powerMenuScope.activeMonitor = name;
-
-            }
-        }
-
     }
 
     Timer {

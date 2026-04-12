@@ -292,14 +292,14 @@ Rectangle {
                         cursorShape: isValidDay ? Qt.PointingHandCursor : Qt.ArrowCursor
                         enabled: isValidDay
                         onEntered: {
-                            if (isValidDay) {
+                            if (isValidDay)
                                 dayBg.requestPaint();
-                            }
+
                         }
                         onExited: {
-                            if (isValidDay) {
+                            if (isValidDay)
                                 dayBg.requestPaint();
-                            }
+
                         }
                         onClicked: {
                         }

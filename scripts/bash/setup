@@ -23,40 +23,13 @@ if [[ ${#missing[@]} -gt 0 ]]; then
   echo ""
 fi
 
-# Auto-detect compositor (niri, hyprland, sway, kwin)
-compositor="niri"
-if command -v niri >/dev/null 2>&1; then
-  compositor="niri"
-elif [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] || command -v hyprctl >/dev/null 2>&1; then
-  compositor="hyprland"
-elif [ -n "$SWAYSOCK" ] || command -v swaymsg >/dev/null 2>&1; then
-  compositor="sway"
-elif pgrep -x kwin_wayland >/dev/null 2>&1 || [ -n "$KDE_SESSION_VERSION" ]; then
-  compositor="kwin"
-else
-  echo "  WARNING: Could not detect compositor (niri, hyprland, sway, or kwin)."
-  echo "  Defaulting to 'niri'. Change 'compositor' in config.json later."
-fi
-echo "  Compositor: $compositor"
-
-# Detect primary monitor
+# Detect primary monitor using niri or hyprland commands
 monitor=""
-case "$compositor" in
-  niri)
-    if command -v niri >/dev/null 2>&1 && pgrep -x niri >/dev/null 2>&1; then
-      monitor=$(niri msg -j outputs 2>/dev/null | jq -r 'keys[0]' 2>/dev/null)
-    fi
-    ;;
-  hyprland)
-    monitor=$(hyprctl -j monitors 2>/dev/null | jq -r '.[0].name' 2>/dev/null)
-    ;;
-  sway)
-    monitor=$(swaymsg -t get_outputs 2>/dev/null | jq -r '.[0].name' 2>/dev/null)
-    ;;
-  kwin)
-    monitor=$(kscreen-doctor -j 2>/dev/null | jq -r '.outputs[0].name' 2>/dev/null)
-    ;;
-esac
+if command -v niri >/dev/null 2>&1 && pgrep -x niri >/dev/null 2>&1; then
+  monitor=$(niri msg -j outputs 2>/dev/null | jq -r 'keys[0]' 2>/dev/null)
+elif [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+  monitor=$(hyprctl -j monitors 2>/dev/null | jq -r '.[0].name' 2>/dev/null)
+fi
 [ -z "$monitor" ] && monitor="DP-1"
 echo "Monitor: $monitor"
 
@@ -125,14 +98,12 @@ if [ ! -f "$CONFIG_FILE" ]; then
   # Patch in auto-detected values
   tmp=$(mktemp)
   jq \
-    --arg compositor "$compositor" \
     --arg monitor "$monitor" \
     --arg wifi_if "$wifi_if" \
     --arg we_dir "${we_dir:-}" \
     --arg we_assets "${we_assets:-}" \
     --arg steam_dir "${steam_dir:-}" \
-    '.compositor = $compositor
-     | .monitor = $monitor
+    '.monitor = $monitor
      | .components.bar.wifi.interface = $wifi_if
      | .paths.steamWorkshop = $we_dir
      | .paths.steamWeAssets = $we_assets

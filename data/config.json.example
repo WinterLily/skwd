@@ -1,6 +1,5 @@
 {
-  "_comment": "Main configuration for skwd. Copy this file to config.json and edit to match your setup.",
-  "compositor": "niri",
+  "_comment": "Main configuration for vex. Copy this file to config.json and edit to match your setup.",
   "paths": {
     "scripts": "",
     "cache": "~/.cache/skwd",
@@ -11,8 +10,7 @@
   },
   "monitor": "DP-1",
   "matugen": {
-    "schemeType": "scheme-tonal-spot",
-    "kdeColorScheme": "SkwdMatugen"
+    "schemeType": "scheme-tonal-spot"
   },
   "integrations": [
     {
@@ -38,12 +36,6 @@
       "template": "niri-colors.kdl",
       "output": "~/.config/niri/noctalia.kdl",
       "reload": "~/.config/skwd/scripts/reload-niri.sh"
-    },
-    {
-      "name": "kde",
-      "template": "kde-colors.colors",
-      "output": "~/.local/share/color-schemes/SkwdMatugen.colors",
-      "reload": "~/.config/skwd/scripts/reload-kde.sh"
     },
     {
       "name": "vscode",

@@ -6,12 +6,13 @@ import Quickshell.Io
 QtObject {
     id: config
 
-    function _resolve(path) { return path ? path.replace("~", homeDir).replace(/\/+$/, "") : "" }
+    function _resolve(path) {
+        return path ? path.replace("~", homeDir).replace(/\/+$/, "") : "";
+    }
 
     readonly property string homeDir: Quickshell.env("HOME")
 
-    readonly property string configDir: Quickshell.env("SKWD_CONFIG")
-        || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd"
+    readonly property string configDir: Quickshell.env("SKWD_CONFIG") || (Quickshell.env("XDG_CONFIG_HOME") || (homeDir + "/.config")) + "/skwd"
     readonly property string installDir: Quickshell.env("SKWD_INSTALL") || configDir
 
     property var _configFile: FileView {
@@ -23,10 +24,14 @@ QtObject {
     property string _rawText: _configFile.__text ?? ""
     readonly property bool configLoaded: _rawText !== ""
     property var _data: {
-        var raw = _rawText
-        if (!raw) return {}
-        try { return JSON.parse(raw) }
-        catch (e) { return {} }
+        var raw = _rawText;
+        if (!raw)
+            return {};
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return {};
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -34,18 +39,16 @@ QtObject {
     // ---------------------------------------------------------------------------
 
     readonly property string scriptsDir: _resolve(_data.paths?.scripts) || (installDir + "/scripts")
-    readonly property string cacheDir: _resolve(_data.paths?.cache)
-        || Quickshell.env("SKWD_CACHE")
-        || (Quickshell.env("XDG_CACHE_HOME") || (homeDir + "/.cache")) + "/skwd"
+    readonly property string cacheDir: _resolve(_data.paths?.cache) || Quickshell.env("SKWD_CACHE") || (Quickshell.env("XDG_CACHE_HOME") || (homeDir + "/.cache")) + "/skwd"
     readonly property string colorFilePath: _resolve(_data.paths?.colorsFile) || (cacheDir + "/colors.json")
-
-    readonly property string compositor: _data.compositor ?? "niri"
 
     readonly property bool allMonitors: _data.monitor === "all"
     readonly property var monitorList: {
-        if (!_data.monitor || _data.monitor === "all") return []
-        if (Array.isArray(_data.monitor)) return _data.monitor
-        return [_data.monitor]
+        if (!_data.monitor || _data.monitor === "all")
+            return [];
+        if (Array.isArray(_data.monitor))
+            return _data.monitor;
+        return [_data.monitor];
     }
     readonly property string mainMonitor: _data.monitor ?? ""
     readonly property int weatherPollMs: _data.intervals?.weatherPollMs ?? 0
@@ -99,8 +102,8 @@ QtObject {
     readonly property string videoDir: _resolve(_data.paths?.videoWallpaper) || wallpaperDir
     readonly property string weDir: _resolve(_data.paths?.steamWorkshop) || _detectWeDir()
     function _detectWeDir() {
-        var steamRoot = _resolve(_data.paths?.steam) || (homeDir + "/.local/share/Steam")
-        return steamRoot + "/steamapps/workshop/content/431960"
+        var steamRoot = _resolve(_data.paths?.steam) || (homeDir + "/.local/share/Steam");
+        return steamRoot + "/steamapps/workshop/content/431960";
     }
     readonly property string weAssetsDir: _resolve(_data.paths?.steamWeAssets)
     readonly property string steamDir: _resolve(_data.paths?.steam)
@@ -130,43 +133,37 @@ QtObject {
     readonly property var integrations: _data.integrations ?? []
     onIntegrationsChanged: _generateMatugenConfig()
 
-    property var _matugenConfigWriter: FileView { id: matugenConfigWriter }
+    property var _matugenConfigWriter: FileView {
+        id: matugenConfigWriter
+    }
     function _generateMatugenConfig() {
-        if (!matugenEnabled) return
-        var ints = integrations
-        if (!ints || ints.length === 0) return
-        var tDir = wallTemplateDir
-        var lines = ["[config]", "reload_apps = false", ""]
+        if (!matugenEnabled)
+            return;
+        var ints = integrations;
+        if (!ints || ints.length === 0)
+            return;
+        var tDir = wallTemplateDir;
+        var lines = ["[config]", "reload_apps = false", ""];
         for (var i = 0; i < ints.length; i++) {
-            var integ = ints[i]
-            if (!integ.template) continue
-            var inputPath = integ.template.indexOf("/") >= 0
-                ? _resolve(integ.template)
-                : tDir + "/" + integ.template
-            var outputPath = integ.output
-                ? (integ.output.indexOf("/") >= 0
-                    ? _resolve(integ.output)
-                    : cacheDir + "/" + integ.output)
-                : ""
-            if (!outputPath) continue
-            var safe = (integ.name || "integration_" + i).replace(/[^a-zA-Z0-9_-]/g, "_")
-            lines.push("[templates." + safe + "]")
-            lines.push('input_path = "' + inputPath + '"')
-            lines.push('output_path = "' + outputPath + '"')
-            lines.push("")
+            var integ = ints[i];
+            if (!integ.template)
+                continue;
+            var inputPath = integ.template.indexOf("/") >= 0 ? _resolve(integ.template) : tDir + "/" + integ.template;
+            var outputPath = integ.output ? (integ.output.indexOf("/") >= 0 ? _resolve(integ.output) : cacheDir + "/" + integ.output) : "";
+            if (!outputPath)
+                continue;
+            var safe = (integ.name || "integration_" + i).replace(/[^a-zA-Z0-9_-]/g, "_");
+            lines.push("[templates." + safe + "]");
+            lines.push('input_path = "' + inputPath + '"');
+            lines.push('output_path = "' + outputPath + '"');
+            lines.push("");
         }
-        matugenConfigWriter.path = matugenConfig
-        matugenConfigWriter.setText(lines.join("\n"))
+        matugenConfigWriter.path = matugenConfig;
+        matugenConfigWriter.setText(lines.join("\n"));
     }
 
     readonly property var postProcessing: _data.postProcessing ?? []
     readonly property bool postProcessOnRestore: _data.postProcessOnRestore === true
-
-    readonly property bool isKDE: {
-        var desktop = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase()
-        return desktop.indexOf("kde") >= 0 || desktop.indexOf("plasma") >= 0
-    }
-    readonly property string kdeVideoPlugin: "luisbocanegra.smart.video.wallpaper.reborn"
 
     readonly property string wallhavenApiKey: Quickshell.env("WALLHAVEN_API_KEY") || (_data.wallhaven?.apiKey ?? "")
     readonly property string steamApiKey: Quickshell.env("STEAM_API_KEY") || (_data.steam?.apiKey ?? "")

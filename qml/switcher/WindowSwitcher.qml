@@ -70,12 +70,10 @@ Scope {
             cardVisible = false;
     }
 
-    // Service (data/logic backend)
+    // Service (data/logic backend) - uses CompositorService for native bindings
     WindowSwitcherService {
         id: service
 
-        scriptsDir: Config.scriptsDir
-        compositor: Config.compositor
         configPath: Config.configDir + "/data/apps.json"
         homeDir: Config.homeDir
         cacheDir: Config.cacheDir
@@ -361,7 +359,7 @@ Scope {
                         id: windowThumb
 
                         anchors.fill: parent
-                        source: Config.compositor === "niri" && model.winId ? "file://" + service.thumbDir + "/" + model.winId + ".png?v=" + service.screenshotCounter : ""
+                        source: CompositorService.isNiri && model.winId ? "file://" + service.thumbDir + "/" + model.winId + ".png?v=" + service.screenshotCounter : ""
                         fillMode: Image.PreserveAspectCrop
                         smooth: true
                         asynchronous: true

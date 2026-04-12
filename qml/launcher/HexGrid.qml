@@ -15,24 +15,11 @@ Item {
     property int topBarHeight: 50
     property int cardWidth: 800
     property bool cardVisible: false
-
-    // Signals for parent to handle
-    signal escapePressed()
-    signal appLaunched()
-    signal searchInputRequested(string text)  // When user types while grid is focused
-    signal backspaceRequested()
-
     // Read-only outputs for parent
     readonly property alias currentIndex: hexListView.currentIndex
     readonly property alias selectedRow: hexListView._selectedRow
     readonly property alias selectedCol: hexListView._selectedCol
     readonly property int _rows: hexListView._rows
-
-    // Public function to forward focus to the ListView
-    function forceActiveFocus() {
-        hexListView.forceActiveFocus();
-    }
-
     // Internal geometry calculations
     property real _r: hexRadius
     property real _hexW: _r * 2
@@ -41,6 +28,17 @@ Item {
     property real _stepX: 1.5 * _r + _gridSpacing
     property real _stepY: _hexH + _gridSpacing
     property real _gridContentH: (hexRows - 1) * _stepY + _hexH + _stepY / 2
+
+    // Signals for parent to handle
+    signal escapePressed()
+    signal appLaunched()
+    signal searchInputRequested(string text) // When user types while grid is focused
+    signal backspaceRequested()
+
+    // Public function to forward focus to the ListView
+    function forceActiveFocus() {
+        hexListView.forceActiveFocus();
+    }
 
     anchors.fill: parent
 
@@ -71,7 +69,6 @@ Item {
         preferredHighlightBegin: (width - root._hexW) / 2
         preferredHighlightEnd: (width + root._hexW) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
-
         onVisibleChanged: {
             if (visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
@@ -82,9 +79,7 @@ Item {
                 }
             }
         }
-
         Keys.onEscapePressed: root.escapePressed()
-
         Keys.onReturnPressed: {
             var flatIdx = _selectedCol * _rows + _selectedRow;
             if (flatIdx >= 0 && flatIdx < root.service.filteredModel.count) {
@@ -93,32 +88,29 @@ Item {
                 root.appLaunched();
             }
         }
-
         Keys.onLeftPressed: {
             if (currentIndex > 0) {
                 currentIndex--;
                 _selectedCol = currentIndex;
             }
         }
-
         Keys.onRightPressed: {
             if (currentIndex < count - 1) {
                 currentIndex++;
                 _selectedCol = currentIndex;
             }
         }
-
         Keys.onUpPressed: {
             if (_selectedRow > 0)
                 _selectedRow--;
-        }
 
+        }
         Keys.onDownPressed: {
             var maxRow = Math.min(_rows, root.service.filteredModel.count - _selectedCol * _rows) - 1;
             if (_selectedRow < maxRow)
                 _selectedRow++;
-        }
 
+        }
         Keys.onPressed: function(event) {
             if (event.text && event.text.length > 0 && !event.modifiers) {
                 var c = event.text.charCodeAt(0);
@@ -141,12 +133,19 @@ Item {
                 hexListView.currentIndex = Math.max(0, Math.min(hexListView.count - 1, hexListView.currentIndex + delta));
                 hexListView._selectedCol = hexListView.currentIndex;
             }
-            onPressed: function(mouse) { mouse.accepted = false; }
-            onReleased: function(mouse) { mouse.accepted = false; }
-            onClicked: function(mouse) { mouse.accepted = false; }
+            onPressed: function(mouse) {
+                mouse.accepted = false;
+            }
+            onReleased: function(mouse) {
+                mouse.accepted = false;
+            }
+            onClicked: function(mouse) {
+                mouse.accepted = false;
+            }
         }
 
-        highlight: Item {}
+        highlight: Item {
+        }
 
         header: Item {
             width: (hexListView.width - root._hexW) / 2
@@ -201,6 +200,7 @@ Item {
 
                     Item {
                         id: hexItemMask
+
                         width: parent.width
                         height: parent.height
                         visible: false
@@ -221,28 +221,36 @@ Item {
                                     x: hexItem._cx + hexItem._r * hexItem._sin30
                                     y: hexItem._cy - hexItem._r * hexItem._cos30
                                 }
+
                                 PathLine {
                                     x: hexItem._cx - hexItem._r * hexItem._sin30
                                     y: hexItem._cy - hexItem._r * hexItem._cos30
                                 }
+
                                 PathLine {
                                     x: hexItem._cx - hexItem._r
                                     y: hexItem._cy
                                 }
+
                                 PathLine {
                                     x: hexItem._cx - hexItem._r * hexItem._sin30
                                     y: hexItem._cy + hexItem._r * hexItem._cos30
                                 }
+
                                 PathLine {
                                     x: hexItem._cx + hexItem._r * hexItem._sin30
                                     y: hexItem._cy + hexItem._r * hexItem._cos30
                                 }
+
                                 PathLine {
                                     x: hexItem._cx + hexItem._r
                                     y: hexItem._cy
                                 }
+
                             }
+
                         }
+
                     }
 
                     Item {
@@ -257,6 +265,7 @@ Item {
 
                         Image {
                             id: hexIconImg
+
                             anchors.centerIn: parent
                             width: hexItem._r * 1.1
                             height: hexItem._r * 1.1
@@ -281,6 +290,7 @@ Item {
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
+
                     }
 
                     // Dimming overlay when not selected
@@ -294,8 +304,12 @@ Item {
                             color: Qt.rgba(0, 0, 0, hexItem.isSelected ? 0 : (hexItem.isHovered ? 0.1 : 0.35))
 
                             Behavior on color {
-                                ColorAnimation { duration: 100 }
+                                ColorAnimation {
+                                    duration: 100
+                                }
+
                             }
+
                         }
 
                         layer.effect: MultiEffect {
@@ -304,6 +318,7 @@ Item {
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
+
                     }
 
                     // Hexagon border
@@ -323,31 +338,41 @@ Item {
                                 x: hexItem._cx + hexItem._r * hexItem._sin30
                                 y: hexItem._cy - hexItem._r * hexItem._cos30
                             }
+
                             PathLine {
                                 x: hexItem._cx - hexItem._r * hexItem._sin30
                                 y: hexItem._cy - hexItem._r * hexItem._cos30
                             }
+
                             PathLine {
                                 x: hexItem._cx - hexItem._r
                                 y: hexItem._cy
                             }
+
                             PathLine {
                                 x: hexItem._cx - hexItem._r * hexItem._sin30
                                 y: hexItem._cy + hexItem._r * hexItem._cos30
                             }
+
                             PathLine {
                                 x: hexItem._cx + hexItem._r * hexItem._sin30
                                 y: hexItem._cy + hexItem._r * hexItem._cos30
                             }
+
                             PathLine {
                                 x: hexItem._cx + hexItem._r
                                 y: hexItem._cy
                             }
 
                             Behavior on strokeColor {
-                                ColorAnimation { duration: 100 }
+                                ColorAnimation {
+                                    duration: 100
+                                }
+
                             }
+
                         }
+
                     }
 
                     // Accent colour rim: bottom-left and bottom edges
@@ -369,11 +394,14 @@ Item {
                                 x: hexItem._cx - hexItem._r * hexItem._sin30
                                 y: hexItem._cy + hexItem._r * hexItem._cos30
                             }
+
                             PathLine {
                                 x: hexItem._cx + hexItem._r * hexItem._sin30
                                 y: hexItem._cy + hexItem._r * hexItem._cos30
                             }
+
                         }
+
                     }
 
                     Text {
@@ -416,7 +444,9 @@ Item {
                             }
                         }
                     }
+
                 }
+
             }
 
             Behavior on _colScale {
@@ -425,7 +455,11 @@ Item {
                     easing.type: Easing.OutBack
                     easing.overshoot: 1.5
                 }
+
             }
+
         }
+
     }
+
 }

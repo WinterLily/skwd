@@ -11,15 +11,6 @@ QtObject {
     // Color file watcher (hot-reloads on wallpaper change)
     property string colorFilePath: Config.colorFilePath
     property var colorFileView
-
-    colorFileView: FileView {
-        path: colors.colorFilePath
-        watchChanges: true
-        preload: true
-        onFileChanged: reload()
-        onLoaded: colors._applyColors()
-    }
-
     // Color properties (Material Design 3 scheme)
     // Primary
     property color primary: "#ffb4ab"
@@ -97,6 +88,14 @@ QtObject {
         } catch (e) {
             console.log("Colors: Error parsing colors.json:", e);
         }
+    }
+
+    colorFileView: FileView {
+        path: colors.colorFilePath
+        watchChanges: true
+        preload: true
+        onFileChanged: reload()
+        onLoaded: colors._applyColors()
     }
 
 }

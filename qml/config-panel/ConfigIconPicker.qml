@@ -9,10 +9,6 @@ Rectangle {
     property var panel
     property var allIcons: []
     property var _filteredModel
-
-    _filteredModel: ListModel {
-    }
-
     property string _searchText: ""
 
     function _loadIcons() {
@@ -41,9 +37,9 @@ Rectangle {
             var item = allIcons[i];
             if (!q || item.n.indexOf(q) >= 0)
                 _filteredModel.append({
-                    "name": item.n,
-                    "glyph": item.g
-                });
+                "name": item.n,
+                "glyph": item.g
+            });
 
         }
     }
@@ -57,6 +53,7 @@ Rectangle {
             _rebuildFiltered();
 
     }
+
     FileView {
         id: _iconDataFile
 
@@ -326,6 +323,9 @@ Rectangle {
 
         }
 
+    }
+
+    _filteredModel: ListModel {
     }
 
 }

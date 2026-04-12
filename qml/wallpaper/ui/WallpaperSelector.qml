@@ -12,6 +12,14 @@ import Quickshell.Wayland
 // WallpaperGridView; each is responsible for its own view and any overlays
 // that belong to it.
 Scope {
+    // ── private helpers ───────────────────────────────────────────────────────
+    // sliceView exposes positionAt(); index 0 will be handled on next model update
+    // ── lifecycle ─────────────────────────────────────────────────────────────
+    // ── services ──────────────────────────────────────────────────────────────
+    // ── timers ────────────────────────────────────────────────────────────────
+    // ── panel window ──────────────────────────────────────────────────────────
+    // ── animated layout property behaviors ───────────────────────────────────
+
     id: wallpaperSelector
 
     // ── public API ────────────────────────────────────────────────────────────
@@ -19,73 +27,40 @@ Scope {
     property alias selectedColorFilter: service.selectedColorFilter
     property alias selectorService: service
     property alias swService: swService
-
     // ── monitor tracking ──────────────────────────────────────────────────────
-    property string mainMonitor:  Config.mainMonitor
+    property string mainMonitor: Config.mainMonitor
     property string activeMonitor: mainMonitor
-    property bool   _panelVisible: false
-
-    property var _activeMonitorProcess: Process {
-        command: [Config.scriptsDir + "/bash/wm-action", "active-monitor"]
-        running: false
-        onExited: (code, status) => {
-            if (wallpaperSelector.showing) {
-                var screens = Quickshell.screens;
-                var matched = false;
-                for (var i = 0; i < screens.length; i++) {
-                    if (screens[i].name === wallpaperSelector.activeMonitor) {
-                        matched = true;
-                        break;
-                    }
-                }
-                if (!matched && screens.length > 0)
-                    wallpaperSelector.activeMonitor = screens[0].name;
-                wallpaperSelector._panelVisible = true;
-                cardShowTimer.restart();
-            }
-        }
-
-        stdout: SplitParser {
-            onRead: (line) => {
-                var name = line.trim();
-                if (name && name !== "?")
-                    wallpaperSelector.activeMonitor = name;
-            }
-        }
-    }
-
+    property bool _panelVisible: false
     // ── layout dimensions (all animate via Behaviors at bottom) ───────────────
-    property int  sliceWidth:    Config.wallpaperSliceWidth
-    property int  expandedWidth: Config.wallpaperExpandedWidth
-    property int  sliceHeight:   Config.wallpaperSliceHeight
-    property int  skewOffset:    Config.wallpaperSkewOffset
-    property int  sliceSpacing:  Config.wallpaperSliceSpacing
-    property int  topBarHeight:  50
-    property int  hexRadius:     Config.hexRadius
-    property int  hexRows:       Config.hexRows
-    property int  hexCols:       Config.hexCols
-    property real _gridCellW:    Config.gridThumbWidth + 8
-    property real _gridCellH:    Config.gridThumbHeight + 8
-    property real _gridTotalW:   _gridCellW * Config.gridColumns
-    property int  _gridTotalH:   _gridCellH * Config.gridRows
-
+    property int sliceWidth: Config.wallpaperSliceWidth
+    property int expandedWidth: Config.wallpaperExpandedWidth
+    property int sliceHeight: Config.wallpaperSliceHeight
+    property int skewOffset: Config.wallpaperSkewOffset
+    property int sliceSpacing: Config.wallpaperSliceSpacing
+    property int topBarHeight: 50
+    property int hexRadius: Config.hexRadius
+    property int hexRows: Config.hexRows
+    property int hexCols: Config.hexCols
+    property real _gridCellW: Config.gridThumbWidth + 8
+    property real _gridCellH: Config.gridThumbHeight + 8
+    property real _gridTotalW: _gridCellW * Config.gridColumns
+    property int _gridTotalH: _gridCellH * Config.gridRows
     // ── display mode flags ────────────────────────────────────────────────────
-    property bool isHexMode:  Config.displayMode === "hex"
+    property bool isHexMode: Config.displayMode === "hex"
     property bool isGridMode: Config.displayMode === "wall"
-
     // ── card geometry ─────────────────────────────────────────────────────────
     property bool anyBrowserOpen: wallhavenBrowserOpen || steamWorkshopBrowserOpen
-    property int  cardHeight: anyBrowserOpen ? 0 : (isHexMode ? hexGridHeight : (isGridMode ? _gridTotalH + topBarHeight + 35 : sliceHeight + topBarHeight + 60))
-    property int  hexCardWidth: {
+    property int cardHeight: anyBrowserOpen ? 0 : (isHexMode ? hexGridHeight : (isGridMode ? _gridTotalH + topBarHeight + 35 : sliceHeight + topBarHeight + 60))
+    property int hexCardWidth: {
         var r = hexRadius;
         var spacing = 14;
         var stepX = 1.5 * r + spacing;
         var cellW = 2 * r;
         return Math.round((hexCols + 1) * stepX + cellW);
     }
-    property int  _sliceListW: Config.wallpaperExpandedWidth + (Config.wallpaperVisibleCount - 1) * (Config.wallpaperSliceWidth + Config.wallpaperSliceSpacing)
-    property int  cardWidth:   isHexMode ? hexCardWidth : (isGridMode ? _gridTotalW + 20 : Math.max(_sliceListW + 40, 600))
-    property int  hexGridHeight: {
+    property int _sliceListW: Config.wallpaperExpandedWidth + (Config.wallpaperVisibleCount - 1) * (Config.wallpaperSliceWidth + Config.wallpaperSliceSpacing)
+    property int cardWidth: isHexMode ? hexCardWidth : (isGridMode ? _gridTotalW + 20 : Math.max(_sliceListW + 40, 600))
+    property int hexGridHeight: {
         var rows = hexRows;
         var r = hexRadius;
         var spacing = 14;
@@ -94,17 +69,16 @@ Scope {
         var contentH = (rows - 1) * stepY + hexH + stepY / 2;
         return contentH + topBarHeight + 60;
     }
-
     // ── UI state ──────────────────────────────────────────────────────────────
-    property bool tagCloudVisible:          false
-    property bool wallhavenBrowserOpen:     false
+    property bool tagCloudVisible: false
+    property bool wallhavenBrowserOpen: false
     property bool steamWorkshopBrowserOpen: false
-    property bool settingsOpen:             false
-    property bool cardVisible:              false
-
+    property bool settingsOpen: false
+    property bool cardVisible: false
     property real _settingsShift: {
         if (!settingsOpen)
             return 0;
+
         var base = settingsPanelItem.height - 4;
         var naturalCardY = (selectorPanel.height - cardHeight) / 2;
         var settingsY = naturalCardY + base / 2 + filterBarBg.y - settingsPanelItem.height - 8;
@@ -114,18 +88,38 @@ Scope {
         }
         return base;
     }
-
     // Scroll restore state
-    property real lastContentX:    0
-    property int  lastIndex:       0
+    property real lastContentX: 0
+    property int lastIndex: 0
     property bool _restorePending: false
-    property int  _preCommitIndex: -1
+    property int _preCommitIndex: -1
 
     // ── signals ───────────────────────────────────────────────────────────────
     signal wallpaperChanged()
     signal uiReady()
 
-    // ── private helpers ───────────────────────────────────────────────────────
+    // Get active monitor via CompositorService
+    function updateActiveMonitor() {
+        // Get active output from CompositorService
+        var activeOutput = CompositorService.getActiveOutput();
+        if (activeOutput && activeOutput !== "?")
+            wallpaperSelector.activeMonitor = activeOutput;
+
+        // Verify activeMonitor resolves to a real screen; fall back to first screen
+        var screens = Quickshell.screens;
+        var matched = false;
+        for (var i = 0; i < screens.length; i++) {
+            if (screens[i].name === wallpaperSelector.activeMonitor) {
+                matched = true;
+                break;
+            }
+        }
+        if (!matched && screens.length > 0)
+            wallpaperSelector.activeMonitor = screens[0].name;
+
+        wallpaperSelector._panelVisible = true;
+        cardShowTimer.restart();
+    }
 
     function _setSelectedTags(tags) {
         service.selectedTags = tags;
@@ -135,12 +129,12 @@ Scope {
     function resetScroll() {
         lastContentX = 0;
         lastIndex = 0;
-        // sliceView exposes positionAt(); index 0 will be handled on next model update
     }
 
     function _focusActiveList() {
         if (wallpaperSelector.tagCloudVisible)
-            return;
+            return ;
+
         if (isHexMode)
             hexView.focusList();
         else if (isGridMode)
@@ -149,13 +143,11 @@ Scope {
             sliceView.focusList();
     }
 
-    // ── lifecycle ─────────────────────────────────────────────────────────────
-
     onShowingChanged: {
         if (showing) {
             _panelVisible = false;
             activeMonitor = mainMonitor;
-            _activeMonitorProcess.running = true;
+            updateActiveMonitor();
             _restorePending = true;
             service.startCacheCheck();
         } else {
@@ -169,8 +161,6 @@ Scope {
         }
     }
 
-    // ── services ──────────────────────────────────────────────────────────────
-
     WallhavenService {
         id: whService
 
@@ -181,22 +171,21 @@ Scope {
     SteamWorkshopService {
         id: swService
 
-        weDir:   Config.weDir
-        apiKey:  Config.steamApiKey
+        weDir: Config.weDir
+        apiKey: Config.steamApiKey
     }
 
     WallpaperSelectorService {
         id: service
 
-        scriptsDir:   Config.wallScriptsDir
-        homeDir:      Config.homeDir
+        scriptsDir: Config.wallScriptsDir
+        homeDir: Config.homeDir
         wallpaperDir: Config.wallpaperDir
-        videoDir:     Config.videoDir
+        videoDir: Config.videoDir
         cacheBaseDir: Config.wallCacheDir
-        weDir:        Config.weDir
-        weAssetsDir:  Config.weAssetsDir
-        showing:      wallpaperSelector.showing
-
+        weDir: Config.weDir
+        weAssetsDir: Config.weAssetsDir
+        showing: wallpaperSelector.showing
         onModelUpdated: {
             if (wallpaperSelector.showing && !wallpaperSelector.cardVisible) {
                 sliceView.suppressWidthAnim = true;
@@ -215,64 +204,76 @@ Scope {
             }
             if (service.filterTransitioning)
                 sliceView.startSnapshotFade();
-        }
 
+        }
         onWallpaperApplied: wallpaperSelector.wallpaperChanged()
     }
 
     Connections {
-        target: service
         function onRequestFilterUpdate() {
-            if (service.filterTransitioning) {
+            if (service.filterTransitioning)
                 sliceView.abortFilterTransition();
-            }
-            wallpaperSelector._preCommitIndex = sliceView.currentIndex;
 
+            wallpaperSelector._preCommitIndex = sliceView.currentIndex;
             // Fast path: no crossfade (hex/grid/browser modes, empty model, or flag)
             if (service._skipCrossfade || service.filteredModel.count === 0 || !wallpaperSelector.cardVisible || wallpaperSelector.anyBrowserOpen || wallpaperSelector.isHexMode || wallpaperSelector.isGridMode) {
                 service._skipCrossfade = false;
                 service.filterTransitioning = false;
                 service.commitFilteredModel();
-                return;
+                return ;
             }
-
             // Slow path: crossfade snapshot in slice view
             service.filterTransitioning = true;
             sliceView.beginFilterTransition(function() {
                 service.commitFilteredModel();
             });
         }
-    }
 
-    // ── timers ────────────────────────────────────────────────────────────────
+        target: service
+    }
 
     Timer {
         id: cardShowTimer
+
         interval: 4000
         onTriggered: wallpaperSelector.cardVisible = true
     }
 
     Timer {
         id: focusTimer
+
         interval: 50
         onTriggered: wallpaperSelector._focusActiveList()
     }
 
-    // ── panel window ──────────────────────────────────────────────────────────
-
     PanelWindow {
+        // ── display mode views ────────────────────────────────────────────────
+
         id: selectorPanel
 
-        screen: Quickshell.screens.find((s) => s.name === wallpaperSelector.activeMonitor) ?? Quickshell.screens[0]
+        screen: Quickshell.screens.find((s) => {
+            return s.name === wallpaperSelector.activeMonitor;
+        }) ?? Quickshell.screens[0]
         visible: wallpaperSelector._panelVisible
         color: "transparent"
-        WlrLayershell.namespace:    "wallpaper-selector-parallel"
-        WlrLayershell.layer:        WlrLayer.Overlay
+        WlrLayershell.namespace: "wallpaper-selector-parallel"
+        WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: wallpaperSelector.showing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         exclusionMode: ExclusionMode.Ignore
 
-        anchors { top: true; bottom: true; left: true; right: true }
-        margins { top: 0; bottom: 0; left: 0; right: 0 }
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
+
+        margins {
+            top: 0
+            bottom: 0
+            left: 0
+            right: 0
+        }
 
         // Dim background
         Rectangle {
@@ -280,7 +281,13 @@ Scope {
             color: Qt.rgba(0, 0, 0, 0.5)
             opacity: wallpaperSelector.cardVisible ? 1 : 0
 
-            Behavior on opacity { NumberAnimation { duration: Style.animMedium } }
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Style.animMedium
+                }
+
+            }
+
         }
 
         // Click outside to dismiss / close browsers
@@ -309,7 +316,6 @@ Scope {
             anchors.verticalCenterOffset: wallpaperSelector._settingsShift / 2
             visible: wallpaperSelector.cardVisible
             opacity: 0
-
             onAnimateInChanged: {
                 fadeInAnim.stop();
                 if (animateIn) {
@@ -321,16 +327,22 @@ Scope {
 
             NumberAnimation {
                 id: fadeInAnim
+
                 target: cardContainer
                 property: "opacity"
-                from: 0; to: 1
+                from: 0
+                to: 1
                 duration: Style.animSlow
                 easing.type: Easing.OutCubic
                 onFinished: wallpaperSelector.uiReady()
             }
 
             // Absorb clicks inside the card so they don't dismiss
-            MouseArea { anchors.fill: parent; onClicked: {} }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                }
+            }
 
             Item {
                 anchors.fill: parent
@@ -364,11 +376,11 @@ Scope {
                     tagCloudOpen: wallpaperSelector.tagCloudVisible
                     visible: !wallpaperSelector.anyBrowserOpen
                     opacity: wallpaperSelector.anyBrowserOpen ? 0 : 1
-
                     onSettingsToggled: {
                         wallpaperSelector.settingsOpen = !wallpaperSelector.settingsOpen;
                         if (!wallpaperSelector.settingsOpen)
                             wallpaperSelector._focusActiveList();
+
                     }
                     onWallhavenToggled: {
                         wallpaperSelector.settingsOpen = false;
@@ -388,8 +400,15 @@ Scope {
                         }
                     }
 
-                    Behavior on opacity { NumberAnimation { duration: Style.animNormal } }
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Style.animNormal
+                        }
+
+                    }
+
                 }
+
             }
 
             CacheProgressBar {
@@ -400,6 +419,7 @@ Scope {
                 cacheProgress: service.cacheProgress
                 cacheTotal: service.cacheTotal
             }
+
         }
 
         SettingsPanel {
@@ -458,27 +478,24 @@ Scope {
             }
         }
 
-        // ── display mode views ────────────────────────────────────────────────
-
         WallpaperSliceView {
             id: sliceView
 
-            service:       service
+            service: service
             containerItem: cardContainer
             expandedWidth: wallpaperSelector.expandedWidth
-            sliceWidth:    wallpaperSelector.sliceWidth
-            skewOffset:    wallpaperSelector.skewOffset
-            sliceSpacing:  wallpaperSelector.sliceSpacing
-            topBarHeight:  wallpaperSelector.topBarHeight
-            cardVisible:   wallpaperSelector.cardVisible
+            sliceWidth: wallpaperSelector.sliceWidth
+            skewOffset: wallpaperSelector.skewOffset
+            sliceSpacing: wallpaperSelector.sliceSpacing
+            topBarHeight: wallpaperSelector.topBarHeight
+            cardVisible: wallpaperSelector.cardVisible
             anyBrowserOpen: wallpaperSelector.anyBrowserOpen
-            isHexMode:     wallpaperSelector.isHexMode
-            isGridMode:    wallpaperSelector.isGridMode
+            isHexMode: wallpaperSelector.isHexMode
+            isGridMode: wallpaperSelector.isGridMode
             tagCloudVisible: wallpaperSelector.tagCloudVisible
-            showing:       wallpaperSelector.showing
+            showing: wallpaperSelector.showing
             restorePending: wallpaperSelector._restorePending
-
-            onEscapePressed:          wallpaperSelector.showing = false
+            onEscapePressed: wallpaperSelector.showing = false
             onTagCloudToggleRequested: {
                 wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
                 if (!wallpaperSelector.tagCloudVisible) {
@@ -492,19 +509,18 @@ Scope {
         WallpaperHexView {
             id: hexView
 
-            service:       service
+            service: service
             containerItem: cardContainer
-            hexRadius:     wallpaperSelector.hexRadius
-            hexRows:       wallpaperSelector.hexRows
-            hexCols:       wallpaperSelector.hexCols
-            topBarHeight:  wallpaperSelector.topBarHeight
-            cardVisible:   wallpaperSelector.cardVisible
+            hexRadius: wallpaperSelector.hexRadius
+            hexRows: wallpaperSelector.hexRows
+            hexCols: wallpaperSelector.hexCols
+            topBarHeight: wallpaperSelector.topBarHeight
+            cardVisible: wallpaperSelector.cardVisible
             anyBrowserOpen: wallpaperSelector.anyBrowserOpen
-            isHexMode:     wallpaperSelector.isHexMode
+            isHexMode: wallpaperSelector.isHexMode
             tagCloudVisible: wallpaperSelector.tagCloudVisible
-            showing:       wallpaperSelector.showing
-
-            onEscapePressed:          wallpaperSelector.showing = false
+            showing: wallpaperSelector.showing
+            onEscapePressed: wallpaperSelector.showing = false
             onTagCloudToggleRequested: {
                 wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
                 if (!wallpaperSelector.tagCloudVisible) {
@@ -518,19 +534,18 @@ Scope {
         WallpaperGridView {
             id: gridView
 
-            service:       service
+            service: service
             containerItem: cardContainer
-            gridCellW:     wallpaperSelector._gridCellW
-            gridCellH:     wallpaperSelector._gridCellH
-            gridTotalW:    wallpaperSelector._gridTotalW
-            topBarHeight:  wallpaperSelector.topBarHeight
-            cardVisible:   wallpaperSelector.cardVisible
+            gridCellW: wallpaperSelector._gridCellW
+            gridCellH: wallpaperSelector._gridCellH
+            gridTotalW: wallpaperSelector._gridTotalW
+            topBarHeight: wallpaperSelector.topBarHeight
+            cardVisible: wallpaperSelector.cardVisible
             anyBrowserOpen: wallpaperSelector.anyBrowserOpen
-            isGridMode:    wallpaperSelector.isGridMode
+            isGridMode: wallpaperSelector.isGridMode
             tagCloudVisible: wallpaperSelector.tagCloudVisible
-            showing:       wallpaperSelector.showing
-
-            onEscapePressed:          wallpaperSelector.showing = false
+            showing: wallpaperSelector.showing
+            onEscapePressed: wallpaperSelector.showing = false
             onTagCloudToggleRequested: {
                 wallpaperSelector.tagCloudVisible = !wallpaperSelector.tagCloudVisible;
                 if (!wallpaperSelector.tagCloudVisible) {
@@ -540,19 +555,95 @@ Scope {
             }
             onFocusRequested: wallpaperSelector._focusActiveList()
         }
+
     }
 
-    // ── animated layout property behaviors ───────────────────────────────────
+    Behavior on sliceWidth {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
 
-    Behavior on sliceWidth   { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on expandedWidth { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on sliceHeight  { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on skewOffset   { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on sliceSpacing { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on hexRadius    { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on hexRows      { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on hexCols      { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on _gridCellW   { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on _gridCellH   { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
-    Behavior on _gridTotalW  { NumberAnimation { duration: Style.animExpand; easing.type: Easing.OutCubic } }
+    }
+
+    Behavior on expandedWidth {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on sliceHeight {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on skewOffset {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on sliceSpacing {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on hexRadius {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on hexRows {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on hexCols {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on _gridCellW {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on _gridCellH {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on _gridTotalW {
+        NumberAnimation {
+            duration: Style.animExpand
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
 }

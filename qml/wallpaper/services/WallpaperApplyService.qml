@@ -1,8 +1,8 @@
-pragma Singleton
 import "../.."
 import QtQuick
 import Quickshell
 import Quickshell.Io
+pragma Singleton
 
 QtObject {
     id: service
@@ -50,10 +50,7 @@ QtObject {
         _weKilling = true;
         weProcess.running = false;
         _saveState("static", path, "");
-        if (Config.isKDE)
-            awwwProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " + "pkill awww 2>/dev/null; pkill awww-daemon 2>/dev/null; " + "rm -f " + JSON.stringify(videoDir + "/lockscreen-video.mp4") + "; " + "plasma-apply-wallpaperimage " + JSON.stringify(path)];
-        else
-            awwwProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " + "rm -f " + JSON.stringify(videoDir + "/lockscreen-video.mp4") + "; " + "if ! pgrep -x awww-daemon >/dev/null; then " + "  setsid awww-daemon >/dev/null 2>&1 & disown; " + "  for i in 1 2 3 4 5; do sleep 0.3; pgrep -x awww-daemon >/dev/null && break; done; " + "fi; " + "awww img " + JSON.stringify(path) + " --transition-type wipe --transition-angle 45 --transition-duration 0.5"];
+        awwwProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " + "rm -f " + JSON.stringify(videoDir + "/lockscreen-video.mp4") + "; " + "if ! pgrep -x awww-daemon >/dev/null; then " + "  setsid awww-daemon >/dev/null 2>&1 & disown; " + "  for i in 1 2 3 4 5; do sleep 0.3; pgrep -x awww-daemon >/dev/null && break; done; " + "fi; " + "awww img " + JSON.stringify(path) + " --transition-type wipe --transition-angle 45 --transition-duration 0.5"];
         awwwProcess.running = true;
         _extractAndTheme(path);
         wallpaperApplied("static", _basename(path), path);
@@ -63,23 +60,10 @@ QtObject {
         _weKilling = true;
         weProcess.running = false;
         _saveState("video", path, "");
-        if (Config.isKDE) {
-            _applyKdeVideo(path);
-        } else {
-            mpvProcess.command = ["sh", "-c", "pkill awww 2>/dev/null; pkill awww-daemon 2>/dev/null; " + "pkill mpvpaper 2>/dev/null; " + "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " + "rm -f " + JSON.stringify(videoDir + "/lockscreen-video.mp4") + "; " + "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(path) + " </dev/null >/dev/null 2>&1 &"];
-            mpvProcess.running = true;
-        }
+        mpvProcess.command = ["sh", "-c", "pkill awww 2>/dev/null; pkill awww-daemon 2>/dev/null; " + "pkill mpvpaper 2>/dev/null; " + "pkill -9 -f '[l]inux-wallpaperengine' 2>/dev/null; " + "rm -f " + JSON.stringify(videoDir + "/lockscreen-video.mp4") + "; " + "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(path) + " </dev/null >/dev/null 2>&1 &"];
+        mpvProcess.running = true;
         _extractVideoThumb(path);
         wallpaperApplied("video", _basename(path), path);
-    }
-
-    function _applyKdeVideo(path) {
-        var plugin = Config.kdeVideoPlugin;
-        var videoUrl = ImageService.fileUrl(path);
-        var muteMode = wallpaperMute ? "4" : "0";
-        var script = "var allDesktops = desktops();" + "for (var i = 0; i < allDesktops.length; i++) {" + "  var d = allDesktops[i];" + "  d.wallpaperPlugin = '" + plugin + "';" + "  d.currentConfigGroup = ['Wallpaper', '" + plugin + "', 'General'];" + "  d.writeConfig('VideoUrls', '[{\"filename\":\"" + videoUrl + "\",\"enabled\":true}]');" + "  d.writeConfig('MuteMode', '" + muteMode + "');" + "}";
-        mpvProcess.command = ["qdbus6", "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", script];
-        mpvProcess.running = true;
     }
 
     function applyWE(weId) {
@@ -100,12 +84,12 @@ QtObject {
 
     function _tryRestore() {
         if (!_restoreRequested || !_stateFileLoaded)
-            return;
+            return ;
 
         _restoreRequested = false;
         var text = _stateFile.text().trim();
         if (!text)
-            return;
+            return ;
 
         _restoring = true;
         try {
@@ -154,7 +138,7 @@ QtObject {
     function _launchWEScene(weId) {
         // Clear kill guard — we're about to start a new scene, not kill one
         _weKilling = false;
-        var mons = Quickshell.screens.map(function (s) {
+        var mons = Quickshell.screens.map(function(s) {
             return s.name;
         });
         // Build the actual linux-wallpaperengine argument list
@@ -219,7 +203,7 @@ QtObject {
             return "true";
 
         var outputs = _matugenOutputFiles();
-        var hashFiles = outputs.map(function (f) {
+        var hashFiles = outputs.map(function(f) {
             return JSON.stringify(f);
         }).join(" ");
         var before = hashFiles ? "_BEFORE=$(md5sum " + hashFiles + " 2>/dev/null | sort); " : "";
@@ -235,7 +219,7 @@ QtObject {
 
     function _propagateColors() {
         if (!Config.matugenEnabled)
-            return;
+            return ;
 
         var integrations = Config.integrations;
         console.log("propagateColors: running", integrations.length, "integrations");
@@ -257,7 +241,7 @@ QtObject {
         console.log("runReload:", cmd);
         var proc = reloadComponent.createObject(service);
         proc.command = ["sh", "-c", cmd];
-        proc.exited.connect(function () {
+        proc.exited.connect(function() {
             proc.destroy();
         });
         proc.running = true;
@@ -265,11 +249,11 @@ QtObject {
 
     function _runPostProcessing(type, name, path) {
         if (_restoring && !Config.postProcessOnRestore)
-            return;
+            return ;
 
         var cmds = Config.postProcessing;
         if (!cmds || cmds.length === 0)
-            return;
+            return ;
 
         for (var i = 0; i < cmds.length; i++) {
             var cmd = cmds[i];
@@ -285,7 +269,7 @@ QtObject {
         console.log("runDetached:", cmd);
         var proc = reloadComponent.createObject(service);
         proc.command = ["sh", "-c", "nohup setsid sh -c " + JSON.stringify(cmd) + " </dev/null >/dev/null 2>&1 &"];
-        proc.exited.connect(function () {
+        proc.exited.connect(function() {
             proc.destroy();
         });
         proc.running = true;
@@ -301,9 +285,11 @@ QtObject {
         if (data.matugen) {
             if (data.matugen.schemeType)
                 matugenScheme = data.matugen.schemeType;
+
         }
         if (data.wallpaperMute !== undefined)
             wallpaperMute = data.wallpaperMute;
+
     }
     onWallpaperApplied: {
         _runPostProcessing(type, name, path);
@@ -334,7 +320,7 @@ QtObject {
     _awwwProcess: Process {
         id: awwwProcess
 
-        onExited: function (code, status) {
+        onExited: function(code, status) {
             console.log("WallpaperApplyService: awww exited code=" + code + " status=" + status);
             if (_awwwStderr.length > 0)
                 console.log("WallpaperApplyService: awww stderr:", _awwwStderr.join(""));
@@ -343,10 +329,11 @@ QtObject {
         }
 
         stderr: SplitParser {
-            onRead: data => {
+            onRead: (data) => {
                 return service._awwwStderr.push(data);
             }
         }
+
     }
 
     _mpvProcess: Process {
@@ -360,7 +347,7 @@ QtObject {
     _weProcess: Process {
         id: weProcess
 
-        onExited: function (code, status) {
+        onExited: function(code, status) {
             var wasKilling = service._weKilling;
             service._weKilling = false;
             var out = service._weStdout.join("").trim();
@@ -368,7 +355,7 @@ QtObject {
             service._weStdout = [];
             service._weStderr = [];
             if (wasKilling)
-                return;
+                return ;
 
             if (out)
                 console.log("WallpaperApplyService: WE stdout:", out);
@@ -386,17 +373,18 @@ QtObject {
 
         stdout: SplitParser {
             splitMarker: ""
-            onRead: data => {
+            onRead: (data) => {
                 return service._weStdout.push(data);
             }
         }
 
         stderr: SplitParser {
             splitMarker: ""
-            onRead: data => {
+            onRead: (data) => {
                 return service._weStderr.push(data);
             }
         }
+
     }
 
     _weReadProject: Process {
@@ -416,16 +404,8 @@ QtObject {
                     console.log("WallpaperApplyService: WE video path:", videoPath);
                     _symLinkProcess.command = ["ln", "-sf", videoPath, service.videoDir + "/lockscreen-video.mp4"];
                     _symLinkProcess.running = true;
-                    if (Config.isKDE) {
-                        service._applyKdeVideo(videoPath);
-                    } else {
-                        var opts = "loop";
-                        if (service.wallpaperMute)
-                            opts = "loop --mute=yes";
-
-                        weProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (service.wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(videoPath) + " </dev/null >/dev/null 2>&1 &"];
-                        weProcess.running = true;
-                    }
+                    weProcess.command = ["sh", "-c", "pkill mpvpaper 2>/dev/null; " + "nohup setsid mpvpaper -o 'loop --hwdec=vaapi --vo=dmabuf-wayland --vf=fps=30" + (service.wallpaperMute ? " --mute=yes" : "") + "' '*' " + JSON.stringify(videoPath) + " </dev/null >/dev/null 2>&1 &"];
+                    weProcess.running = true;
                 } else {
                     _launchWEScene(id);
                 }
@@ -437,10 +417,11 @@ QtObject {
 
         stdout: SplitParser {
             splitMarker: ""
-            onRead: data => {
+            onRead: (data) => {
                 return _weProjectStdout.push(data);
             }
         }
+
     }
 
     _symLinkProcess: Process {
@@ -448,7 +429,7 @@ QtObject {
     }
 
     _wePreviewFallbackProc: Process {
-        onExited: function (code) {
+        onExited: function(code) {
             var preview = service._wePreviewStdout.trim();
             service._wePreviewStdout = "";
             if (code === 0 && preview) {
@@ -459,19 +440,20 @@ QtObject {
 
         stdout: SplitParser {
             splitMarker: ""
-            onRead: data => {
+            onRead: (data) => {
                 return service._wePreviewStdout += data;
             }
         }
+
     }
 
     _videoThumbProcess: Process {
         id: videoThumbProcess
 
-        onExited: function (code) {
+        onExited: function(code) {
             if (code === 2) {
                 console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
-                return;
+                return ;
             }
             service._propagateColors();
         }
@@ -489,25 +471,29 @@ QtObject {
         }
 
         stdout: SplitParser {
-            onRead: data => {
+            onRead: (data) => {
                 return _weFindPreviewStdout.push(data);
             }
         }
+
     }
 
     _copyAndTheme: Process {
         id: copyAndThemeProcess
 
-        onExited: function (code) {
+        onExited: function(code) {
             if (code === 2) {
                 console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
-                return;
+                return ;
             }
             service._propagateColors();
         }
     }
 
     reloadComponent: Component {
-        Process {}
+        Process {
+        }
+
     }
+
 }

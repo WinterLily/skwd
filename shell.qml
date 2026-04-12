@@ -89,6 +89,11 @@ ShellRoot {
     function toggle() { if (root.configPanelInstance) root.configPanelInstance.showing = !root.configPanelInstance.showing }
   }
 
+  IpcHandler {
+    target: "session"
+    function quit() { CompositorService.quit() }
+  }
+
   // Notification server
   NotificationServer {
     id: notificationServer

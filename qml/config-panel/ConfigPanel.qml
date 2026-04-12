@@ -144,7 +144,7 @@ Scope {
         for (var i = 0; i < keys.length - 1; i++) {
             if (o[keys[i]] === undefined || o[keys[i]] === null || typeof o[keys[i]] !== "object")
                 o[keys[i]] = {
-                };
+            };
 
             o = o[keys[i]];
         }
@@ -208,9 +208,9 @@ Scope {
 
         command: ["bash", "-c", "true"]
         onRunningChanged: {
-            if (running) {
+            if (running)
                 rawOutput = "";
-            }
+
         }
         onExited: {
             var lines = _dirListProcess.rawOutput.split("\n").filter(function(l) {

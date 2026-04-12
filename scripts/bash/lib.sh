@@ -50,62 +50,16 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-apply_kde_colors() {
-  local scheme_name="${1:-SkwdMatugen}"
-  local scheme_file="$HOME/.local/share/color-schemes/${scheme_name}.colors"
-  local kdeglobals="$HOME/.config/kdeglobals"
-
-  [ -f "$scheme_file" ] || return 0
-
-  has_cmd kwriteconfig6 && kwriteconfig6 --file kdeglobals --group General --key ColorScheme "$scheme_name"
-
-  python3 -c "
-import configparser, sys, os
-
-scheme = configparser.ConfigParser(interpolation=None)
-scheme.optionxform = str  # preserve case
-scheme.read(sys.argv[1])
-
-target = configparser.ConfigParser(interpolation=None)
-target.optionxform = str
-target.read(sys.argv[2])
-
-for section in scheme.sections():
-    if not target.has_section(section):
-        target.add_section(section)
-    for key, val in scheme.items(section):
-        target.set(section, key, val)
-
-with open(sys.argv[2], 'w') as f:
-    target.write(f, space_around_delimiters=False)
-" "$scheme_file" "$kdeglobals"
-
-  has_cmd gdbus && gdbus emit --session --object-path /kdeglobals --signal org.kde.kconfig.notify.ConfigChanged \
-    "{'General': [[byte 0x43, 0x6f, 0x6c, 0x6f, 0x72, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65]]}"
-}
-
-# Auto-detect compositor from config or running process
-detect_compositor() {
-  local configured
-  configured=$(jq -r '.compositor // ""' "$SKWD_CFG" 2>/dev/null)
-  if [ -n "$configured" ] && [ "$configured" != "null" ]; then
-    echo "$configured"
-    return
-  fi
-  if has_cmd niri && pgrep -x niri >/dev/null 2>&1; then
-    echo "niri"
-  elif [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
-    echo "hyprland"
-  elif [ -n "$SWAYSOCK" ]; then
-    echo "sway"
-  elif pgrep -x kwin_wayland >/dev/null 2>&1 || pgrep -x kwin_x11 >/dev/null 2>&1; then
-    echo "kwin"
-  else
-    echo "unknown"
-  fi
-}
-
-export SKWD_COMPOSITOR="${SKWD_COMPOSITOR:-$(detect_compositor)}"
+# Note: Compositor detection is now handled by CompositorService.qml
+# which auto-detects from environment variables at QML runtime.
+# This variable is kept for compatibility with any remaining bash scripts.
+if [ -n "$NIRI_SOCKET" ]; then
+  export SKWD_COMPOSITOR="niri"
+elif [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+  export SKWD_COMPOSITOR="hyprland"
+else
+  export SKWD_COMPOSITOR="unknown"
+fi
 
 # GPU vendor detection (nvidia/amd/intel)
 detect_gpu() {

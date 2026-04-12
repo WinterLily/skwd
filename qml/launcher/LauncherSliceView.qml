@@ -6,33 +6,29 @@ import QtQuick.Shapes
 // Horizontal parallelogram slice list view for AppLauncher.
 // Owns the ListView, its delegate, keyboard nav, and mouse handling.
 Item {
+    // ── public functions ──────────────────────────────────────────────────────
+    // ── internals ─────────────────────────────────────────────────────────────
+
     id: root
 
-    anchors.fill: parent
-
     // ── inputs ────────────────────────────────────────────────────────────────
-    property var  service
+    property var service
     property Item containerItem
     property Item searchInputItem
-
-    property int  expandedWidth
-    property int  sliceWidth
-    property int  sliceHeight
-    property int  skewOffset
-    property int  sliceSpacing
-    property int  topBarHeight
-
+    property int expandedWidth
+    property int sliceWidth
+    property int sliceHeight
+    property int skewOffset
+    property int sliceSpacing
+    property int topBarHeight
     property bool cardVisible
     property bool isHexMode
     property bool showing
-
     // ── read-only outputs ─────────────────────────────────────────────────────
     readonly property alias currentIndex: _listView.currentIndex
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal escapePressed
-
-    // ── public functions ──────────────────────────────────────────────────────
+    signal escapePressed()
 
     function focusList() {
         _listView.forceActiveFocus();
@@ -47,25 +43,27 @@ Item {
         _listView.keyboardNavActive = true;
         if (_listView.currentIndex > 0)
             _listView.currentIndex--;
+
     }
 
     function navigateRight() {
         _listView.keyboardNavActive = true;
         if (_listView.currentIndex < root.service.filteredModel.count - 1)
             _listView.currentIndex++;
+
     }
 
-    // ── internals ─────────────────────────────────────────────────────────────
-
+    anchors.fill: parent
     onShowingChanged: {
         if (root.showing && !root.isHexMode)
             root.searchInputItem.forceActiveFocus();
+
     }
 
     ListView {
         id: _listView
 
-        property int  visibleCount: 12
+        property int visibleCount: 12
         property bool keyboardNavActive: false
         property real lastMouseX: -1
         property real lastMouseY: -1
@@ -88,17 +86,16 @@ Item {
         preferredHighlightBegin: (width - root.expandedWidth) / 2
         preferredHighlightEnd: (width + root.expandedWidth) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
-
         onVisibleChanged: {
             if (visible)
                 root.searchInputItem.forceActiveFocus();
-        }
 
+        }
         Keys.onPressed: (event) => {
             if (event.key === Qt.Key_Escape) {
                 root.escapePressed();
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.text && event.text.length > 0 && !event.modifiers) {
                 var c = event.text.charCodeAt(0);
@@ -106,14 +103,15 @@ Item {
                     root.searchInputItem.text += event.text;
                     root.searchInputItem.forceActiveFocus();
                     event.accepted = true;
-                    return;
+                    return ;
                 }
             }
             if (event.key === Qt.Key_Backspace) {
                 if (root.searchInputItem.text.length > 0)
                     root.searchInputItem.text = root.searchInputItem.text.slice(0, -1);
+
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 if (_listView.currentIndex >= 0 && _listView.currentIndex < root.service.filteredModel.count) {
@@ -122,20 +120,22 @@ Item {
                     root.escapePressed();
                 }
                 event.accepted = true;
-                return;
+                return ;
             }
             keyboardNavActive = true;
             if (event.key === Qt.Key_Left) {
                 if (currentIndex > 0)
                     currentIndex--;
+
                 event.accepted = true;
-                return;
+                return ;
             }
             if (event.key === Qt.Key_Right) {
                 if (currentIndex < root.service.filteredModel.count - 1)
                     currentIndex++;
+
                 event.accepted = true;
-                return;
+                return ;
             }
         }
 
@@ -149,12 +149,19 @@ Item {
                 else if (wheel.angleDelta.y < 0 || wheel.angleDelta.x < 0)
                     _listView.currentIndex = Math.min(root.service.filteredModel.count - 1, _listView.currentIndex + step);
             }
-            onPressed:  function(mouse) { mouse.accepted = false; }
-            onReleased: function(mouse) { mouse.accepted = false; }
-            onClicked:  function(mouse) { mouse.accepted = false; }
+            onPressed: function(mouse) {
+                mouse.accepted = false;
+            }
+            onReleased: function(mouse) {
+                mouse.accepted = false;
+            }
+            onClicked: function(mouse) {
+                mouse.accepted = false;
+            }
         }
 
-        highlight: Item {}
+        highlight: Item {
+        }
 
         header: Item {
             width: (_listView.width - root.expandedWidth) / 2
@@ -176,15 +183,16 @@ Item {
             property real edgeOpacity: {
                 if (fadeZone <= 0)
                     return 1;
+
                 var center = viewX + width * 0.5;
-                var leftFade  = Math.min(1, Math.max(0, center / fadeZone));
+                var leftFade = Math.min(1, Math.max(0, center / fadeZone));
                 var rightFade = Math.min(1, Math.max(0, (_listView.width - center) / fadeZone));
                 return Math.min(leftFade, rightFade);
             }
 
-            width:   isCurrent ? root.expandedWidth : root.sliceWidth
-            height:  _listView.height
-            z:       isCurrent ? 100 : (isHovered ? 90 : 50 - Math.min(Math.abs(index - _listView.currentIndex), 50))
+            width: isCurrent ? root.expandedWidth : root.sliceWidth
+            height: _listView.height
+            z: isCurrent ? 100 : (isHovered ? 90 : 50 - Math.min(Math.abs(index - _listView.currentIndex), 50))
             opacity: edgeOpacity
 
             // Drop shadow canvas behind slice
@@ -193,38 +201,46 @@ Item {
 
                 property real shadowOffsetX: delegateItem.isCurrent ? 4 : 2
                 property real shadowOffsetY: delegateItem.isCurrent ? 10 : 5
-                property real shadowAlpha:   delegateItem.isCurrent ? 0.6 : 0.4
+                property real shadowAlpha: delegateItem.isCurrent ? 0.6 : 0.4
 
                 z: -1
                 anchors.fill: parent
                 anchors.margins: -10
-                onWidthChanged:       requestPaint()
-                onHeightChanged:      requestPaint()
+                onWidthChanged: requestPaint()
+                onHeightChanged: requestPaint()
                 onShadowAlphaChanged: requestPaint()
                 onPaint: {
                     var ctx = getContext("2d");
                     ctx.clearRect(0, 0, width, height);
                     var ox = 10;
                     var oy = 10;
-                    var w  = delegateItem.width;
-                    var h  = delegateItem.height;
+                    var w = delegateItem.width;
+                    var h = delegateItem.height;
                     var sk = root.skewOffset;
                     var sx = shadowOffsetX;
                     var sy = shadowOffsetY;
-                    var layers = [
-                        { "dx": sx,       "dy": sy,       "alpha": shadowAlpha * 0.5 },
-                        { "dx": sx * 0.6, "dy": sy * 0.6, "alpha": shadowAlpha * 0.3 },
-                        { "dx": sx * 1.4, "dy": sy * 1.4, "alpha": shadowAlpha * 0.2 }
-                    ];
+                    var layers = [{
+                        "dx": sx,
+                        "dy": sy,
+                        "alpha": shadowAlpha * 0.5
+                    }, {
+                        "dx": sx * 0.6,
+                        "dy": sy * 0.6,
+                        "alpha": shadowAlpha * 0.3
+                    }, {
+                        "dx": sx * 1.4,
+                        "dy": sy * 1.4,
+                        "alpha": shadowAlpha * 0.2
+                    }];
                     for (var i = 0; i < layers.length; i++) {
                         var l = layers[i];
                         ctx.globalAlpha = l.alpha;
                         ctx.fillStyle = "#000000";
                         ctx.beginPath();
-                        ctx.moveTo(ox + sk + l.dx,     oy + l.dy);
-                        ctx.lineTo(ox + w  + l.dx,     oy + l.dy);
+                        ctx.moveTo(ox + sk + l.dx, oy + l.dy);
+                        ctx.lineTo(ox + w + l.dx, oy + l.dy);
                         ctx.lineTo(ox + w - sk + l.dx, oy + h + l.dy);
-                        ctx.lineTo(ox + l.dx,          oy + h + l.dy);
+                        ctx.lineTo(ox + l.dx, oy + h + l.dy);
                         ctx.closePath();
                         ctx.fill();
                     }
@@ -237,7 +253,7 @@ Item {
 
                 anchors.fill: parent
                 layer.enabled: true
-                layer.smooth:  true
+                layer.smooth: true
                 layer.samples: 4
 
                 Image {
@@ -249,7 +265,7 @@ Item {
                     smooth: true
                     asynchronous: true
                     visible: status === Image.Ready
-                    sourceSize.width:  root.expandedWidth
+                    sourceSize.width: root.expandedWidth
                     sourceSize.height: root.sliceHeight
                 }
 
@@ -262,11 +278,14 @@ Item {
                             position: 0
                             color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
                         }
+
                         GradientStop {
                             position: 1
                             color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 1)
                         }
+
                     }
+
                 }
 
                 Text {
@@ -285,10 +304,10 @@ Item {
                     source: model.thumb ? "file://" + model.thumb : ""
                     fillMode: model.source === "steam" ? Image.PreserveAspectCrop : Image.Pad
                     horizontalAlignment: Image.AlignHCenter
-                    verticalAlignment:   Image.AlignVCenter
+                    verticalAlignment: Image.AlignVCenter
                     smooth: true
                     asynchronous: true
-                    sourceSize.width:  root.expandedWidth
+                    sourceSize.width: root.expandedWidth
                     sourceSize.height: root.sliceHeight
                     visible: model.thumb !== "" && !bgImage.visible
                 }
@@ -298,8 +317,12 @@ Item {
                     color: Qt.rgba(0, 0, 0, delegateItem.isCurrent ? 0 : (delegateItem.isHovered ? 0.15 : 0.4))
 
                     Behavior on color {
-                        ColorAnimation { duration: 200 }
+                        ColorAnimation {
+                            duration: 200
+                        }
+
                     }
+
                 }
 
                 layer.effect: MultiEffect {
@@ -308,11 +331,12 @@ Item {
                     maskSpreadAtMin: 0.3
 
                     maskSource: ShaderEffectSource {
+
                         sourceItem: Item {
-                            width:  imageContainer.width
+                            width: imageContainer.width
                             height: imageContainer.height
                             layer.enabled: true
-                            layer.smooth:  true
+                            layer.smooth: true
                             layer.samples: 8
 
                             Shape {
@@ -321,20 +345,41 @@ Item {
                                 preferredRendererType: Shape.CurveRenderer
 
                                 ShapePath {
-                                    fillColor:   "white"
+                                    fillColor: "white"
                                     strokeColor: "transparent"
                                     startX: root.skewOffset
                                     startY: 0
 
-                                    PathLine { x: delegateItem.width;                 y: 0 }
-                                    PathLine { x: delegateItem.width - root.skewOffset; y: delegateItem.height }
-                                    PathLine { x: 0;                                 y: delegateItem.height }
-                                    PathLine { x: root.skewOffset;                   y: 0 }
+                                    PathLine {
+                                        x: delegateItem.width
+                                        y: 0
+                                    }
+
+                                    PathLine {
+                                        x: delegateItem.width - root.skewOffset
+                                        y: delegateItem.height
+                                    }
+
+                                    PathLine {
+                                        x: 0
+                                        y: delegateItem.height
+                                    }
+
+                                    PathLine {
+                                        x: root.skewOffset
+                                        y: 0
+                                    }
+
                                 }
+
                             }
+
                         }
+
                     }
+
                 }
+
             }
 
             // Parallelogram glow border
@@ -347,33 +392,53 @@ Item {
                 opacity: 1
 
                 ShapePath {
-                    fillColor:   "transparent"
+                    fillColor: "transparent"
                     strokeColor: delegateItem.isCurrent ? Colors.primary : (delegateItem.isHovered ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4) : Qt.rgba(0, 0, 0, 0.6))
                     strokeWidth: delegateItem.isCurrent ? 3 : 1
                     startX: root.skewOffset
                     startY: 0
 
-                    PathLine { x: delegateItem.width;                 y: 0 }
-                    PathLine { x: delegateItem.width - root.skewOffset; y: delegateItem.height }
-                    PathLine { x: 0;                                 y: delegateItem.height }
-                    PathLine { x: root.skewOffset;                   y: 0 }
+                    PathLine {
+                        x: delegateItem.width
+                        y: 0
+                    }
+
+                    PathLine {
+                        x: delegateItem.width - root.skewOffset
+                        y: delegateItem.height
+                    }
+
+                    PathLine {
+                        x: 0
+                        y: delegateItem.height
+                    }
+
+                    PathLine {
+                        x: root.skewOffset
+                        y: 0
+                    }
 
                     Behavior on strokeColor {
-                        ColorAnimation { duration: 200 }
+                        ColorAnimation {
+                            duration: 200
+                        }
+
                     }
+
                 }
+
             }
 
             // Steam badge (top-right)
             Rectangle {
-                anchors.top:        parent.top
-                anchors.topMargin:  10
-                anchors.right:      parent.right
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                anchors.right: parent.right
                 anchors.rightMargin: 10
-                width:   22
-                height:  22
-                radius:  11
-                color:        model.source === "steam" ? Colors.primary : Qt.rgba(0, 0, 0, 0.7)
+                width: 22
+                height: 22
+                radius: 11
+                color: model.source === "steam" ? Colors.primary : Qt.rgba(0, 0, 0, 0.7)
                 border.width: 1
                 border.color: model.source === "steam" ? "transparent" : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.6)
                 visible: model.source === "steam"
@@ -386,19 +451,20 @@ Item {
                     font.pixelSize: 12
                     color: model.source === "steam" ? Colors.primaryText : Colors.primary
                 }
+
             }
 
             // App name label (visible when selected)
             Rectangle {
                 id: nameLabel
 
-                anchors.bottom:           parent.bottom
-                anchors.bottomMargin:     40
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 40
                 anchors.horizontalCenter: parent.horizontalCenter
-                width:  nameText.width + 24
+                width: nameText.width + 24
                 height: 32
                 radius: 6
-                color:        Qt.rgba(0, 0, 0, 0.75)
+                color: Qt.rgba(0, 0, 0, 0.75)
                 border.width: 1
                 border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.5)
                 visible: delegateItem.isCurrent
@@ -409,9 +475,9 @@ Item {
 
                     anchors.centerIn: parent
                     text: (model.displayName || model.name).toUpperCase()
-                    font.family:      Style.fontFamily
-                    font.pixelSize:   12
-                    font.weight:      Font.Bold
+                    font.family: Style.fontFamily
+                    font.pixelSize: 12
+                    font.weight: Font.Bold
                     font.letterSpacing: 0.5
                     color: Colors.tertiary
                     elide: Text.ElideMiddle
@@ -420,20 +486,24 @@ Item {
                 }
 
                 Behavior on opacity {
-                    NumberAnimation { duration: 200 }
+                    NumberAnimation {
+                        duration: 200
+                    }
+
                 }
+
             }
 
             // Category type badge (bottom-right)
             Rectangle {
-                anchors.bottom:       parent.bottom
+                anchors.bottom: parent.bottom
                 anchors.bottomMargin: 8
-                anchors.right:        parent.right
-                anchors.rightMargin:  root.skewOffset + 8
-                width:  typeBadgeText.width + 8
+                anchors.right: parent.right
+                anchors.rightMargin: root.skewOffset + 8
+                width: typeBadgeText.width + 8
                 height: 16
                 radius: 4
-                color:        Qt.rgba(0, 0, 0, 0.75)
+                color: Qt.rgba(0, 0, 0, 0.75)
                 border.width: 1
                 border.color: Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4)
                 z: 10
@@ -442,23 +512,14 @@ Item {
                     id: typeBadgeText
 
                     anchors.centerIn: parent
-                    text: model.source === "steam" ? "STEAM"
-                        : model.categories.indexOf("Game")        !== -1 ? "GAME"
-                        : model.categories.indexOf("Development") !== -1 ? "DEV"
-                        : model.categories.indexOf("Graphics")    !== -1 ? "GFX"
-                        : (model.categories.indexOf("AudioVideo") !== -1 || model.categories.indexOf("Audio") !== -1 || model.categories.indexOf("Video") !== -1) ? "MEDIA"
-                        : model.categories.indexOf("Network")     !== -1 ? "NET"
-                        : model.categories.indexOf("Office")      !== -1 ? "OFFICE"
-                        : model.categories.indexOf("System")      !== -1 ? "SYS"
-                        : model.categories.indexOf("Settings")    !== -1 ? "CFG"
-                        : model.categories.indexOf("Utility")     !== -1 ? "UTIL"
-                        : "APP"
-                    font.family:      Style.fontFamily
-                    font.pixelSize:   9
-                    font.weight:      Font.Bold
+                    text: model.source === "steam" ? "STEAM" : model.categories.indexOf("Game") !== -1 ? "GAME" : model.categories.indexOf("Development") !== -1 ? "DEV" : model.categories.indexOf("Graphics") !== -1 ? "GFX" : (model.categories.indexOf("AudioVideo") !== -1 || model.categories.indexOf("Audio") !== -1 || model.categories.indexOf("Video") !== -1) ? "MEDIA" : model.categories.indexOf("Network") !== -1 ? "NET" : model.categories.indexOf("Office") !== -1 ? "OFFICE" : model.categories.indexOf("System") !== -1 ? "SYS" : model.categories.indexOf("Settings") !== -1 ? "CFG" : model.categories.indexOf("Utility") !== -1 ? "UTIL" : "APP"
+                    font.family: Style.fontFamily
+                    font.pixelSize: 9
+                    font.weight: Font.Bold
                     font.letterSpacing: 0.5
                     color: Colors.tertiary
                 }
+
             }
 
             // Mouse interaction (hover selects, click launches)
@@ -495,6 +556,7 @@ Item {
                     duration: 200
                     easing.type: Easing.OutQuad
                 }
+
             }
 
             // Parallelogram hit-testing mask
@@ -502,16 +564,21 @@ Item {
                 id: hitMask
 
                 function contains(point) {
-                    var w  = delegateItem.width;
-                    var h  = delegateItem.height;
+                    var w = delegateItem.width;
+                    var h = delegateItem.height;
                     var sk = root.skewOffset;
                     if (h <= 0 || w <= 0)
                         return false;
-                    var leftX  = sk * (1 - point.y / h);
+
+                    var leftX = sk * (1 - point.y / h);
                     var rightX = w - sk * (point.y / h);
                     return point.x >= leftX && point.x <= rightX && point.y >= 0 && point.y <= h;
                 }
+
             }
+
         }
+
     }
+
 }

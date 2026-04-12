@@ -7,6 +7,7 @@ QtObject {
     // Active jobs will finish but no new ones will start
     // Skip if already HEVC and within resolution limits
     // Move original to trash, then place converted at final destination
+    // If a full conversion is running, the file will be picked up
 
     id: svc
 
@@ -113,8 +114,6 @@ QtObject {
 
     // Auto-convert a single file (called when autoConvertVideos is enabled)
     function autoConvertFile(src) {
-        // If a full conversion is running, the file will be picked up
-
         if (!Config.autoConvertVideos)
             return ;
 

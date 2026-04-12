@@ -18,16 +18,28 @@ Row {
     // Source filter buttons
     Row {
         id: sourceFilterRow
+
         spacing: 4
         anchors.verticalCenter: parent.verticalCenter
 
         Repeater {
-            model: [
-                { "filter": "", "icon": "󰄶", "label": "All" },
-                { "filter": "desktop", "icon": "󰀻", "label": "Apps" },
-                { "filter": "game", "icon": "󰊗", "label": "Games" },
-                { "filter": "steam", "icon": "󰓓", "label": "Steam" }
-            ]
+            model: [{
+                "filter": "",
+                "icon": "󰄶",
+                "label": "All"
+            }, {
+                "filter": "desktop",
+                "icon": "󰀻",
+                "label": "Apps"
+            }, {
+                "filter": "game",
+                "icon": "󰊗",
+                "label": "Games"
+            }, {
+                "filter": "steam",
+                "icon": "󰓓",
+                "label": "Steam"
+            }]
 
             Rectangle {
                 property bool isSelected: root.service.sourceFilter === modelData.filter
@@ -50,6 +62,7 @@ Row {
 
                 MouseArea {
                     id: sourceMouseArea
+
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -69,10 +82,16 @@ Row {
                 }
 
                 Behavior on color {
-                    ColorAnimation { duration: 100 }
+                    ColorAnimation {
+                        duration: 100
+                    }
+
                 }
+
             }
+
         }
+
     }
 
     Rectangle {
@@ -92,6 +111,7 @@ Row {
 
     TextInput {
         id: searchInput
+
         width: 200
         font.family: Style.fontFamily
         font.pixelSize: 14
@@ -108,5 +128,7 @@ Row {
             color: Qt.rgba(Colors.primaryText.r, Colors.primaryText.g, Colors.primaryText.b, 0.4)
             visible: !searchInput.text
         }
+
     }
+
 }

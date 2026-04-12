@@ -14,15 +14,6 @@ Column {
     }
 
     ConfigTextField {
-        label: "Compositor"
-        value: panel.getNested(panel.configData, ["compositor"], "")
-        onEdited: (v) => {
-            panel.setNested(panel.configData, ["compositor"], v);
-            panel.configDataChanged();
-        }
-    }
-
-    ConfigTextField {
         label: "Terminal"
         value: panel.getNested(panel.configData, ["terminal"], "")
         onEdited: (v) => {
@@ -119,15 +110,6 @@ Column {
         value: panel.getNested(panel.configData, ["matugen", "schemeType"], "")
         onEdited: (v) => {
             panel.setNested(panel.configData, ["matugen", "schemeType"], v);
-            panel.configDataChanged();
-        }
-    }
-
-    ConfigTextField {
-        label: "KDE color scheme"
-        value: panel.getNested(panel.configData, ["matugen", "kdeColorScheme"], "")
-        onEdited: (v) => {
-            panel.setNested(panel.configData, ["matugen", "kdeColorScheme"], v);
             panel.configDataChanged();
         }
     }
