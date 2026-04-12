@@ -1,4 +1,7 @@
 WallpaperSelector 1.0 WallpaperSelector.qml
+WallpaperSliceView 1.0 WallpaperSliceView.qml
+WallpaperHexView 1.0 WallpaperHexView.qml
+WallpaperGridView 1.0 WallpaperGridView.qml
 WallpaperSelectorService 1.0 WallpaperSelectorService.qml
 ActionButton 1.0 ActionButton.qml
 CacheProgressBar 1.0 CacheProgressBar.qml
