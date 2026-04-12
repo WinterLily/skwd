@@ -1,4 +1,5 @@
 singleton BootstrapService 1.0 BootstrapService.qml
+singleton SteamDownloadService 1.0 SteamDownloadService.qml
 singleton DbService 1.0 DbService.qml
 singleton ImageService 1.0 ImageService.qml
 singleton ColorMapping 1.0 ColorMapping.qml

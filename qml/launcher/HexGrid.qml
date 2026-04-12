@@ -3,72 +3,113 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
 
-// Hexagonal grid view for app launcher
+// Hexagonal grid view for app launcher.
+// Modelled on WallpaperHexView — same ListView column pattern, arc effect and
+// fade zones.  Only apps that have a non-empty iconPath are displayed.
 Item {
     id: root
 
-    // External bindings (must be provided by parent)
+    // ── inputs ───────────────────────────────────────────────────────────────
     property var service
-    property int hexRadius: 55
+    property int hexRadius: 56
     property int hexRows: 4
     property int hexCols: 8
     property int topBarHeight: 50
     property int cardWidth: 800
     property bool cardVisible: false
-    // Read-only outputs for parent
-    readonly property alias currentIndex: hexListView.currentIndex
-    readonly property alias selectedRow: hexListView._selectedRow
-    readonly property alias selectedCol: hexListView._selectedCol
-    readonly property int _rows: hexListView._rows
-    // Internal geometry calculations
-    property real _r: hexRadius
-    property real _hexW: _r * 2
-    property real _hexH: Math.ceil(_r * 1.73205)
-    property real _gridSpacing: 14
-    property real _stepX: 1.5 * _r + _gridSpacing
-    property real _stepY: _hexH + _gridSpacing
-    property real _gridContentH: (hexRows - 1) * _stepY + _hexH + _stepY / 2
 
-    // Signals for parent to handle
+    // ── read-write alias so AppLauncher can call resetToStart ────────────────
+    property alias currentIndex: _hexListView.currentIndex
+
+    // ── signals ───────────────────────────────────────────────────────────────
     signal escapePressed()
     signal appLaunched()
-    signal searchInputRequested(string text) // When user types while grid is focused
+    signal searchInputRequested(string text)
     signal backspaceRequested()
 
-    // Public function to forward focus to the ListView
+    // ── public functions ──────────────────────────────────────────────────────
     function forceActiveFocus() {
-        hexListView.forceActiveFocus();
+        _hexListView.forceActiveFocus();
+    }
+
+    // ── filtered item list (only apps with a non-empty iconPath) ──────────────
+    property var _hexItems: []
+
+    function _rebuildHexItems() {
+        var arr = [];
+        var fm = root.service ? root.service.filteredModel : null;
+        if (!fm) {
+            root._hexItems = [];
+            return;
+        }
+        for (var i = 0; i < fm.count; i++) {
+            var item = fm.get(i);
+            if (item.iconPath)
+                arr.push({
+                    "name": item.name,
+                    "exec": item.exec,
+                    "terminal": item.terminal,
+                    "iconPath": item.iconPath
+                });
+        }
+        root._hexItems = arr;
+    }
+
+    Connections {
+        target: root.service
+        function onModelUpdated() {
+            root._rebuildHexItems();
+        }
+    }
+
+    onServiceChanged: root._rebuildHexItems()
+    onCardVisibleChanged: {
+        if (cardVisible && root._hexItems.length === 0)
+            root._rebuildHexItems();
     }
 
     anchors.fill: parent
 
     ListView {
-        id: hexListView
+        id: _hexListView
 
+        // ── geometry ──────────────────────────────────────────────────────────
         property int _rows: root.hexRows
-        property real _yOffset: Math.max(0, (height - root._gridContentH) / 2)
-        property int _selectedCol: 0
+        property real _r: root.hexRadius
+        property real _gridSpacing: 14
+        property real _hexW: _r * 2
+        property real _hexH: Math.ceil(_r * 1.73205)
+        property real _stepX: 1.5 * _r + _gridSpacing
+        property real _stepY: _hexH + _gridSpacing
+        property real _gridContentH: (_rows - 1) * _stepY + _hexH + _stepY / 2
+        property real _yOffset: Math.max(0, (height - _gridContentH) / 2)
+        property real _fadeZone: _stepX
+
+        // ── selection state ───────────────────────────────────────────────────
+        property int _selectedCol: currentIndex
         property int _selectedRow: 0
 
-        anchors.top: parent.top
-        anchors.topMargin: root.topBarHeight + 15
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: root.cardWidth - 40
+        // ── positioning: centered on screen, below the filter bar ─────────────
+        x: (parent.width - root.cardWidth) / 2
+        y: root.topBarHeight + 15
+        width: root.cardWidth
+        height: parent.height - root.topBarHeight - 35
+
+        visible: root.cardVisible
         orientation: ListView.Horizontal
         clip: false
-        visible: root.cardVisible
-        model: Math.ceil(root.service.filteredModel.count / Math.max(1, _rows))
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 1500
         maximumFlickVelocity: 3000
+        cacheBuffer: _stepX * 2
         spacing: 0
+        model: root.cardVisible ? Math.ceil(root._hexItems.length / Math.max(1, _rows)) : 0
         highlightFollowsCurrentItem: true
         highlightMoveDuration: 350
-        preferredHighlightBegin: (width - root._hexW) / 2
-        preferredHighlightEnd: (width + root._hexW) / 2
+        preferredHighlightBegin: (width - _hexW) / 2
+        preferredHighlightEnd: (width + _hexW) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
+
         onVisibleChanged: {
             if (visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
@@ -79,49 +120,68 @@ Item {
                 }
             }
         }
+        onCountChanged: {
+            if (count > 0 && visible) {
+                var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
+                if (startCol >= 0) {
+                    currentIndex = startCol;
+                    _selectedCol = startCol;
+                    _selectedRow = 0;
+                }
+            }
+        }
+
+        // ── keyboard ──────────────────────────────────────────────────────────
         Keys.onEscapePressed: root.escapePressed()
         Keys.onReturnPressed: {
             var flatIdx = _selectedCol * _rows + _selectedRow;
-            if (flatIdx >= 0 && flatIdx < root.service.filteredModel.count) {
-                var app = root.service.filteredModel.get(flatIdx);
+            if (flatIdx >= 0 && flatIdx < root._hexItems.length) {
+                var app = root._hexItems[flatIdx];
                 root.service.launchApp(app.exec, app.terminal, app.name);
                 root.appLaunched();
             }
         }
-        Keys.onLeftPressed: {
-            if (currentIndex > 0) {
-                currentIndex--;
-                _selectedCol = currentIndex;
-            }
-        }
-        Keys.onRightPressed: {
-            if (currentIndex < count - 1) {
-                currentIndex++;
-                _selectedCol = currentIndex;
-            }
-        }
-        Keys.onUpPressed: {
-            if (_selectedRow > 0)
-                _selectedRow--;
-
-        }
-        Keys.onDownPressed: {
-            var maxRow = Math.min(_rows, root.service.filteredModel.count - _selectedCol * _rows) - 1;
-            if (_selectedRow < maxRow)
-                _selectedRow++;
-
-        }
         Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Left && !(event.modifiers & Qt.ShiftModifier)) {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    _selectedCol = currentIndex;
+                }
+                event.accepted = true;
+                return;
+            }
+            if (event.key === Qt.Key_Right && !(event.modifiers & Qt.ShiftModifier)) {
+                if (currentIndex < count - 1) {
+                    currentIndex++;
+                    _selectedCol = currentIndex;
+                }
+                event.accepted = true;
+                return;
+            }
+            if (event.key === Qt.Key_Up) {
+                if (_selectedRow > 0)
+                    _selectedRow--;
+                event.accepted = true;
+                return;
+            }
+            if (event.key === Qt.Key_Down) {
+                var maxRow = Math.min(_rows, root._hexItems.length - _selectedCol * _rows) - 1;
+                if (_selectedRow < maxRow)
+                    _selectedRow++;
+                event.accepted = true;
+                return;
+            }
+            if (event.key === Qt.Key_Backspace) {
+                root.backspaceRequested();
+                event.accepted = true;
+                return;
+            }
             if (event.text && event.text.length > 0 && !event.modifiers) {
                 var c = event.text.charCodeAt(0);
                 if (c >= 32 && c < 127) {
                     root.searchInputRequested(event.text);
                     event.accepted = true;
                 }
-            }
-            if (event.key === Qt.Key_Backspace) {
-                root.backspaceRequested();
-                event.accepted = true;
             }
         }
 
@@ -130,76 +190,68 @@ Item {
             propagateComposedEvents: true
             onWheel: function(wheel) {
                 var delta = (wheel.angleDelta.y > 0 || wheel.angleDelta.x > 0) ? -1 : 1;
-                hexListView.currentIndex = Math.max(0, Math.min(hexListView.count - 1, hexListView.currentIndex + delta));
-                hexListView._selectedCol = hexListView.currentIndex;
+                _hexListView.currentIndex = Math.max(0, Math.min(_hexListView.count - 1, _hexListView.currentIndex + delta));
+                _hexListView._selectedCol = _hexListView.currentIndex;
             }
-            onPressed: function(mouse) {
-                mouse.accepted = false;
-            }
-            onReleased: function(mouse) {
-                mouse.accepted = false;
-            }
-            onClicked: function(mouse) {
-                mouse.accepted = false;
-            }
+            onPressed: function(mouse) { mouse.accepted = false; }
+            onReleased: function(mouse) { mouse.accepted = false; }
+            onClicked: function(mouse) { mouse.accepted = false; }
         }
 
-        highlight: Item {
-        }
+        highlight: Item {}
 
-        header: Item {
-            width: (hexListView.width - root._hexW) / 2
-        }
+        header: Item { width: (_hexListView.width - _hexListView._hexW) / 2 }
+        footer: Item { width: (_hexListView.width - _hexListView._hexW) / 2 }
 
-        footer: Item {
-            width: (hexListView.width - root._hexW) / 2
-        }
-
+        // ── column delegate ───────────────────────────────────────────────────
         delegate: Item {
             id: hexCol
 
             property int colIdx: index
-            readonly property real _colCenter: (x - hexListView.contentX) + width * 0.5
-            readonly property bool _nearEdge: _colCenter < root._stepX || _colCenter > (hexListView.width - root._stepX)
-            readonly property bool _nearLeft: _colCenter < hexListView.width / 2
-            property real _colScale: !_nearEdge ? 1 : 0
+            readonly property real _colCenter: (x - _hexListView.contentX) + width * 0.5
+            readonly property bool _insideView: _colCenter > -_hexListView._hexW && _colCenter < _hexListView.width + _hexListView._hexW
+            readonly property bool _nearEdge: _colCenter < _hexListView._fadeZone || _colCenter > (_hexListView.width - _hexListView._fadeZone)
+            readonly property bool _nearLeft: _colCenter < _hexListView.width / 2
+            readonly property bool _visible: _insideView && !_nearEdge
+            property real _colScale: _visible ? 1 : 0
             readonly property real _arcOffset: {
-                var viewCenterX = hexListView.width / 2;
+                var viewCenterX = _hexListView.width / 2;
                 var normalized = (_colCenter - viewCenterX) / Math.max(1, viewCenterX);
-                return -normalized * normalized * root._r * 1.2;
+                return -normalized * normalized * _hexListView._r * 1.2;
             }
 
-            width: root._stepX
-            height: hexListView.height
+            width: _hexListView._stepX
+            height: _hexListView.height
             clip: false
 
             Repeater {
-                model: Math.max(0, Math.min(hexListView._rows, root.service.filteredModel.count - hexCol.colIdx * hexListView._rows))
+                model: Math.max(0, Math.min(_hexListView._rows, root._hexItems.length - hexCol.colIdx * _hexListView._rows))
 
                 Item {
                     id: hexItem
 
                     property int rowIdx: index
-                    property int flatIdx: hexCol.colIdx * hexListView._rows + rowIdx
-                    property var appData: flatIdx < root.service.filteredModel.count ? root.service.filteredModel.get(flatIdx) : null
-                    property bool isSelected: hexCol.colIdx === hexListView._selectedCol && rowIdx === hexListView._selectedRow
-                    property bool isHovered: hexItemMouse.containsMouse
-                    readonly property real _r: root._r
+                    property int flatIdx: hexCol.colIdx * _hexListView._rows + rowIdx
+                    property var appData: (flatIdx >= 0 && flatIdx < root._hexItems.length) ? root._hexItems[flatIdx] : null
+                    property bool isSelected: hexCol.colIdx === _hexListView._selectedCol && rowIdx === _hexListView._selectedRow
+                    property bool isHovered: hexMouse.containsMouse
+                    readonly property real _r: _hexListView._r
                     readonly property real _cx: _r
                     readonly property real _cy: height / 2
                     readonly property real _cos30: 0.866025
                     readonly property real _sin30: 0.5
 
-                    width: root._hexW
-                    height: root._hexH
+                    width: _hexListView._hexW
+                    height: _hexListView._hexH
                     x: 0
-                    y: hexListView._yOffset + rowIdx * root._stepY + (hexCol.colIdx % 2 !== 0 ? root._stepY / 2 : 0) + hexCol._arcOffset
+                    y: _hexListView._yOffset + rowIdx * _hexListView._stepY + (hexCol.colIdx % 2 !== 0 ? _hexListView._stepY / 2 : 0) + hexCol._arcOffset
                     scale: hexCol._colScale
                     transformOrigin: hexCol._nearLeft ? Item.Left : Item.Right
                     opacity: hexCol._colScale < 0.01 ? 0 : 1
 
+                    // ── hex mask (shared by image and dim overlays) ────────────
                     Item {
-                        id: hexItemMask
+                        id: hexMask
 
                         width: parent.width
                         height: parent.height
@@ -214,45 +266,18 @@ Item {
                             ShapePath {
                                 fillColor: "white"
                                 strokeColor: "transparent"
-                                startX: hexItem._cx + hexItem._r
-                                startY: hexItem._cy
-
-                                PathLine {
-                                    x: hexItem._cx + hexItem._r * hexItem._sin30
-                                    y: hexItem._cy - hexItem._r * hexItem._cos30
-                                }
-
-                                PathLine {
-                                    x: hexItem._cx - hexItem._r * hexItem._sin30
-                                    y: hexItem._cy - hexItem._r * hexItem._cos30
-                                }
-
-                                PathLine {
-                                    x: hexItem._cx - hexItem._r
-                                    y: hexItem._cy
-                                }
-
-                                PathLine {
-                                    x: hexItem._cx - hexItem._r * hexItem._sin30
-                                    y: hexItem._cy + hexItem._r * hexItem._cos30
-                                }
-
-                                PathLine {
-                                    x: hexItem._cx + hexItem._r * hexItem._sin30
-                                    y: hexItem._cy + hexItem._r * hexItem._cos30
-                                }
-
-                                PathLine {
-                                    x: hexItem._cx + hexItem._r
-                                    y: hexItem._cy
-                                }
-
+                                startX: hexItem._cx + hexItem._r; startY: hexItem._cy
+                                PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
+                                PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
+                                PathLine { x: hexItem._cx - hexItem._r;                  y: hexItem._cy }
+                                PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                                PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                                PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
                             }
-
                         }
-
                     }
 
+                    // ── icon image ────────────────────────────────────────────
                     Item {
                         anchors.fill: parent
                         layer.enabled: true
@@ -264,36 +289,26 @@ Item {
                         }
 
                         Image {
-                            id: hexIconImg
+                            id: hexIcon
 
                             anchors.centerIn: parent
                             width: hexItem._r * 1.1
                             height: hexItem._r * 1.1
-                            source: hexItem.appData && hexItem.appData.iconPath ? "file://" + hexItem.appData.iconPath : ""
+                            source: hexItem.appData ? "file://" + hexItem.appData.iconPath : ""
                             fillMode: Image.PreserveAspectFit
                             smooth: true
                             asynchronous: true
                         }
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: hexItem.appData ? hexItem.appData.name.substring(0, 1).toUpperCase() : "?"
-                            font.pixelSize: hexItem._r * 0.65
-                            font.weight: Font.Bold
-                            color: Colors.primary
-                            visible: hexIconImg.status !== Image.Ready
-                        }
-
                         layer.effect: MultiEffect {
                             maskEnabled: true
-                            maskSource: hexItemMask
+                            maskSource: hexMask
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
-
                     }
 
-                    // Dimming overlay when not selected
+                    // ── dimming overlay ───────────────────────────────────────
                     Item {
                         anchors.fill: parent
                         layer.enabled: true
@@ -304,24 +319,19 @@ Item {
                             color: Qt.rgba(0, 0, 0, hexItem.isSelected ? 0 : (hexItem.isHovered ? 0.1 : 0.35))
 
                             Behavior on color {
-                                ColorAnimation {
-                                    duration: 100
-                                }
-
+                                ColorAnimation { duration: 100 }
                             }
-
                         }
 
                         layer.effect: MultiEffect {
                             maskEnabled: true
-                            maskSource: hexItemMask
+                            maskSource: hexMask
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
-
                     }
 
-                    // Hexagon border
+                    // ── hex border ────────────────────────────────────────────
                     Shape {
                         anchors.fill: parent
                         antialiasing: true
@@ -331,51 +341,21 @@ Item {
                             fillColor: "transparent"
                             strokeColor: hexItem.isSelected ? Colors.primary : Qt.rgba(0, 0, 0, 0.5)
                             strokeWidth: hexItem.isSelected ? 3 : 1.5
-                            startX: hexItem._cx + hexItem._r
-                            startY: hexItem._cy
-
-                            PathLine {
-                                x: hexItem._cx + hexItem._r * hexItem._sin30
-                                y: hexItem._cy - hexItem._r * hexItem._cos30
-                            }
-
-                            PathLine {
-                                x: hexItem._cx - hexItem._r * hexItem._sin30
-                                y: hexItem._cy - hexItem._r * hexItem._cos30
-                            }
-
-                            PathLine {
-                                x: hexItem._cx - hexItem._r
-                                y: hexItem._cy
-                            }
-
-                            PathLine {
-                                x: hexItem._cx - hexItem._r * hexItem._sin30
-                                y: hexItem._cy + hexItem._r * hexItem._cos30
-                            }
-
-                            PathLine {
-                                x: hexItem._cx + hexItem._r * hexItem._sin30
-                                y: hexItem._cy + hexItem._r * hexItem._cos30
-                            }
-
-                            PathLine {
-                                x: hexItem._cx + hexItem._r
-                                y: hexItem._cy
-                            }
+                            startX: hexItem._cx + hexItem._r; startY: hexItem._cy
+                            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
+                            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy - hexItem._r * hexItem._cos30 }
+                            PathLine { x: hexItem._cx - hexItem._r;                  y: hexItem._cy }
+                            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                            PathLine { x: hexItem._cx + hexItem._r;                  y: hexItem._cy }
 
                             Behavior on strokeColor {
-                                ColorAnimation {
-                                    duration: 100
-                                }
-
+                                ColorAnimation { duration: 100 }
                             }
-
                         }
-
                     }
 
-                    // Accent colour rim: bottom-left and bottom edges
+                    // ── accent rim (bottom-left + bottom edges) ───────────────
                     Shape {
                         anchors.fill: parent
                         antialiasing: true
@@ -387,23 +367,13 @@ Item {
                             strokeWidth: 3
                             capStyle: ShapePath.RoundCap
                             joinStyle: ShapePath.RoundJoin
-                            startX: hexItem._cx - hexItem._r
-                            startY: hexItem._cy
-
-                            PathLine {
-                                x: hexItem._cx - hexItem._r * hexItem._sin30
-                                y: hexItem._cy + hexItem._r * hexItem._cos30
-                            }
-
-                            PathLine {
-                                x: hexItem._cx + hexItem._r * hexItem._sin30
-                                y: hexItem._cy + hexItem._r * hexItem._cos30
-                            }
-
+                            startX: hexItem._cx - hexItem._r; startY: hexItem._cy
+                            PathLine { x: hexItem._cx - hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
+                            PathLine { x: hexItem._cx + hexItem._r * hexItem._sin30; y: hexItem._cy + hexItem._r * hexItem._cos30 }
                         }
-
                     }
 
+                    // ── app name label ────────────────────────────────────────
                     Text {
                         anchors.top: parent.bottom
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -415,12 +385,13 @@ Item {
                         color: hexItem.isSelected ? Colors.primary : Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.7)
                         maximumLineCount: 1
                         elide: Text.ElideRight
-                        width: root._hexW + root._gridSpacing
+                        width: _hexListView._hexW + _hexListView._gridSpacing
                         horizontalAlignment: Text.AlignHCenter
                     }
 
+                    // ── mouse interaction ─────────────────────────────────────
                     MouseArea {
-                        id: hexItemMouse
+                        id: hexMouse
 
                         function contains(point) {
                             var dx = Math.abs(point.x - hexItem._cx);
@@ -433,8 +404,8 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                         onContainsMouseChanged: {
                             if (containsMouse) {
-                                hexListView._selectedCol = hexCol.colIdx;
-                                hexListView._selectedRow = rowIdx;
+                                _hexListView._selectedCol = hexCol.colIdx;
+                                _hexListView._selectedRow = rowIdx;
                             }
                         }
                         onClicked: {
@@ -444,9 +415,7 @@ Item {
                             }
                         }
                     }
-
                 }
-
             }
 
             Behavior on _colScale {
@@ -455,11 +424,7 @@ Item {
                     easing.type: Easing.OutBack
                     easing.overshoot: 1.5
                 }
-
             }
-
         }
-
     }
-
 }

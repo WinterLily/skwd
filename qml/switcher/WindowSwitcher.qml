@@ -1,5 +1,6 @@
 import ".."
 import "../components"
+import "../services"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects

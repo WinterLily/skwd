@@ -291,7 +291,7 @@ QtObject {
             wallpaperMute = data.wallpaperMute;
 
     }
-    onWallpaperApplied: {
+    onWallpaperApplied: function(type, name, path) {
         _runPostProcessing(type, name, path);
         _restoring = false;
     }

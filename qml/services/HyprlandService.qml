@@ -1,145 +1,245 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Io
 
-// Hyprland compositor service using native Quickshell bindings
-QtObject {
-    id: service
+Item {
+    id: root
 
-    // Required properties for the unified API
     property var windows: []
     property var workspaces: []
-    property var outputs: []
+    property int focusedWindowIndex: -1
+    property bool initialized: false
 
-    // Signals
-    signal windowsUpdated
-    signal workspacesUpdated
+    signal workspaceChanged
+    signal activeWindowChanged
+    signal windowListChanged
 
-    // Internal data from Hyprland
-    property var _hyprWindows: Hyprland.toplevels
-    property var _hyprWorkspaces: Hyprland.workspaces
-    property var _hyprOutputs: Hyprland.monitors
-
-    // Initialize and bind to Hyprland data
-    Component.onCompleted: {
-        updateWindows()
-        updateWorkspaces()
-        updateOutputs()
-    }
-
-    // Watch for changes - Hyprland uses different property names
-    on_HhyprWindowsChanged: {
-        updateWindows()
-        windowsUpdated()
-    }
-
-    on_HhyprWorkspacesChanged: {
-        updateWorkspaces()
-        workspacesUpdated()
-    }
-
-    on_HhyprOutputsChanged: {
-        updateOutputs()
-    }
-
-    // Normalize Hyprland's window (toplevel) data to unified format
-    function updateWindows() {
-        if (!Hyprland.toplevels) {
-            service.windows = []
-            return
+    Timer {
+        id: updateTimer
+        interval: 50
+        repeat: false
+        onTriggered: {
+            safeUpdateWindows()
         }
+    }
 
-        const normalized = []
-        for (const w of Hyprland.toplevels.values) {
-            // Hyprland uses 'address' as window ID
-            normalized.push({
-                id: w.address ?? "",
-                title: w.title ?? "",
-                appId: w.class ?? "",  // Hyprland uses 'class' not 'appId'
-                workspaceId: w.workspace?.id ?? 0,
-                isFocused: w.focused ?? false,
-                isFloating: w.floating ?? false,
-                monitor: w.monitor ?? ""
+    function initialize() {
+        if (initialized) return
+        try {
+            Hyprland.refreshWorkspaces()
+            Hyprland.refreshToplevels()
+            Qt.callLater(() => {
+                safeUpdateWorkspaces()
+                safeUpdateWindows()
             })
+            initialized = true
+        } catch (e) {
+            console.warn("HyprlandService: Failed to initialize:", e)
         }
-        service.windows = normalized
     }
 
-    // Normalize Hyprland's workspace data to unified format
-    function updateWorkspaces() {
-        if (!Hyprland.workspaces) {
-            service.workspaces = []
-            return
-        }
+    function safeUpdateWorkspaces() {
+        try {
+            if (!Hyprland.workspaces || !Hyprland.workspaces.values) return
 
-        const normalized = []
-        for (const ws of Hyprland.workspaces.values) {
-            normalized.push({
-                id: ws.id ?? -99,  // Hyprland special workspace IDs can be negative
-                name: ws.name ?? "",
-                isActive: ws.id === Hyprland.activeWorkspace?.id,
-                isEmpty: ws.windows === 0
-            })
+            const hlWorkspaces = Hyprland.workspaces.values
+            const occupiedIds = getOccupiedWorkspaceIds()
+            const normalized = []
+
+            for (var i = 0; i < hlWorkspaces.length; i++) {
+                const ws = hlWorkspaces[i]
+                if (!ws || ws.id < 1) continue
+                normalized.push({
+                    "id": ws.id,
+                    "idx": ws.id,
+                    "name": ws.name || "",
+                    "output": (ws.monitor && ws.monitor.name) ? ws.monitor.name : "",
+                    "isActive": ws.active === true,
+                    "isFocused": ws.focused === true,
+                    "isUrgent": ws.urgent === true,
+                    "isOccupied": occupiedIds[ws.id] === true
+                })
+            }
+
+            workspaces = normalized
+            workspaceChanged()
+        } catch (e) {
+            console.warn("HyprlandService: Error updating workspaces:", e)
         }
-        service.workspaces = normalized
     }
 
-    // Normalize outputs (monitors in Hyprland)
-    function updateOutputs() {
-        if (!Hyprland.monitors) {
-            service.outputs = []
-            return
-        }
-
-        const normalized = []
-        for (const m of Hyprland.monitors.values) {
-            normalized.push({
-                name: m.name ?? "",
-                make: m.make ?? "",
-                model: m.model ?? "",
-                isActive: m.focused ?? false  // Hyprland tracks focused monitor
-            })
-        }
-        service.outputs = normalized
+    function getOccupiedWorkspaceIds() {
+        const occupiedIds = {}
+        try {
+            if (!Hyprland.toplevels || !Hyprland.toplevels.values) return occupiedIds
+            const hlToplevels = Hyprland.toplevels.values
+            for (var i = 0; i < hlToplevels.length; i++) {
+                const toplevel = hlToplevels[i]
+                if (!toplevel) continue
+                try {
+                    const wsId = toplevel.workspace ? toplevel.workspace.id : null
+                    if (wsId !== null && wsId !== undefined) occupiedIds[wsId] = true
+                } catch (e) {}
+            }
+        } catch (e) {}
+        return occupiedIds
     }
 
-    // API: Focus a window by its address
+    function safeUpdateWindows() {
+        try {
+            if (!Hyprland.toplevels || !Hyprland.toplevels.values) {
+                windows = []
+                focusedWindowIndex = -1
+                windowListChanged()
+                return
+            }
+
+            const hlToplevels = Hyprland.toplevels.values
+            const windowsList = []
+            let newFocusedIndex = -1
+
+            for (var i = 0; i < hlToplevels.length; i++) {
+                const toplevel = hlToplevels[i]
+                if (!toplevel) continue
+                const windowData = extractWindowData(toplevel)
+                if (windowData) {
+                    windowsList.push(windowData)
+                    if (windowData.isFocused) {
+                        newFocusedIndex = windowsList.length - 1
+                    }
+                }
+            }
+
+            windows = windowsList
+
+            if (newFocusedIndex !== focusedWindowIndex) {
+                focusedWindowIndex = newFocusedIndex
+                activeWindowChanged()
+            }
+            windowListChanged()
+        } catch (e) {
+            console.warn("HyprlandService: Error updating windows:", e)
+        }
+    }
+
+    function extractWindowData(toplevel) {
+        if (!toplevel) return null
+        try {
+            const windowId = safeGetProperty(toplevel, "address", "")
+            if (!windowId) return null
+
+            const appId = getAppId(toplevel)
+            const title = getAppTitle(toplevel)
+            const wsId = toplevel.workspace ? toplevel.workspace.id : null
+            const focused = toplevel.activated === true
+            const output = toplevel.monitor?.name || ""
+
+            return {
+                "id": windowId,
+                "title": title,
+                "appId": appId,
+                "workspaceId": wsId || -1,
+                "isFocused": focused,
+                "isFloating": toplevel.floating === true,
+                "output": output
+            }
+        } catch (e) {
+            return null
+        }
+    }
+
+    function getAppTitle(toplevel) {
+        try {
+            const title = toplevel.wayland.title
+            if (title) return title
+        } catch (e) {}
+        return safeGetProperty(toplevel, "title", "")
+    }
+
+    function getAppId(toplevel) {
+        if (!toplevel) return ""
+        try {
+            const appId = toplevel.wayland.appId
+            if (appId) return appId
+        } catch (e) {}
+        const directClass = safeGetProperty(toplevel, "class", "")
+        if (directClass) return directClass
+        return safeGetProperty(toplevel, "initialClass", "")
+    }
+
+    function safeGetProperty(obj, prop, defaultValue) {
+        try {
+            const value = obj[prop]
+            if (value !== undefined && value !== null) return String(value)
+        } catch (e) {}
+        return defaultValue
+    }
+
+    Connections {
+        target: Hyprland.workspaces
+        enabled: initialized
+        function onValuesChanged() {
+            safeUpdateWorkspaces()
+        }
+    }
+
+    Connections {
+        target: Hyprland.toplevels
+        enabled: initialized
+        function onValuesChanged() {
+            updateTimer.restart()
+        }
+    }
+
+    Connections {
+        target: Hyprland
+        enabled: initialized
+        function onRawEvent(event) {
+            Hyprland.refreshWorkspaces()
+            safeUpdateWorkspaces()
+            updateTimer.restart()
+        }
+    }
+
+    function switchToWorkspace(workspace) {
+        try {
+            Hyprland.dispatch(`workspace ${workspace.idx}`)
+        } catch (e) {
+            console.warn("HyprlandService: Failed to switch workspace:", e)
+        }
+    }
+
     function focusWindow(window) {
-        if (window && window.id) {
-            Hyprland.dispatch(`focuswindow address:${window.id}`)
-            // Also bring to top
-            Hyprland.dispatch(`alterzorder top,address:${window.id}`)
+        try {
+            if (!window || !window.id) return
+            const windowId = window.id.toString()
+            Hyprland.dispatch(`focuswindow address:0x${windowId}`)
+            Hyprland.dispatch(`alterzorder top,address:0x${windowId}`)
+        } catch (e) {
+            console.warn("HyprlandService: Failed to focus window:", e)
         }
     }
 
-    // API: Close a window by its address
     function closeWindow(window) {
-        if (window && window.id) {
-            Hyprland.dispatch(`killwindow address:${window.id}`)
+        try {
+            Hyprland.dispatch(`killwindow address:0x${window.id}`)
+        } catch (e) {
+            console.warn("HyprlandService: Failed to close window:", e)
         }
     }
 
-    // API: Focus a workspace
-    function focusWorkspace(workspace) {
-        if (workspace && workspace.id !== undefined) {
-            Hyprland.dispatch(`workspace ${workspace.id}`)
-        }
-    }
-
-    // API: Focus an output (monitor)
-    function focusOutput(output) {
-        if (output && output.name) {
-            Hyprland.dispatch(`focusmonitor ${output.name}`)
-        }
-    }
-
-    // API: Get currently focused output
     function getActiveOutput() {
-        if (!Hyprland.monitors) return null
-        for (const m of Hyprland.monitors.values) {
-            if (m.focused) return m.name
-        }
+        try {
+            if (!Hyprland.monitors) return null
+            for (const m of Hyprland.monitors.values) {
+                if (m.focused) return m.name
+            }
+        } catch (e) {}
         return null
+    }
+
+    function logout() {
+        Quickshell.execDetached(["hyprctl", "dispatch", "exit"])
     }
 }

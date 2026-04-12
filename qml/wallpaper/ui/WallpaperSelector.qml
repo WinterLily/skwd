@@ -1,6 +1,7 @@
 import ".."
 import "../.."
 import "../services"
+import "../../services"
 import QtQuick
 import Quickshell
 import Quickshell.Io

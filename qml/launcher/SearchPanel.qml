@@ -42,7 +42,7 @@ Row {
             }]
 
             Rectangle {
-                property bool isSelected: root.service.sourceFilter === modelData.filter
+                property bool isSelected: root.service ? root.service.sourceFilter === modelData.filter : false
                 property bool isHovered: sourceMouseArea.containsMouse
 
                 width: 32

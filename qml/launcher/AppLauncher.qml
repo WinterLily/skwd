@@ -1,4 +1,5 @@
 import ".."
+import "../services"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -25,7 +26,7 @@ Scope {
     property int sliceSpacing: -22
     // Hex mode
     property bool isHexMode: Config.launcherDisplayMode === "hex"
-    property int hexRadius: Config.hexRadius
+    property int hexRadius: Config.launcherHexRadius
     property int hexRows: Config.launcherHexRows
     property int hexCols: Config.launcherHexCols
     // Card dimensions
@@ -242,7 +243,7 @@ Scope {
                             id: searchPanel
 
                             anchors.centerIn: parent
-                            service: appLauncher.service
+                            service: service
                         }
 
                     }
@@ -845,7 +846,7 @@ Scope {
 
                 }
 
-                service: appLauncher.service
+                service: service
                 hexRadius: appLauncher.hexRadius
                 hexRows: appLauncher.hexRows
                 hexCols: appLauncher.hexCols

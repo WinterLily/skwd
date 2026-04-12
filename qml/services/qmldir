@@ -1,1 +1,4 @@
+singleton CompositorService 1.0 CompositorService.qml
+HyprlandService 1.0 HyprlandService.qml
+NiriService 1.0 NiriService.qml
 singleton SystemStatService 1.0 SystemStatService.qml
