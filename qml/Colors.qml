@@ -8,9 +8,13 @@ pragma Singleton
 QtObject {
     id: colors
 
-    // Color file watcher (hot-reloads on wallpaper change)
-    property string colorFilePath: Config.colorFilePath
+    // Color file watcher (hot-reloads on wallpaper change or mode toggle)
+    property string colorFilePath: ColorMode.isDark
+        ? (Config.cacheDir + "/colors-dark.json")
+        : (Config.cacheDir + "/colors-light.json")
     property var colorFileView
+
+    onColorFilePathChanged: colorFileView.reload()
     // Color properties (Material Design 3 scheme)
     // Primary
     property color primary: "#ffb4ab"
@@ -94,7 +98,9 @@ QtObject {
         path: colors.colorFilePath
         watchChanges: true
         preload: true
-        onFileChanged: reload()
+        onFileChanged: {
+            reload();
+        }
         onLoaded: colors._applyColors()
     }
 

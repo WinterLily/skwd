@@ -80,13 +80,36 @@ QtObject {
     property var _bar: _data.bar ?? {}
     readonly property bool barEnabled: _bar.enabled !== false
     readonly property string weatherCity: Quickshell.env("SKWD_WEATHER_CITY") || (_bar.weather?.city ?? "")
-    readonly property bool weatherEnabled: _bar.weather !== undefined && _bar.weather !== false && _bar.weather?.enabled !== false
     readonly property string wifiInterface: _bar.wifi?.interface ?? ""
+
+    // ── Global widget flags (used as defaults for per-panel overrides) ────────
+    readonly property bool weatherEnabled: _bar.weather !== undefined && _bar.weather !== false && _bar.weather?.enabled !== false
     readonly property bool wifiEnabled: _bar.wifi !== undefined && _bar.wifi !== false && _bar.wifi?.enabled !== false
     readonly property bool bluetoothEnabled: _bar.widgets?.bluetooth !== false
     readonly property bool volumeEnabled: _bar.widgets?.volume !== false
     readonly property bool calendarEnabled: _bar.widgets?.calendar !== false
     readonly property bool musicEnabled: _bar.music !== undefined && _bar.music !== false && _bar.music?.enabled !== false
+
+    // ── Per-panel widget overrides ────────────────────────────────────────────
+    // Set under [bar.top.widgets] or [bar.bottom.widgets] in config.toml.
+    // Unset keys fall back to the global flags above.
+    property var _topWidgets: _bar.top?.widgets ?? {}
+    property var _bottomWidgets: _bar.bottom?.widgets ?? {}
+
+    // Top bar
+    readonly property bool topWeatherEnabled: _topWidgets.weather ?? weatherEnabled
+    readonly property bool topWifiEnabled: _topWidgets.wifi ?? wifiEnabled
+    readonly property bool topBluetoothEnabled: _topWidgets.bluetooth ?? bluetoothEnabled
+    readonly property bool topVolumeEnabled: _topWidgets.volume ?? volumeEnabled
+    readonly property bool topCalendarEnabled: _topWidgets.calendar ?? calendarEnabled
+    readonly property bool topMusicEnabled: _topWidgets.music ?? musicEnabled
+    readonly property bool topBatteryEnabled: _topWidgets.battery ?? false
+
+    // Bottom bar
+    readonly property bool bottomModeToggleEnabled: _bottomWidgets.mode_toggle ?? true
+    readonly property bool bottomBluetoothEnabled: _bottomWidgets.bluetooth ?? bluetoothEnabled
+    readonly property bool bottomNetworkEnabled: _bottomWidgets.network ?? true
+    readonly property bool bottomBatteryEnabled: _bottomWidgets.battery ?? true
     readonly property string preferredPlayer: _bar.music?.preferred_player ?? "spotify"
     readonly property string visualizerTheme: _bar.music?.visualizer ?? "wave"
     readonly property bool visualizerTop: (_bar.music?.visualizer_top !== false)
@@ -151,6 +174,7 @@ QtObject {
 
     readonly property var integrations: _data.integrations ?? []
     onIntegrationsChanged: _generateMatugenConfig()
+    onConfigLoadedChanged: if (configLoaded) _generateMatugenConfig()
 
     property var _matugenConfigWriter: FileView {
         id: matugenConfigWriter
@@ -158,11 +182,18 @@ QtObject {
     function _generateMatugenConfig() {
         if (!matugenEnabled)
             return;
-        var ints = integrations;
-        if (!ints || ints.length === 0)
-            return;
         var tDir = wallTemplateDir;
         var lines = ["[config]", "reload_apps = false", ""];
+        // Always generate both dark and light QS color palettes
+        lines.push("[templates.skwd-dark]");
+        lines.push('input_path = "' + tDir + '/quickshell-colors-dark.json"');
+        lines.push('output_path = "' + cacheDir + '/colors-dark.json"');
+        lines.push("");
+        lines.push("[templates.skwd-light]");
+        lines.push('input_path = "' + tDir + '/quickshell-colors-light.json"');
+        lines.push('output_path = "' + cacheDir + '/colors-light.json"');
+        lines.push("");
+        var ints = integrations;
         for (var i = 0; i < ints.length; i++) {
             var integ = ints[i];
             if (!integ.template)

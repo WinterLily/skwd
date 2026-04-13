@@ -105,7 +105,6 @@ Scope {
                 function onSearchTextChanged() {
                     if (searchPanel.searchText !== appLauncher.launcherService.searchText)
                         searchPanel.searchText = appLauncher.launcherService.searchText;
-
                 }
 
                 function onModelUpdated() {
@@ -155,8 +154,7 @@ Scope {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: {
-                    }
+                    onClicked: {}
                 }
 
                 Item {
@@ -216,14 +214,13 @@ Scope {
                             anchors.centerIn: parent
                             service: appLauncher.launcherService
                         }
-
                     }
 
                     // Cache loading overlay with progress bar
                     Rectangle {
                         anchors.fill: parent
                         color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.95)
-                        radius: 20
+                        radius: 4
                         visible: appLauncher.launcherService.cacheLoading
                         z: 50
 
@@ -248,11 +245,8 @@ Scope {
                                         duration: 100
                                         easing.type: Easing.OutCubic
                                     }
-
                                 }
-
                             }
-
                         }
 
                         Text {
@@ -265,11 +259,8 @@ Scope {
                             font.weight: Font.Medium
                             font.letterSpacing: 0.5
                         }
-
                     }
-
                 }
-
             }
 
             // Hex grid layout
@@ -295,19 +286,16 @@ Scope {
                 cardVisible: appLauncher.cardVisible
                 onEscapePressed: appLauncher.showing = false
                 onAppLaunched: appLauncher.showing = false
-                onSearchInputRequested: (text) => {
+                onSearchInputRequested: text => {
                     searchPanel.searchText += text;
                     searchPanel.searchInputItem.forceActiveFocus();
                 }
                 onBackspaceRequested: {
                     if (searchPanel.searchText.length > 0)
                         searchPanel.searchText = searchPanel.searchText.slice(0, -1);
-
                 }
             }
-
         }
-
     }
 
     // One PanelWindow per screen — screen is fixed at Variants creation time.
@@ -346,9 +334,7 @@ Scope {
                     NumberAnimation {
                         duration: 300
                     }
-
                 }
-
             }
 
             // Click anywhere on any screen to close
@@ -363,9 +349,6 @@ Scope {
                 active: isActive
                 sourceComponent: launcherUIComponent
             }
-
         }
-
     }
-
 }

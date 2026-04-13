@@ -60,23 +60,23 @@ PanelWindow {
     property real animatedBarHeight: barHeight + topMargin + slideOffset
 
     // Dropdown height calculations for stacking (animated — used for visuals, mask, and y positions)
-    property real _wifiH: Config.wifiEnabled ? wifiDropdown.animatedHeight : 0
-    property real _volumeH: Config.volumeEnabled ? volumeDropdown.animatedHeight : 0
-    property real _calendarH: Config.calendarEnabled ? calendarDropdown.animatedHeight : 0
-    property real _bluetoothH: Config.bluetoothEnabled ? bluetoothDropdown.animatedHeight : 0
-    property real _weatherH: Config.weatherEnabled ? weatherDropdown.animatedHeight : 0
+    property real _wifiH: Config.topWifiEnabled ? wifiDropdown.animatedHeight : 0
+    property real _volumeH: Config.topVolumeEnabled ? volumeDropdown.animatedHeight : 0
+    property real _calendarH: Config.topCalendarEnabled ? calendarDropdown.animatedHeight : 0
+    property real _bluetoothH: Config.topBluetoothEnabled ? bluetoothDropdown.animatedHeight : 0
+    property real _weatherH: Config.topWeatherEnabled ? weatherDropdown.animatedHeight : 0
     property real totalDropdownHeight: _wifiH + _volumeH + _calendarH + _bluetoothH + _weatherH
     property real dropdownGap: 6
 
     // Window height calculations (non-animated — jumps to final size immediately to avoid per-frame surface resize)
-    property real _wifiWH: Config.wifiEnabled ? wifiDropdown.windowHeight : 0
-    property real _volumeWH: Config.volumeEnabled ? volumeDropdown.windowHeight : 0
-    property real _calendarWH: Config.calendarEnabled ? calendarDropdown.windowHeight : 0
-    property real _bluetoothWH: Config.bluetoothEnabled ? bluetoothDropdown.windowHeight : 0
-    property real _weatherWH: Config.weatherEnabled ? weatherDropdown.windowHeight : 0
+    property real _wifiWH: Config.topWifiEnabled ? wifiDropdown.windowHeight : 0
+    property real _volumeWH: Config.topVolumeEnabled ? volumeDropdown.windowHeight : 0
+    property real _calendarWH: Config.topCalendarEnabled ? calendarDropdown.windowHeight : 0
+    property real _bluetoothWH: Config.topBluetoothEnabled ? bluetoothDropdown.windowHeight : 0
+    property real _weatherWH: Config.topWeatherEnabled ? weatherDropdown.windowHeight : 0
     property real totalWindowDropdownHeight: _wifiWH + _volumeWH + _calendarWH + _bluetoothWH + _weatherWH
 
-    property bool _lyricsPlaying: Config.musicEnabled ? lyricsIsland.musicPlaying : false
+    property bool _lyricsPlaying: Config.topMusicEnabled ? lyricsIsland.musicPlaying : false
     implicitHeight: Math.max(1, animatedBarHeight) + totalWindowDropdownHeight + (_lyricsPlaying ? waveformHeight : 0)
     exclusiveZone: barVisible ? barHeight + topMargin : 0
     color: "transparent"
@@ -266,7 +266,7 @@ PanelWindow {
         // Center panel (lyrics island)
         LyricsIsland {
             id: lyricsIsland
-            visible: Config.musicEnabled && (!Config.musicAutohide || (bar.activePlayer && bar.activePlayer.isPlaying))
+            visible: Config.topMusicEnabled && (!Config.musicAutohide || (bar.activePlayer && bar.activePlayer.isPlaying))
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.bottom: parent.bottom
@@ -337,7 +337,7 @@ PanelWindow {
                 id: weatherWidget
                 implicitWidth: weatherRow.implicitWidth
                 implicitHeight: weatherRow.implicitHeight
-                visible: Config.weatherEnabled && bar.weatherTemp !== "" && bar.weatherTemp !== undefined
+                visible: Config.topWeatherEnabled && bar.weatherTemp !== "" && bar.weatherTemp !== undefined
 
                 Row {
                     id: weatherRow
@@ -398,7 +398,7 @@ PanelWindow {
                 id: bluetoothWidget
                 implicitWidth: bluetoothRow.implicitWidth
                 implicitHeight: bluetoothRow.implicitHeight
-                visible: Config.bluetoothEnabled && bluetoothInfo.batteryText !== ""
+                visible: Config.topBluetoothEnabled && bluetoothInfo.batteryText !== ""
 
                 Row {
                     id: bluetoothRow
@@ -432,7 +432,7 @@ PanelWindow {
                 id: wifiWidget
                 implicitWidth: wifiRow.implicitWidth
                 implicitHeight: wifiRow.implicitHeight
-                visible: Config.wifiEnabled && wifiInfo.ssid !== ""
+                visible: Config.topWifiEnabled && wifiInfo.ssid !== ""
 
                 Row {
                     id: wifiRow
@@ -506,7 +506,7 @@ PanelWindow {
             // Volume widget with level icon
             Item {
                 id: volumeWidget
-                visible: Config.volumeEnabled
+                visible: Config.topVolumeEnabled
                 implicitWidth: volumeRow.implicitWidth
                 implicitHeight: volumeRow.implicitHeight
 
@@ -549,10 +549,101 @@ PanelWindow {
                 }
             }
 
+            // System battery
+            Item {
+                id: topBatteryWidget
+                implicitWidth: topBatteryRow.implicitWidth
+                implicitHeight: topBatteryRow.implicitHeight
+                visible: Config.topBatteryEnabled && topBatteryInfo.present
+
+                QtObject {
+                    id: topBatteryInfo
+                    property bool present: false
+                    property int percent: 0
+                    property string status: "Unknown"
+                    Component.onCompleted: topBatteryProcess.running = true
+                }
+
+                Row {
+                    id: topBatteryRow
+                    spacing: 4
+                    Text {
+                        text: {
+                            let p = topBatteryInfo.percent;
+                            let charging = topBatteryInfo.status === "Charging";
+                            let full = topBatteryInfo.status === "Full" || (topBatteryInfo.status === "Not charging" && p >= 98);
+                            if (full)     return "󰁹";
+                            if (charging) return p < 10 ? "󰢟" : p < 20 ? "󰢜" : p < 30 ? "󰂼" : p < 40 ? "󰂽" : p < 50 ? "󰂾" : p < 60 ? "󰂿" : p < 70 ? "󰃀" : p < 80 ? "󰃁" : p < 90 ? "󰃂" : "󰃃";
+                            if (p < 10)  return "󰂎";
+                            if (p < 20)  return "󰁺";
+                            if (p < 30)  return "󰁻";
+                            if (p < 40)  return "󰁼";
+                            if (p < 50)  return "󰁽";
+                            if (p < 60)  return "󰁾";
+                            if (p < 70)  return "󰁿";
+                            if (p < 80)  return "󰂀";
+                            if (p < 90)  return "󰂁";
+                            return "󰂂";
+                        }
+                        font.pixelSize: 14
+                        font.family: Style.fontFamilyNerdIcons
+                        color: {
+                            if (topBatteryInfo.status === "Charging") return Colors.primary;
+                            if (topBatteryInfo.percent < 20) return "#e06c75";
+                            return Colors.primary;
+                        }
+
+                        Behavior on color {
+                            ColorAnimation { duration: 200 }
+                        }
+                    }
+                    Text {
+                        text: topBatteryInfo.percent + "%"
+                        font.pixelSize: 12
+                        font.weight: Font.Medium
+                        font.family: Style.fontFamily
+                        color: topBatteryInfo.percent < 20 && topBatteryInfo.status === "Discharging"
+                            ? "#e06c75" : Colors.tertiary
+
+                        Behavior on color {
+                            ColorAnimation { duration: 200 }
+                        }
+                    }
+                }
+
+                Process {
+                    id: topBatteryProcess
+                    command: ["sh", "-c", [
+                        "bat=$(ls /sys/class/power_supply/ 2>/dev/null | grep -i 'bat\\|BAT' | head -1)",
+                        "[ -z \"$bat\" ] && exit 0",
+                        "cap=$(cat /sys/class/power_supply/$bat/capacity 2>/dev/null)",
+                        "sts=$(cat /sys/class/power_supply/$bat/status 2>/dev/null)",
+                        "printf '%s:%s\\n' \"$sts\" \"$cap\""
+                    ].join("\n")]
+                    onExited: topBatteryPollTimer.start()
+                    stdout: SplitParser {
+                        onRead: data => {
+                            let trimmed = data.trim();
+                            if (!trimmed) return;
+                            let parts = trimmed.split(":");
+                            topBatteryInfo.present = true;
+                            topBatteryInfo.status = parts[0] || "Unknown";
+                            topBatteryInfo.percent = parseInt(parts[1] || "0");
+                        }
+                    }
+                }
+
+                Timer {
+                    id: topBatteryPollTimer
+                    interval: 30000
+                    onTriggered: topBatteryProcess.running = true
+                }
+            }
+
             // Clock widget
             Item {
                 id: clockWidget
-                visible: Config.calendarEnabled
+                visible: Config.topCalendarEnabled
                 implicitWidth: clockRow.implicitWidth
                 implicitHeight: clockRow.implicitHeight
 
@@ -599,7 +690,7 @@ PanelWindow {
         anchors.right: parent.right
         y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap
         width: rightPanel.width
-        active: Config.wifiEnabled && bar.activeDropdown === "wifi"
+        active: Config.topWifiEnabled && bar.activeDropdown === "wifi"
         wifiSsid: wifiInfo.ssid
         wifiSignalStrength: wifiInfo.signalStrength
     }
@@ -609,7 +700,7 @@ PanelWindow {
         anchors.right: parent.right
         y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH
         width: rightPanel.width
-        active: Config.volumeEnabled && bar.activeDropdown === "volume"
+        active: Config.topVolumeEnabled && bar.activeDropdown === "volume"
     }
 
     CalendarDropdown {
@@ -617,7 +708,7 @@ PanelWindow {
         anchors.right: parent.right
         y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH
         width: Math.max(rightPanel.width, 256)
-        active: Config.calendarEnabled && bar.activeDropdown === "clock"
+        active: Config.topCalendarEnabled && bar.activeDropdown === "clock"
         clock: bar.clock
     }
 
@@ -626,7 +717,7 @@ PanelWindow {
         anchors.right: parent.right
         y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH + bar._calendarH
         width: rightPanel.width
-        active: Config.bluetoothEnabled && bar.activeDropdown === "bluetooth"
+        active: Config.topBluetoothEnabled && bar.activeDropdown === "bluetooth"
         connectedDevices: bluetoothInfo.connectedDevices
     }
 
@@ -635,7 +726,7 @@ PanelWindow {
         anchors.right: parent.right
         y: bar.slideOffset + bar.topMargin + bar.barHeight + bar.dropdownGap + bar._wifiH + bar._volumeH + bar._calendarH + bar._bluetoothH
         width: rightPanel.width
-        active: Config.weatherEnabled && bar.activeDropdown === "weather"
+        active: Config.topWeatherEnabled && bar.activeDropdown === "weather"
         weatherCity: bar.weatherCity
         weatherForecast: bar.weatherForecast
     }

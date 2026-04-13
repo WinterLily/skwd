@@ -4,10 +4,14 @@
 [config]
 reload_apps = false
 
-# Quickshell MD3 color palette
-[templates.skwd]
-input_path = "@SKWD_INSTALL@/ext/matugen/templates/quickshell-colors.json"
-output_path = "~/.cache/skwd/colors.json"
+# Quickshell MD3 color palette — dark and light variants pre-generated
+[templates.skwd-dark]
+input_path = "@SKWD_INSTALL@/ext/matugen/templates/quickshell-colors-dark.json"
+output_path = "~/.cache/skwd/colors-dark.json"
+
+[templates.skwd-light]
+input_path = "@SKWD_INSTALL@/ext/matugen/templates/quickshell-colors-light.json"
+output_path = "~/.cache/skwd/colors-light.json"
 
 # Niri focus-ring primary color
 [templates.niri-primary]

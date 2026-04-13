@@ -84,7 +84,10 @@ mkdir -p "${XDG_RUNTIME_DIR:-/tmp}/skwd" 2>/dev/null || true
 
 # Seed cache files that QML components expect (avoids warnings on first run)
 [ -f "$SKWD_CACHE/bar-state" ] || echo "true" > "$SKWD_CACHE/bar-state"
+[ -f "$SKWD_CACHE/colormode" ] || echo "dark" > "$SKWD_CACHE/colormode"
 [ -f "$SKWD_CACHE/colors.json" ] || echo '{}' > "$SKWD_CACHE/colors.json"
+[ -f "$SKWD_CACHE/colors-dark.json" ] || echo '{}' > "$SKWD_CACHE/colors-dark.json"
+[ -f "$SKWD_CACHE/colors-light.json" ] || echo '{}' > "$SKWD_CACHE/colors-light.json"
 [ -f "$SKWD_CACHE/wallpaper/tags.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/tags.json"
 [ -f "$SKWD_CACHE/wallpaper/colors.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/colors.json"
 [ -f "$SKWD_CACHE/wallpaper/matugen-colors.json" ] || echo '{}' > "$SKWD_CACHE/wallpaper/matugen-colors.json"

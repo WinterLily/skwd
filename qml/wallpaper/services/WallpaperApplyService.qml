@@ -42,6 +42,7 @@ QtObject {
     property var _weFindPreview
     property var _copyAndTheme
     property var reloadComponent
+    property var _reapplyProcess
 
     signal wallpaperApplied(string type, string name, string path)
 
@@ -198,6 +199,24 @@ QtObject {
         return files;
     }
 
+    function reapplyTheme() {
+        if (!Config.matugenEnabled)
+            return ;
+
+        var text = _stateFile.text().trim();
+        if (!text)
+            return ;
+
+        try {
+            var state = JSON.parse(text);
+            var path = state.path || (Config.wallpaperDir + "/wallpaper.jpg");
+            _reapplyProcess.command = ["sh", "-c", _matugenCmd(path)];
+            _reapplyProcess.running = true;
+        } catch (e) {
+            console.log("WallpaperApplyService.reapplyTheme: failed to read state:", e);
+        }
+    }
+
     function _matugenCmd(imagePath) {
         if (!Config.matugenEnabled)
             return "true";
@@ -207,7 +226,8 @@ QtObject {
             return JSON.stringify(f);
         }).join(" ");
         var before = hashFiles ? "_BEFORE=$(md5sum " + hashFiles + " 2>/dev/null | sort); " : "";
-        var imgArg = " image -t " + JSON.stringify(matugenScheme) + " $(matugen --version 2>/dev/null | grep -qE '^matugen [4-9]' && echo '--source-color-index 0') " + JSON.stringify(imagePath);
+        var mode = ColorMode.isDark ? "dark" : "light";
+        var imgArg = " image -t " + JSON.stringify(matugenScheme) + " --mode " + mode + " $(matugen --version 2>/dev/null | grep -qE '^matugen [4-9]' && echo '--source-color-index 0') " + JSON.stringify(imagePath);
         var defaultCfg = Config.defaultMatugenConfig;
         var matugen = "command -v matugen >/dev/null && { " + "matugen -c " + JSON.stringify(_matugenConfig) + imgArg + "; " + (defaultCfg ? "[ -f " + JSON.stringify(defaultCfg) + " ] && matugen -c " + JSON.stringify(defaultCfg) + imgArg + "; " : "") + "true; } || true";
         if (!hashFiles)
@@ -290,6 +310,7 @@ QtObject {
         if (data.wallpaper_mute !== undefined)
             wallpaperMute = data.wallpaper_mute;
 
+        ColorMode.isDarkChanged.connect(reapplyTheme);
     }
     onWallpaperApplied: function(type, name, path) {
         _runPostProcessing(type, name, path);
@@ -487,6 +508,15 @@ QtObject {
                 return ;
             }
             service._propagateColors();
+        }
+    }
+
+    _reapplyProcess: Process {
+        id: reapplyProcess
+
+        onExited: function(code) {
+            if (code !== 2)
+                service._propagateColors();
         }
     }
 
