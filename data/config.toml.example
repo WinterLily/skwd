@@ -6,14 +6,14 @@ wallpaper_mute = true
 
 [paths]
 wallpaper       = "~/Pictures/Wallpapers"
-# video_wallpaper = ""                              # defaults to paths.wallpaper
-# steam           = "~/.local/share/Steam"
-# steam_workshop  = "~/.local/share/Steam/steamapps/workshop/content/431960"
-# steam_we_assets = "~/.local/share/Steam/steamapps/common/wallpaper_engine/assets"
-# cache           = "~/.cache/skwd"
-# scripts         = ""
-# colors_file     = ""                               # defaults to cache/colors.json
-# matugen_config  = "~/.config/matugen/config.toml"  # your personal matugen config
+video_wallpaper = ""                              # defaults to paths.wallpaper
+steam           = "~/.local/share/Steam"
+steam_workshop  = "~/.local/share/Steam/steamapps/workshop/content/431960"
+steam_we_assets = "~/.local/share/Steam/steamapps/common/wallpaper_engine/assets"
+cache           = "~/.cache/skwd"
+scripts         = ""
+colors_file     = ""                               # defaults to cache/colors.json
+matugen_config  = "~/.config/matugen/config.toml"  # your personal matugen config
 
 
 # ── Features ──────────────────────────────────────────────────────────────────

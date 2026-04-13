@@ -87,7 +87,6 @@ Item {
         // ── geometry ──────────────────────────────────────────────────────────
         property int _rows: root.hexRows
         property real _r: root.hexRadius
-        property real _arcFactor: root.arcEnabled ? root.arcIntensity : 0
         property real _gridSpacing: 14
         property real _hexW: _r * 2
         property real _hexH: Math.ceil(_r * 1.73205)
@@ -240,12 +239,20 @@ Item {
             readonly property bool _nearLeft: _colCenter < _hexListView.width / 2
             readonly property bool _visible: _insideView && !_nearEdge
             property real _colScale: _visible ? 1 : 0
+            property real _arcFactor: root.arcEnabled ? root.arcIntensity : 0
             readonly property real _arcOffset: {
-                if (_hexListView._arcFactor === 0)
+                if (_arcFactor === 0)
                     return 0;
                 var viewCenterX = _hexListView.width / 2;
                 var normalized = (_colCenter - viewCenterX) / Math.max(1, viewCenterX);
-                return -normalized * normalized * _hexListView._r * _hexListView._arcFactor;
+                return -normalized * normalized * _hexListView._r * _arcFactor;
+            }
+
+            Behavior on _arcFactor {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutCubic
+                }
             }
 
             width: _hexListView._stepX
