@@ -173,12 +173,6 @@ Scope {
                 }
             }
 
-            Item {
-                id: backgroundRect
-
-                anchors.fill: parent
-            }
-
         }
 
         // Alt-release detection and keyboard handler
@@ -399,14 +393,6 @@ Scope {
                         Behavior on opacity {
                             NumberAnimation {
                                 duration: 200
-                            }
-
-                        }
-
-                        Behavior on iconSize {
-                            NumberAnimation {
-                                duration: 200
-                                easing.type: Easing.OutQuad
                             }
 
                         }

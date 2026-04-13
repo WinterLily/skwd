@@ -37,7 +37,6 @@ Item {
     }
 
     function _rebuildHexItems() {
-        console.log("HexGrid._rebuildHexItems: service=" + root.service + " filteredModel=" + (root.service ? root.service.filteredModel : "N/A") + " count=" + (root.service && root.service.filteredModel ? root.service.filteredModel.count : "N/A"));
         var fm = root.service ? root.service.filteredModel : null;
         if (!fm) {
             root._hexItems = [];
@@ -55,16 +54,11 @@ Item {
             });
 
         }
-        console.log("HexGrid._rebuildHexItems done: fm.count=" + fm.count + " → _hexItems=" + arr.length);
         root._hexItems = arr;
     }
 
-    onServiceChanged: {
-        console.log("HexGrid: service assigned, filteredModel=" + (root.service ? root.service.filteredModel : "null"));
-        root._rebuildHexItems();
-    }
+    onServiceChanged: root._rebuildHexItems()
     onCardVisibleChanged: {
-        console.log("HexGrid: cardVisible=" + cardVisible + " _hexItems.length=" + root._hexItems.length);
         if (cardVisible && root._hexItems.length === 0)
             root._rebuildHexItems();
 
@@ -73,11 +67,7 @@ Item {
 
     // ── primary rebuild trigger: listen for modelUpdated signal ───────────────
     Connections {
-        function onModelUpdated() {
-            console.log("HexGrid: onModelUpdated fired, filteredModel.count=" + root.service.filteredModel.count);
-            root._rebuildHexItems();
-        }
-
+        function onModelUpdated() { root._rebuildHexItems() }
         target: root.service
     }
 
@@ -118,9 +108,6 @@ Item {
         preferredHighlightBegin: (width - _hexW) / 2
         preferredHighlightEnd: (width + _hexW) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
-        onModelChanged: {
-            console.log("HexGrid ListView: model=" + model + " (_hexItems=" + root._hexItems.length + " rows=" + _rows + ")");
-        }
         onVisibleChanged: {
             if (visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
@@ -132,7 +119,6 @@ Item {
             }
         }
         onCountChanged: {
-            console.log("HexGrid ListView: count=" + count);
             if (count > 0 && visible) {
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
                 if (startCol >= 0) {
@@ -258,10 +244,6 @@ Item {
             width: _hexListView._stepX
             height: _hexListView.height
             clip: false
-            Component.onCompleted: {
-                var itemsInCol = Math.max(0, Math.min(_hexListView._rows, root._hexItems.length - colIdx * _hexListView._rows));
-                console.log("HexGrid delegate created: col=" + colIdx + " items=" + itemsInCol);
-            }
 
             Repeater {
                 model: Math.max(0, Math.min(_hexListView._rows, root._hexItems.length - hexCol.colIdx * _hexListView._rows))

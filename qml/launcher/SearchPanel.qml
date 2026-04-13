@@ -123,7 +123,7 @@ Row {
 
         Text {
             anchors.fill: parent
-            text: ""
+            text: "Search..."
             font: searchInput.font
             color: Qt.rgba(Colors.primaryText.r, Colors.primaryText.g, Colors.primaryText.b, 0.4)
             visible: !searchInput.text

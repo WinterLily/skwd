@@ -69,7 +69,6 @@ Scope {
             service.searchText = "";
             service.loadFreqData();
             service.start();
-            console.log("AppLauncher: service.start() called, appModel.count=" + service.appModel.count);
         } else {
             _panelVisible = false;
             cardVisible = false;
@@ -92,10 +91,7 @@ Scope {
         id: cardShowTimer
 
         interval: 50
-        onTriggered: {
-            console.log("AppLauncher: cardShowTimer fired → cardVisible=true");
-            appLauncher.cardVisible = true;
-        }
+        onTriggered: appLauncher.cardVisible = true
     }
 
     // Full launcher UI — defined once, instantiated only on the active screen
@@ -113,7 +109,6 @@ Scope {
                 }
 
                 function onModelUpdated() {
-                    console.log("AppLauncher: service.modelUpdated() — filteredModel.count=" + appLauncher.launcherService.filteredModel.count);
                     hexGrid.resetToStart();
                 }
 

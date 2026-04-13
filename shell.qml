@@ -440,11 +440,9 @@ ShellRoot {
 
 
   // Top bar instantiation
-  property string barTheme: "minimal"
-
   Variants {
     model: {
-      if (!Config.barEnabled || root.barTheme !== "minimal") return []
+      if (!Config.barEnabled) return []
       return Array.from({length: Quickshell.screens.length}, (_, i) => i)
     }
 
