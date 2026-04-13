@@ -46,6 +46,7 @@ QtObject {
     property var _pendingItems: []
     property bool filterTransitioning: false
     property bool _skipCrossfade: false
+    property bool _preserveScroll: false
     property var _debouncedUpdate
     property var _deferredStartTimer
     property var _daemonWaitTimer
@@ -61,7 +62,6 @@ QtObject {
     property var _unsubscribeWE
     property var _optimizeConn
     property var _videoConvertConn
-    property var _liveReloadTimer
 
     signal modelUpdated()
     signal wallpaperApplied()
@@ -303,6 +303,7 @@ QtObject {
             filteredModel.append(_pendingItems);
 
         _pendingItems = [];
+        _preserveScroll = false;
         modelUpdated();
     }
 
@@ -434,6 +435,7 @@ QtObject {
             service._pendingMatugenItems = [];
             for (var i = 0; i < items.length; i++) service._wallpaperData.push(items[i])
             service._wallpaperData = service._wallpaperData;
+            service._preserveScroll = true;
             service.updateFilteredModel(true);
             if (Config.matugenEnabled) {
                 for (var j = 0; j < matugenItems.length; j++) MatugenCacheService.processOne(matugenItems[j].path, matugenItems[j].key)
@@ -488,6 +490,7 @@ QtObject {
                 if (data[i].name === key) {
                     data.splice(i, 1);
                     service._wallpaperData = data;
+                    service._preserveScroll = true;
                     service.updateFilteredModel(true);
                     return ;
                 }
@@ -573,13 +576,5 @@ QtObject {
         target: VideoConvertService
     }
 
-    _liveReloadTimer: Timer {
-        interval: 30000
-        running: service.showing
-        repeat: true
-        onTriggered: {
-            service.refreshFromDb();
-        }
-    }
-
 }
+

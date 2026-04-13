@@ -53,6 +53,7 @@ Item {
         property real _fadeZone: _stepX
         property int _selectedCol: currentIndex
         property int _selectedRow: 0
+        property int _savedScrollIndex: -1
 
         x: root.containerItem.x
         y: root.containerItem.y + root.topBarHeight + 15
@@ -81,7 +82,17 @@ Item {
         }
         model: root.showing ? Math.ceil((root.service.filteredModel ? root.service.filteredModel.count : 0) / Math.max(1, _rows)) : 0
         onCountChanged: {
-            if (count > 0 && visible && !root.tagCloudVisible) {
+            if (count === 0) {
+                // Model is being cleared — save position if this is a background refresh
+                if (root.service._preserveScroll && currentIndex >= 0)
+                    _savedScrollIndex = currentIndex;
+            } else if (_savedScrollIndex >= 0) {
+                // Restore position after a background refresh
+                currentIndex = Math.min(_savedScrollIndex, count - 1);
+                _selectedCol = currentIndex;
+                _savedScrollIndex = -1;
+            } else if (visible && !root.tagCloudVisible) {
+                // Initial load or filter change — reset to center
                 var startCol = Math.min(Math.floor(root.hexCols / 2), count - 1);
                 if (startCol >= 0) {
                     currentIndex = startCol;
