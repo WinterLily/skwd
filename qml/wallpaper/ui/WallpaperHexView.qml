@@ -28,9 +28,9 @@ Item {
     property bool showing
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal escapePressed()
-    signal tagCloudToggleRequested()
-    signal focusRequested()
+    signal escapePressed
+    signal tagCloudToggleRequested
+    signal focusRequested
 
     function focusList() {
         _hexListView.forceActiveFocus();
@@ -86,7 +86,6 @@ Item {
                 // Model is being cleared — save position if this is a background refresh
                 if (root.service._preserveScroll && currentIndex >= 0)
                     _savedScrollIndex = currentIndex;
-
             } else if (_savedScrollIndex >= 0) {
                 // Restore position after a background refresh
                 currentIndex = Math.min(_savedScrollIndex, count - 1);
@@ -121,12 +120,12 @@ Item {
                     root.service.applyStatic(item.path);
             }
         }
-        Keys.onPressed: function(event) {
+        Keys.onPressed: function (event) {
             if (event.modifiers & Qt.ShiftModifier) {
                 if (event.key === Qt.Key_Down) {
                     root.tagCloudToggleRequested();
                     event.accepted = true;
-                    return ;
+                    return;
                 } else if (event.key === Qt.Key_Left) {
                     if (root.service.selectedColorFilter === -1)
                         root.service.selectedColorFilter = 99;
@@ -137,7 +136,7 @@ Item {
                     else
                         root.service.selectedColorFilter--;
                     event.accepted = true;
-                    return ;
+                    return;
                 } else if (event.key === Qt.Key_Right) {
                     if (root.service.selectedColorFilter === -1)
                         root.service.selectedColorFilter = 0;
@@ -148,7 +147,7 @@ Item {
                     else
                         root.service.selectedColorFilter++;
                     event.accepted = true;
-                    return ;
+                    return;
                 }
             }
             if (event.key === Qt.Key_Left && !(event.modifiers & Qt.ShiftModifier)) {
@@ -157,7 +156,7 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Right && !(event.modifiers & Qt.ShiftModifier)) {
                 if (currentIndex < count - 1) {
@@ -165,14 +164,14 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Up && !(event.modifiers & Qt.ShiftModifier)) {
                 if (_selectedRow > 0)
                     _selectedRow--;
 
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Down && !(event.modifiers & Qt.ShiftModifier)) {
                 var maxRow = Math.min(_rows, root.service.filteredModel.count - _selectedCol * _rows) - 1;
@@ -180,14 +179,14 @@ Item {
                     _selectedRow++;
 
                 event.accepted = true;
-                return ;
+                return;
             }
         }
 
         MouseArea {
             anchors.fill: parent
             propagateComposedEvents: true
-            onWheel: function(wheel) {
+            onWheel: function (wheel) {
                 var step = Config.hexScrollStep;
                 if (wheel.angleDelta.y > 0 || wheel.angleDelta.x > 0) {
                     _hexListView.currentIndex = Math.max(0, _hexListView.currentIndex - step);
@@ -197,19 +196,18 @@ Item {
                     _hexListView._selectedCol = _hexListView.currentIndex;
                 }
             }
-            onPressed: function(mouse) {
+            onPressed: function (mouse) {
                 mouse.accepted = false;
             }
-            onReleased: function(mouse) {
+            onReleased: function (mouse) {
                 mouse.accepted = false;
             }
-            onClicked: function(mouse) {
+            onClicked: function (mouse) {
                 mouse.accepted = false;
             }
         }
 
-        highlight: Item {
-        }
+        highlight: Item {}
 
         header: Item {
             width: (_hexListView.width - _hexListView._hexW) / 2
@@ -235,7 +233,6 @@ Item {
                 duration: Style.animEnter
                 easing.type: Easing.OutCubic
             }
-
         }
 
         remove: Transition {
@@ -245,7 +242,6 @@ Item {
                 duration: Style.animNormal
                 easing.type: Easing.InCubic
             }
-
         }
 
         displaced: Transition {
@@ -254,7 +250,6 @@ Item {
                 duration: Style.animMedium
                 easing.type: Easing.OutCubic
             }
-
         }
 
         delegate: Item {
@@ -275,6 +270,12 @@ Item {
                 var viewCenterX = _hexListView.width / 2;
                 var normalized = (_colCenter - viewCenterX) / Math.max(1, viewCenterX);
                 return -normalized * normalized * _hexListView._r * _arcFactor;
+            }
+
+            readonly property real _proximityScale: {
+                var viewCenterX = _hexListView.width / 2;
+                var dist = Math.abs(_colCenter - viewCenterX) / Math.max(1, viewCenterX);
+                return 1.0 - Math.min(1.0, dist) * 0.28;
             }
 
             width: _hexListView._stepX
@@ -305,11 +306,11 @@ Item {
                         var normalized = (hexCenterY - viewCenterY) / Math.max(1, viewCenterY);
                         return -normalized * _hexListView._r * 0.6;
                     }
-                    scale: hexCol._colScale
-                    transformOrigin: hexCol._nearLeft ? Item.Left : Item.Right
+                    scale: hexCol._colScale * hexCol._proximityScale
+                    transformOrigin: Item.Center
                     opacity: hexCol._colScale < 0.01 ? 0 : 1
                     pulledOut: _hexOverlay.overlayItemKey !== "" && _hexOverlay.overlayItemKey === ((itemData && ((itemData.weId || "") !== "")) ? itemData.weId : (itemData ? itemData.name : ""))
-                    onFlipRequested: function(data, gx, gy, sourceItem) {
+                    onFlipRequested: function (data, gx, gy, sourceItem) {
                         _hexOverlay.show(data, gx, gy, sourceItem);
                     }
                     onHoverSelected: {
@@ -317,7 +318,6 @@ Item {
                         _hexListView._selectedRow = rowIdx;
                     }
                 }
-
             }
 
             Behavior on _colScale {
@@ -326,7 +326,6 @@ Item {
                     easing.type: Easing.OutBack
                     easing.overshoot: 1.5
                 }
-
             }
 
             Behavior on _arcFactor {
@@ -334,11 +333,8 @@ Item {
                     duration: Style.animExpand
                     easing.type: Easing.OutCubic
                 }
-
             }
-
         }
-
     }
 
     Item {
@@ -390,7 +386,6 @@ Item {
                 _hexMeta = FileMetadataService.getMetadata(key);
                 if (!_hexMeta)
                     FileMetadataService.probeIfNeeded(key, overlayData.path, overlayData.type === "video" ? "video" : "image");
-
             }
         }
         states: [
@@ -410,7 +405,6 @@ Item {
                     target: _cardRotation
                     angle: 0
                 }
-
             },
             State {
                 name: "visible"
@@ -428,7 +422,6 @@ Item {
                     target: _cardRotation
                     angle: 180
                 }
-
             }
         ]
         transitions: [
@@ -457,11 +450,8 @@ Item {
                             duration: Style.animSlow
                             easing.type: Easing.InOutQuad
                         }
-
                     }
-
                 }
-
             },
             Transition {
                 from: "visible"
@@ -494,9 +484,7 @@ Item {
                                 duration: Style.animSlow * 0.3
                                 easing.type: Easing.InQuad
                             }
-
                         }
-
                     }
 
                     PropertyAction {
@@ -516,21 +504,18 @@ Item {
                         property: "_sourceItem"
                         value: null
                     }
-
                 }
-
             }
         ]
 
         Connections {
             function onMetadataReady(key) {
                 if (!_hexOverlay.overlayData)
-                    return ;
+                    return;
 
                 var myKey = ImageService.thumbKey(_hexOverlay.overlayData.thumb, _hexOverlay.overlayData.name);
                 if (key === myKey)
                     _hexOverlay._hexMeta = FileMetadataService.getMetadata(key);
-
             }
 
             target: FileMetadataService
@@ -552,9 +537,7 @@ Item {
                 ColorAnimation {
                     duration: Style.animNormal
                 }
-
             }
-
         }
 
         Item {
@@ -613,11 +596,8 @@ Item {
                             x: _hexOverlay.bigR * 2
                             y: _hexCard.height / 2
                         }
-
                     }
-
                 }
-
             }
 
             // Front face: thumbnail image clipped to hex
@@ -649,7 +629,6 @@ Item {
                         maskThresholdMin: 0.3
                         maskSpreadAtMin: 0.3
                     }
-
                 }
 
                 // Hex outline
@@ -694,11 +673,8 @@ Item {
                             x: _hexOverlay.bigR * 2
                             y: _hexCard.height / 2
                         }
-
                     }
-
                 }
-
             }
 
             // Back face: metadata + actions (mirrored so it reads correctly after flip)
@@ -804,7 +780,6 @@ Item {
                                 font.weight: Font.Medium
                                 font.letterSpacing: 0.5
                             }
-
                         }
 
                         Rectangle {
@@ -901,9 +876,7 @@ Item {
                                             duration: Style.animFast
                                             easing.type: Easing.OutCubic
                                         }
-
                                     }
-
                                 }
 
                                 MouseArea {
@@ -911,15 +884,13 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         if (!_hexOverlay.overlayData)
-                                            return ;
+                                            return;
 
                                         _overlayFavToggle.checked = !_overlayFavToggle.checked;
                                         root.service.toggleFavourite(_hexOverlay.overlayData.name, _hexOverlay.overlayData.weId || "");
                                     }
                                 }
-
                             }
-
                         }
 
                         Rectangle {
@@ -943,16 +914,13 @@ Item {
                                     ColorAnimation {
                                         duration: Style.animVeryFast
                                     }
-
                                 }
 
                                 Behavior on border.color {
                                     ColorAnimation {
                                         duration: Style.animVeryFast
                                     }
-
                                 }
-
                             }
 
                             TextInput {
@@ -972,10 +940,10 @@ Item {
                                 clip: true
                                 onTextChanged: {
                                     if (_syncing || !_hexOverlay.overlayData)
-                                        return ;
+                                        return;
 
                                     var raw = text.toLowerCase();
-                                    var words = raw.split(/\s+/).filter(function(w) {
+                                    var words = raw.split(/\s+/).filter(function (w) {
                                         return w.length > 0;
                                     });
                                     var wpTags = root.service.getWallpaperTags(_overlayTagsSection.wpName, _overlayTagsSection.wpWeId).slice();
@@ -993,7 +961,6 @@ Item {
                                     for (var k = 0; k < _sessionTags.length; k++) {
                                         if (words.indexOf(_sessionTags[k]) === -1)
                                             toRemove.push(_sessionTags[k]);
-
                                     }
                                     for (var r = 0; r < toRemove.length; r++) {
                                         var si = _sessionTags.indexOf(toRemove[r]);
@@ -1008,9 +975,8 @@ Item {
                                     }
                                     if (changed)
                                         root.service.setWallpaperTags(_overlayTagsSection.wpName, _overlayTagsSection.wpWeId, wpTags);
-
                                 }
-                                Keys.onReturnPressed: function(event) {
+                                Keys.onReturnPressed: function (event) {
                                     event.accepted = true;
                                 }
                                 Keys.onEscapePressed: {
@@ -1029,7 +995,6 @@ Item {
                                     color: Qt.rgba(Colors.surfaceText.r, Colors.surfaceText.g, Colors.surfaceText.b, 0.25)
                                     visible: !parent.text && !parent.activeFocus
                                 }
-
                             }
 
                             MouseArea {
@@ -1038,7 +1003,6 @@ Item {
                                 z: -1
                                 onClicked: overlayTagField.forceActiveFocus()
                             }
-
                         }
 
                         // Current tags
@@ -1116,9 +1080,7 @@ Item {
                                                     ColorAnimation {
                                                         duration: Style.animVeryFast
                                                     }
-
                                                 }
-
                                             }
 
                                             MouseArea {
@@ -1141,26 +1103,20 @@ Item {
                                                 ColorAnimation {
                                                     duration: Style.animVeryFast
                                                 }
-
                                             }
 
                                             Behavior on border.color {
                                                 ColorAnimation {
                                                     duration: Style.animVeryFast
                                                 }
-
                                             }
 
                                             transform: Matrix4x4 {
                                                 matrix: Qt.matrix4x4(1, -0.08, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
                                             }
-
                                         }
-
                                     }
-
                                 }
-
                             }
 
                             Text {
@@ -1172,7 +1128,6 @@ Item {
                                 font.pixelSize: 12
                                 font.letterSpacing: 2
                             }
-
                         }
 
                         // Action buttons
@@ -1187,7 +1142,7 @@ Item {
                                 label: "VIEW"
                                 onClicked: {
                                     if (!_hexOverlay.overlayData)
-                                        return ;
+                                        return;
 
                                     var p = _hexOverlay.overlayData.path;
                                     Qt.openUrlExternally(ImageService.fileUrl(p.substring(0, p.lastIndexOf("/"))));
@@ -1202,7 +1157,7 @@ Item {
                                 danger: true
                                 onClicked: {
                                     if (!_hexOverlay.overlayData)
-                                        return ;
+                                        return;
 
                                     root.service.deleteWallpaperItem(_hexOverlay.overlayData.type, _hexOverlay.overlayData.name, _hexOverlay.overlayData.weId || "");
                                     _hexOverlay.hide();
@@ -1219,9 +1174,7 @@ Item {
                                     _hexOverlay.hide();
                                 }
                             }
-
                         }
-
                     }
 
                     layer.effect: MultiEffect {
@@ -1230,7 +1183,6 @@ Item {
                         maskThresholdMin: 0.3
                         maskSpreadAtMin: 0.3
                     }
-
                 }
 
                 // Hex outline on back face
@@ -1275,9 +1227,7 @@ Item {
                             x: _hexOverlay.bigR * 2
                             y: _hexCard.height / 2
                         }
-
                     }
-
                 }
 
                 transform: Rotation {
@@ -1290,9 +1240,7 @@ Item {
                         y: 1
                         z: 0
                     }
-
                 }
-
             }
 
             transform: Rotation {
@@ -1307,11 +1255,7 @@ Item {
                     y: 1
                     z: 0
                 }
-
             }
-
         }
-
     }
-
 }

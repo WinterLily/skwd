@@ -26,10 +26,10 @@ Item {
     property var _hexItems: []
 
     // ── signals ───────────────────────────────────────────────────────────────
-    signal escapePressed()
-    signal appLaunched()
+    signal escapePressed
+    signal appLaunched
     signal searchInputRequested(string text)
-    signal backspaceRequested()
+    signal backspaceRequested
 
     // ── public functions ──────────────────────────────────────────────────────
     function forceActiveFocus() {
@@ -40,19 +40,18 @@ Item {
         var fm = root.service ? root.service.filteredModel : null;
         if (!fm) {
             root._hexItems = [];
-            return ;
+            return;
         }
         var arr = [];
         for (var i = 0; i < fm.count; i++) {
             var item = fm.get(i);
             if (item.iconPath)
                 arr.push({
-                "name": item.name,
-                "exec": item.exec,
-                "terminal": item.terminal,
-                "iconPath": item.iconPath
-            });
-
+                    "name": item.name,
+                    "exec": item.exec,
+                    "terminal": item.terminal,
+                    "iconPath": item.iconPath
+                });
         }
         root._hexItems = arr;
     }
@@ -61,7 +60,6 @@ Item {
     onCardVisibleChanged: {
         if (cardVisible && root._hexItems.length === 0)
             root._rebuildHexItems();
-
     }
     anchors.fill: parent
 
@@ -141,14 +139,14 @@ Item {
                 root.appLaunched();
             }
         }
-        Keys.onPressed: function(event) {
+        Keys.onPressed: function (event) {
             if (event.key === Qt.Key_Left && !(event.modifiers & Qt.ShiftModifier)) {
                 if (currentIndex > 0) {
                     currentIndex--;
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Right && !(event.modifiers & Qt.ShiftModifier)) {
                 if (currentIndex < count - 1) {
@@ -156,14 +154,14 @@ Item {
                     _selectedCol = currentIndex;
                 }
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Up) {
                 if (_selectedRow > 0)
                     _selectedRow--;
 
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Down) {
                 var maxRow = Math.min(_rows, root._hexItems.length - _selectedCol * _rows) - 1;
@@ -171,12 +169,12 @@ Item {
                     _selectedRow++;
 
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.key === Qt.Key_Backspace) {
                 root.backspaceRequested();
                 event.accepted = true;
-                return ;
+                return;
             }
             if (event.text && event.text.length > 0 && !event.modifiers) {
                 var c = event.text.charCodeAt(0);
@@ -190,24 +188,23 @@ Item {
         MouseArea {
             anchors.fill: parent
             propagateComposedEvents: true
-            onWheel: function(wheel) {
+            onWheel: function (wheel) {
                 var direction = (wheel.angleDelta.y > 0 || wheel.angleDelta.x > 0) ? -1 : 1;
                 _hexListView.currentIndex = Math.max(0, Math.min(_hexListView.count - 1, _hexListView.currentIndex + direction * root.scrollStep));
                 _hexListView._selectedCol = _hexListView.currentIndex;
             }
-            onPressed: function(mouse) {
+            onPressed: function (mouse) {
                 mouse.accepted = false;
             }
-            onReleased: function(mouse) {
+            onReleased: function (mouse) {
                 mouse.accepted = false;
             }
-            onClicked: function(mouse) {
+            onClicked: function (mouse) {
                 mouse.accepted = false;
             }
         }
 
-        highlight: Item {
-        }
+        highlight: Item {}
 
         header: Item {
             width: (_hexListView.width - _hexListView._hexW) / 2
@@ -238,6 +235,12 @@ Item {
                 return -normalized * normalized * _hexListView._r * _arcFactor;
             }
 
+            readonly property real _proximityScale: {
+                var viewCenterX = _hexListView.width / 2;
+                var dist = Math.abs(_colCenter - viewCenterX) / Math.max(1, viewCenterX);
+                return 1.0 - Math.min(1.0, dist) * 0.28;
+            }
+
             width: _hexListView._stepX
             height: _hexListView.height
             clip: false
@@ -263,8 +266,8 @@ Item {
                     height: _hexListView._hexH
                     x: 0
                     y: _hexListView._yOffset + rowIdx * _hexListView._stepY + (hexCol.colIdx % 2 !== 0 ? _hexListView._stepY / 2 : 0) + hexCol._arcOffset
-                    scale: hexCol._colScale
-                    transformOrigin: hexCol._nearLeft ? Item.Left : Item.Right
+                    scale: hexCol._colScale * hexCol._proximityScale
+                    transformOrigin: Item.Center
                     opacity: hexCol._colScale < 0.01 ? 0 : 1
 
                     // ── hex mask (shared by image and dim overlays) ────────────
@@ -316,11 +319,8 @@ Item {
                                     x: hexItem._cx + hexItem._r
                                     y: hexItem._cy
                                 }
-
                             }
-
                         }
-
                     }
 
                     // ── icon image ────────────────────────────────────────────
@@ -352,7 +352,6 @@ Item {
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
-
                     }
 
                     // ── dimming overlay ───────────────────────────────────────
@@ -369,9 +368,7 @@ Item {
                                 ColorAnimation {
                                     duration: 100
                                 }
-
                             }
-
                         }
 
                         layer.effect: MultiEffect {
@@ -380,7 +377,6 @@ Item {
                             maskThresholdMin: 0.3
                             maskSpreadAtMin: 0.3
                         }
-
                     }
 
                     // ── hex border ────────────────────────────────────────────
@@ -430,11 +426,8 @@ Item {
                                 ColorAnimation {
                                     duration: 100
                                 }
-
                             }
-
                         }
-
                     }
 
                     // ── accent rim (bottom-left + bottom edges) ───────────────
@@ -461,9 +454,7 @@ Item {
                                 x: hexItem._cx + hexItem._r * hexItem._sin30
                                 y: hexItem._cy + hexItem._r * hexItem._cos30
                             }
-
                         }
-
                     }
 
                     // ── app name label ────────────────────────────────────────
@@ -508,9 +499,7 @@ Item {
                             }
                         }
                     }
-
                 }
-
             }
 
             Behavior on _arcFactor {
@@ -518,7 +507,6 @@ Item {
                     duration: 300
                     easing.type: Easing.OutCubic
                 }
-
             }
 
             Behavior on _colScale {
@@ -527,11 +515,7 @@ Item {
                     easing.type: Easing.OutBack
                     easing.overshoot: 1.5
                 }
-
             }
-
         }
-
     }
-
 }
