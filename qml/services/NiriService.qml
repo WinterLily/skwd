@@ -105,9 +105,9 @@ Item {
     function getWindowPosition(layout) {
         if (layout && layout.pos_in_scrolling_layout)
             return {
-                "x": layout.pos_in_scrolling_layout[0],
-                "y": layout.pos_in_scrolling_layout[1]
-            };
+            "x": layout.pos_in_scrolling_layout[0],
+            "y": layout.pos_in_scrolling_layout[1]
+        };
 
         return {
             "x": floatingWindowPosition,

@@ -67,7 +67,10 @@ Item {
 
     // ── primary rebuild trigger: listen for modelUpdated signal ───────────────
     Connections {
-        function onModelUpdated() { root._rebuildHexItems() }
+        function onModelUpdated() {
+            root._rebuildHexItems();
+        }
+
         target: root.service
     }
 
@@ -91,9 +94,9 @@ Item {
 
         // ── positioning: centered on screen, below the filter bar ─────────────
         x: (parent.width - root.cardWidth) / 2
-        y: root.topBarHeight + 15
+        y: root.topBarHeight + 100
         width: root.cardWidth
-        height: parent.height - root.topBarHeight - 35
+        height: parent.height - root.topBarHeight - 55
         visible: root.cardVisible
         orientation: ListView.Horizontal
         clip: false
@@ -229,16 +232,10 @@ Item {
             readonly property real _arcOffset: {
                 if (_arcFactor === 0)
                     return 0;
+
                 var viewCenterX = _hexListView.width / 2;
                 var normalized = (_colCenter - viewCenterX) / Math.max(1, viewCenterX);
                 return -normalized * normalized * _hexListView._r * _arcFactor;
-            }
-
-            Behavior on _arcFactor {
-                NumberAnimation {
-                    duration: 300
-                    easing.type: Easing.OutCubic
-                }
             }
 
             width: _hexListView._stepX
@@ -512,6 +509,14 @@ Item {
                         }
                     }
 
+                }
+
+            }
+
+            Behavior on _arcFactor {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutCubic
                 }
 
             }

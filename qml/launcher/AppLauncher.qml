@@ -169,7 +169,7 @@ Scope {
 
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
-                        anchors.topMargin: 10
+                        anchors.topMargin: 0
                         width: searchPanel.width + 30
                         height: searchPanel.height + 14
                         z: 10

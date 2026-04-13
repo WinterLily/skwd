@@ -56,9 +56,9 @@ Item {
         property int _savedScrollIndex: -1
 
         x: root.containerItem.x
-        y: root.containerItem.y + root.topBarHeight + 15
+        y: root.containerItem.y + root.topBarHeight + 100
         width: root.containerItem.width
-        height: root.containerItem.height - root.topBarHeight - 35
+        height: root.containerItem.height - root.topBarHeight - 55
         visible: root.cardVisible && !root.anyBrowserOpen && root.isHexMode
         orientation: ListView.Horizontal
         clip: false
@@ -86,6 +86,7 @@ Item {
                 // Model is being cleared — save position if this is a background refresh
                 if (root.service._preserveScroll && currentIndex >= 0)
                     _savedScrollIndex = currentIndex;
+
             } else if (_savedScrollIndex >= 0) {
                 // Restore position after a background refresh
                 currentIndex = Math.min(_savedScrollIndex, count - 1);

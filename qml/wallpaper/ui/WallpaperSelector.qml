@@ -301,7 +301,7 @@ Scope {
 
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 30
+                    anchors.topMargin: 15
                     maxWidth: parent.width - 20
                     z: 10
                     service: service

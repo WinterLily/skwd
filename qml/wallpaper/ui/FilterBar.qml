@@ -25,7 +25,7 @@ Item {
     property int imageOptimizeTotal: 0
     property string imageOptimizeFile: ""
     property bool tagCloudOpen: false
-    readonly property int _skew: 14
+    readonly property int _skew: 9
     readonly property int _padH: 15
     readonly property int _padV: 7
     property real maxWidth: 99999

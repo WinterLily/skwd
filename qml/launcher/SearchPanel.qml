@@ -41,16 +41,47 @@ Row {
                 "label": "Steam"
             }]
 
-            Rectangle {
+            Item {
                 property bool isSelected: root.service ? root.service.sourceFilter === modelData.filter : false
                 property bool isHovered: sourceMouseArea.containsMouse
+                readonly property int skew: 9
 
-                width: 32
+                width: 32 + skew
                 height: 24
-                radius: 4
-                color: isSelected ? Colors.primary : (isHovered ? Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5) : "transparent")
-                border.width: isSelected ? 0 : 1
-                border.color: isHovered ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4) : "transparent"
+
+                Canvas {
+                    property color fillColor: parent.isSelected ? Colors.primary : (parent.isHovered ? Qt.rgba(Colors.surfaceVariant.r, Colors.surfaceVariant.g, Colors.surfaceVariant.b, 0.5) : "transparent")
+                    property color strokeColor: parent.isSelected ? "transparent" : (parent.isHovered ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.4) : "transparent")
+
+                    anchors.fill: parent
+                    onFillColorChanged: requestPaint()
+                    onStrokeColorChanged: requestPaint()
+                    onWidthChanged: requestPaint()
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        var sk = parent.skew;
+                        ctx.fillStyle = fillColor;
+                        ctx.beginPath();
+                        ctx.moveTo(sk, 0);
+                        ctx.lineTo(width, 0);
+                        ctx.lineTo(width - sk, height);
+                        ctx.lineTo(0, height);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.strokeStyle = strokeColor;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+
+                    Behavior on fillColor {
+                        ColorAnimation {
+                            duration: 100
+                        }
+
+                    }
+
+                }
 
                 Text {
                     anchors.centerIn: parent
@@ -79,13 +110,6 @@ Row {
                     text: modelData.label
                     delay: 500
                     contentWidth: implicitContentWidth
-                }
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 100
-                    }
-
                 }
 
             }
