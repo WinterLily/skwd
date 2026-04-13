@@ -79,10 +79,11 @@ QtObject {
 
     property var _bar: _data.bar ?? {}
     readonly property bool barEnabled: _bar.enabled !== false
+    readonly property string barStyle: _bar.style ?? "corner"
     readonly property string weatherCity: Quickshell.env("SKWD_WEATHER_CITY") || (_bar.weather?.city ?? "")
     readonly property string wifiInterface: _bar.wifi?.interface ?? ""
 
-    // ── Global widget flags (used as defaults for per-panel overrides) ────────
+    // ── Global widget defaults ────────────────────────────────────────────────
     readonly property bool weatherEnabled: _bar.weather !== undefined && _bar.weather !== false && _bar.weather?.enabled !== false
     readonly property bool wifiEnabled: _bar.wifi !== undefined && _bar.wifi !== false && _bar.wifi?.enabled !== false
     readonly property bool bluetoothEnabled: _bar.widgets?.bluetooth !== false
@@ -90,26 +91,59 @@ QtObject {
     readonly property bool calendarEnabled: _bar.widgets?.calendar !== false
     readonly property bool musicEnabled: _bar.music !== undefined && _bar.music !== false && _bar.music?.enabled !== false
 
-    // ── Per-panel widget overrides ────────────────────────────────────────────
-    // Set under [bar.top.widgets] or [bar.bottom.widgets] in config.toml.
-    // Unset keys fall back to the global flags above.
-    property var _topWidgets: _bar.top?.widgets ?? {}
-    property var _bottomWidgets: _bar.bottom?.widgets ?? {}
+    // ── Per-corner widget overrides ───────────────────────────────────────────
+    // Set under [bar.top-left.widgets], [bar.top-right.widgets], etc.
+    // Unset keys fall back to the global defaults above.
+    // Backward-compatible: also checks [bar.top.widgets] / [bar.bottom.widgets].
+    property var _tlWidgets: _bar["top-left"]?.widgets ?? {}
+    property var _trWidgets: _bar["top-right"]?.widgets ?? _bar.top?.widgets ?? {}
+    property var _blWidgets: _bar["bottom-left"]?.widgets ?? {}
+    property var _brWidgets: _bar["bottom-right"]?.widgets ?? _bar.bottom?.widgets ?? {}
 
-    // Top bar
-    readonly property bool topWeatherEnabled: _topWidgets.weather ?? weatherEnabled
-    readonly property bool topWifiEnabled: _topWidgets.wifi ?? wifiEnabled
-    readonly property bool topBluetoothEnabled: _topWidgets.bluetooth ?? bluetoothEnabled
-    readonly property bool topVolumeEnabled: _topWidgets.volume ?? volumeEnabled
-    readonly property bool topCalendarEnabled: _topWidgets.calendar ?? calendarEnabled
-    readonly property bool topMusicEnabled: _topWidgets.music ?? musicEnabled
-    readonly property bool topBatteryEnabled: _topWidgets.battery ?? false
+    // Top-left corner (stats default on; all other widgets default off)
+    readonly property bool tlCpu:        _tlWidgets.cpu        !== false
+    readonly property bool tlGpu:        _tlWidgets.gpu        !== false
+    readonly property bool tlMemory:     _tlWidgets.memory     !== false
+    readonly property bool tlBluetooth:  _tlWidgets.bluetooth  ?? false
+    readonly property bool tlBattery:    _tlWidgets.battery    ?? false
+    readonly property bool tlNetwork:    _tlWidgets.network    ?? false
+    readonly property bool tlVolume:     _tlWidgets.volume     ?? false
+    readonly property bool tlCalendar:   _tlWidgets.calendar   ?? false
+    readonly property bool tlWeather:    _tlWidgets.weather    ?? false
+    readonly property bool tlWifi:       _tlWidgets.wifi       ?? false
+    readonly property bool tlModeToggle: _tlWidgets.mode_toggle ?? false
 
-    // Bottom bar
-    readonly property bool bottomModeToggleEnabled: _bottomWidgets.mode_toggle ?? true
-    readonly property bool bottomBluetoothEnabled: _bottomWidgets.bluetooth ?? bluetoothEnabled
-    readonly property bool bottomNetworkEnabled: _bottomWidgets.network ?? true
-    readonly property bool bottomBatteryEnabled: _bottomWidgets.battery ?? true
+    // Top-right corner
+    readonly property bool trWeather:    _trWidgets.weather    ?? weatherEnabled
+    readonly property bool trBluetooth:  _trWidgets.bluetooth  ?? bluetoothEnabled
+    readonly property bool trWifi:       _trWidgets.wifi       ?? wifiEnabled
+    readonly property bool trVolume:     _trWidgets.volume     ?? volumeEnabled
+    readonly property bool trCalendar:   _trWidgets.calendar   ?? calendarEnabled
+    readonly property bool trBattery:    _trWidgets.battery    ?? false
+    readonly property bool trNetwork:    _trWidgets.network    ?? false
+    readonly property bool trModeToggle: _trWidgets.mode_toggle ?? false
+
+    // Bottom-left corner (all off by default)
+    readonly property bool blModeToggle: _blWidgets.mode_toggle ?? false
+    readonly property bool blBluetooth:  _blWidgets.bluetooth  ?? false
+    readonly property bool blNetwork:    _blWidgets.network    ?? false
+    readonly property bool blBattery:    _blWidgets.battery    ?? false
+    readonly property bool blVolume:     _blWidgets.volume     ?? false
+    readonly property bool blCalendar:   _blWidgets.calendar   ?? false
+    readonly property bool blWeather:    _blWidgets.weather    ?? false
+    readonly property bool blWifi:       _blWidgets.wifi       ?? false
+    readonly property bool blAnyEnabled: blModeToggle || blBluetooth || blNetwork || blBattery
+                                      || blVolume || blCalendar || blWeather || blWifi
+
+    // Bottom-right corner
+    readonly property bool brModeToggle: _brWidgets.mode_toggle ?? true
+    readonly property bool brBluetooth:  _brWidgets.bluetooth  ?? bluetoothEnabled
+    readonly property bool brNetwork:    _brWidgets.network    ?? true
+    readonly property bool brBattery:    _brWidgets.battery    ?? true
+    readonly property bool brVolume:     _brWidgets.volume     ?? false
+    readonly property bool brCalendar:   _brWidgets.calendar   ?? false
+    readonly property bool brWeather:    _brWidgets.weather    ?? false
+    readonly property bool brWifi:       _brWidgets.wifi       ?? false
     readonly property string preferredPlayer: _bar.music?.preferred_player ?? "spotify"
     readonly property string visualizerTheme: _bar.music?.visualizer ?? "wave"
     readonly property bool visualizerTop: (_bar.music?.visualizer_top !== false)

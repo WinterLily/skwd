@@ -31,6 +31,7 @@ video_preview = true
 [bar]
 enabled      = true
 accent_edges = true
+# style = "corner"   # "corner" (default) or "framed" (all four corners active)
 
 [bar.weather]
 enabled = true
@@ -48,10 +49,35 @@ visualizer_top   = true
 visualizer_bottom = true
 autohide         = true
 
-[bar.widgets]
+# ── Per-corner widget config ───────────────────────────────────────────────────
+# Each corner panel is independently configurable.
+# Omitting a key falls back to the global default for that widget.
+# A corner with no widgets enabled will not render a panel.
+
+[bar.top-left.widgets]
+cpu    = true
+gpu    = true
+memory = true
+
+[bar.top-right.widgets]
+weather   = true
 bluetooth = true
+wifi      = true
 volume    = true
 calendar  = true
+battery   = false
+
+[bar.bottom-right.widgets]
+mode_toggle = true
+bluetooth   = false
+network     = true
+battery     = true
+
+# [bar.bottom-left.widgets]
+# mode_toggle = false
+# bluetooth   = false
+# network     = false
+# battery     = false
 
 
 # ── Components ────────────────────────────────────────────────────────────────

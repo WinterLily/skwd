@@ -472,6 +472,7 @@ ShellRoot {
       property var modelData
       screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
       visible: !(root.lockscreenInstance && root.lockscreenInstance.showing)
+      clock: root.clockRef
     }
   }
 }
