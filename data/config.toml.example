@@ -245,5 +245,25 @@ template = "qtct.conf"
 output   = "~/.config/qt6ct/colors/noctalia.conf"
 
 [[integrations]]
+name     = "gtk3"
+template = "gtk.css"
+output   = "~/.config/gtk-3.0/gtk.css"
+
+[[integrations]]
+name     = "gtk4"
+template = "gtk.css"
+output   = "~/.config/gtk-4.0/gtk.css"
+
+[[integrations]]
+name     = "zen-chrome"
+template = "zen-userChrome.css"
+output   = "~/.cache/noctalia/zen-browser/zen-userChrome.css"
+
+[[integrations]]
+name     = "zen-content"
+template = "zen-userContent.css"
+output   = "~/.cache/noctalia/zen-browser/zen-userContent.css"
+
+[[integrations]]
 name   = "omp"
 reload = "~/.config/skwd/scripts/reload-omp.sh"
