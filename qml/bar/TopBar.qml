@@ -117,9 +117,8 @@ PanelWindow {
                 weatherTemp: bar.weatherTemp
             }
             BluetoothWidget {
-                id:                tlBtWidget
-                visible:           Config.tlBluetooth
-                showWhenConnected: false
+                id:      tlBtWidget
+                visible: Config.tlBluetooth
             }
             WifiWidget {
                 id:      tlWifiWidget
@@ -177,8 +176,7 @@ PanelWindow {
 
             BluetoothWidget {
                 id: btWidget
-                visible: Config.trBluetooth && btWidget.batteryText !== ""
-                showWhenConnected: true
+                visible: Config.trBluetooth
                 onClicked: bar.activeDropdown = bar.activeDropdown === "bluetooth" ? "" : "bluetooth"
             }
 

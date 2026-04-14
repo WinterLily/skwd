@@ -7,10 +7,6 @@ Item {
 
     signal clicked()
 
-    // When true, the widget is only visible when a device is connected with battery info.
-    // When false, always visible but dims when disconnected.
-    property bool showWhenConnected: false
-
     readonly property var connectedDevices: {
         if (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.devices)
             return [];
@@ -25,7 +21,6 @@ Item {
 
     implicitWidth: _row.implicitWidth
     implicitHeight: _row.implicitHeight
-    visible: showWhenConnected ? batteryText !== "" : true
 
     Row {
         id: _row
