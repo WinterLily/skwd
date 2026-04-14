@@ -2,8 +2,6 @@ import QtQuick
 import "../../services"
 import "../.."
 
-// CPU / GPU / Memory stats group for the top-left panel.
-// Individual sections can be hidden via the cpu/gpu/memory properties.
 Item {
     id: root
 
@@ -36,31 +34,6 @@ Item {
             }
             Text {
                 text: Math.round(SystemStatService.cpuTemp) + "°"
-                font.pixelSize: 12
-                font.weight: Font.Medium
-                font.family: Style.fontFamily
-                color: Colors.tertiary
-            }
-        }
-
-        Row {
-            visible: root.showGpu
-            spacing: 4
-            Text {
-                text: "󰢮"
-                font.pixelSize: 14
-                font.family: Style.fontFamilyNerdIcons
-                color: Colors.primary
-            }
-            Text {
-                text: Math.round(SystemStatService.gpuUsage) + "%"
-                font.pixelSize: 12
-                font.weight: Font.Medium
-                font.family: Style.fontFamily
-                color: Colors.tertiary
-            }
-            Text {
-                text: Math.round(SystemStatService.gpuTemp) + "°"
                 font.pixelSize: 12
                 font.weight: Font.Medium
                 font.family: Style.fontFamily
