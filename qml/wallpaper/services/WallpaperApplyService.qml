@@ -41,8 +41,11 @@ QtObject {
     property var _weFindPreviewStdout: []
     property var _weFindPreview
     property var _copyAndTheme
+    property bool _copyAndThemeMode: true
     property var reloadComponent
     property var _reapplyProcess
+    property bool _requestedMode: true
+    property bool _reapplyRunning: false
 
     signal wallpaperApplied(string type, string name, string path)
 
@@ -168,6 +171,10 @@ QtObject {
     }
 
     function _extractAndTheme(path) {
+        _reapplyProcess.running = false;
+        _copyAndTheme.running = false;
+        _copyAndThemeMode = ColorMode.isDark;
+        _requestedMode = ColorMode.isDark;
         _copyAndTheme.command = ["sh", "-c", "cp " + JSON.stringify(path) + " " + JSON.stringify(wallpaperDir + "/wallpaper.jpg") + " 2>/dev/null; " + _matugenCmd(path)];
         _copyAndTheme.running = true;
     }
@@ -176,6 +183,10 @@ QtObject {
         var name = _basename(videoPath).replace(/\.[^.]+$/, "") + ".jpg";
         var thumbDir = cacheDir + "/wallpaper/video-thumbs";
         var thumbPath = thumbDir + "/" + name;
+        _reapplyProcess.running = false;
+        _videoThumbProcess.running = false;
+        _copyAndThemeMode = ColorMode.isDark;
+        _requestedMode = ColorMode.isDark;
         _videoThumbProcess.command = ["sh", "-c", "mkdir -p " + JSON.stringify(thumbDir) + "; " + "[ -f " + JSON.stringify(thumbPath) + " ] || " + ImageService.videoThumbnailCmd(JSON.stringify(videoPath), JSON.stringify(thumbPath), 0) + "; " + "cp " + JSON.stringify(thumbPath) + " " + JSON.stringify(wallpaperDir + "/wallpaper.jpg") + " 2>/dev/null; " + _matugenCmd(thumbPath)];
         _videoThumbProcess.running = true;
     }
@@ -186,21 +197,10 @@ QtObject {
         _weFindPreview.running = true;
     }
 
-    function _matugenOutputFiles() {
-        var ints = Config.integrations;
-        var files = [];
-        for (var i = 0; i < ints.length; i++) {
-            var o = ints[i].output;
-            if (!o)
-                continue;
-
-            files.push(o.indexOf("/") >= 0 ? Config._resolve(o) : Config.cacheDir + "/" + o);
-        }
-        return files;
-    }
-
     function reapplyTheme() {
         if (!Config.matugenEnabled)
+            return ;
+        if (_reapplyRunning)
             return ;
 
         var text = _stateFile.text().trim();
@@ -210,10 +210,14 @@ QtObject {
         try {
             var state = JSON.parse(text);
             var path = state.path || (Config.wallpaperDir + "/wallpaper.jpg");
+            _reapplyRunning = true;
+            _requestedMode = ColorMode.isDark;
+            _reapplyProcess.running = false;
             _reapplyProcess.command = ["sh", "-c", _matugenCmd(path)];
             _reapplyProcess.running = true;
         } catch (e) {
             console.log("WallpaperApplyService.reapplyTheme: failed to read state:", e);
+            _reapplyRunning = false;
         }
     }
 
@@ -221,20 +225,11 @@ QtObject {
         if (!Config.matugenEnabled)
             return "true";
 
-        var outputs = _matugenOutputFiles();
-        var hashFiles = outputs.map(function(f) {
-            return JSON.stringify(f);
-        }).join(" ");
-        var before = hashFiles ? "_BEFORE=$(md5sum " + hashFiles + " 2>/dev/null | sort); " : "";
         var mode = ColorMode.isDark ? "dark" : "light";
         var imgArg = " image -t " + JSON.stringify(matugenScheme) + " --mode " + mode + " $(matugen --version 2>/dev/null | grep -qE '^matugen [4-9]' && echo '--source-color-index 0') " + JSON.stringify(imagePath);
         var defaultCfg = Config.defaultMatugenConfig;
         var matugen = "command -v matugen >/dev/null && { " + "matugen -c " + JSON.stringify(_matugenConfig) + imgArg + "; " + (defaultCfg ? "[ -f " + JSON.stringify(defaultCfg) + " ] && matugen -c " + JSON.stringify(defaultCfg) + imgArg + "; " : "") + "true; } || true";
-        if (!hashFiles)
-            return matugen;
-
-        var after = "_AFTER=$(md5sum " + hashFiles + " 2>/dev/null | sort); ";
-        return before + matugen + "; " + after + '[ "$_BEFORE" = "$_AFTER" ] && exit 2; exit 0';
+        return matugen;
     }
 
     function _propagateColors() {
@@ -255,6 +250,8 @@ QtObject {
                 _runReload(resolved);
         }
         _runReload("command -v notify-send >/dev/null && notify-send 'Wallpaper Changed' || true");
+        // Force-reload Colors.qml by path — inotify misses atomic (rename-based) writes
+        Colors.colorFileView.reload();
     }
 
     function _runReload(cmd) {
@@ -471,11 +468,9 @@ QtObject {
     _videoThumbProcess: Process {
         id: videoThumbProcess
 
-        onExited: function(code) {
-            if (code === 2) {
-                console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
+        onExited: function(code, status) {
+            if (status !== 0)
                 return ;
-            }
             service._propagateColors();
         }
     }
@@ -486,6 +481,10 @@ QtObject {
         onExited: {
             var preview = _weFindPreviewStdout.join("").trim().split("\n")[0];
             if (preview) {
+                service._reapplyProcess.running = false;
+                service._copyAndTheme.running = false;
+                service._copyAndThemeMode = ColorMode.isDark;
+                service._requestedMode = ColorMode.isDark;
                 _copyAndTheme.command = ["sh", "-c", "cp " + JSON.stringify(preview) + " " + JSON.stringify(service.wallpaperDir + "/wallpaper.jpg") + " 2>/dev/null; " + service._matugenCmd(preview)];
                 _copyAndTheme.running = true;
             }
@@ -502,11 +501,9 @@ QtObject {
     _copyAndTheme: Process {
         id: copyAndThemeProcess
 
-        onExited: function(code) {
-            if (code === 2) {
-                console.log("WallpaperApplyService: matugen output unchanged, skipping reloads");
+        onExited: function(code, status) {
+            if (status !== 0)
                 return ;
-            }
             service._propagateColors();
         }
     }
@@ -514,9 +511,11 @@ QtObject {
     _reapplyProcess: Process {
         id: reapplyProcess
 
-        onExited: function(code) {
-            if (code !== 2)
-                service._propagateColors();
+        onExited: function(code, status) {
+            service._reapplyRunning = false;
+            if (status !== 0)
+                return ;
+            service._propagateColors();
         }
     }
 
