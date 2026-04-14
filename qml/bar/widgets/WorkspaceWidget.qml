@@ -24,17 +24,19 @@ Item {
     property string screenName: screen ? screen.name : ""
 
     // ── Hex geometry ──────────────────────────────────────────────────────────
-    readonly property real hexRadius:  8
-    readonly property real hexW:       hexRadius * 2                       // 16 px
-    readonly property real hexH:       Math.ceil(hexRadius * 1.73205)      // 14 px
-    readonly property real hexGap:     2                                    // gap between same-row hexes
-    readonly property real rowStep:    hexW + hexGap                       // 18 px
-    // Row 1 is offset right by half a hex + half a gap for the stagger
-    readonly property real staggerX:   hexW / 2 + hexGap / 2              // 9 px
+    // r=6 keeps the 2-row grid at 2.5 * hexH ≈ 26 px, fitting the 32 px bar.
+    // Layout is column-major (same as the launcher / wallpaper picker):
+    //   • stepX = 1.5 * r  → adjacent columns share diagonal edges exactly
+    //   • odd columns drop by hexHFloat / 2  → row interleaving / honeycomb
+    readonly property real hexRadius:  6
+    readonly property real hexW:       hexRadius * 2                    // 12 px
+    readonly property real hexHFloat:  hexRadius * 1.73205              // 10.39 px — exact for positioning
+    readonly property real hexH:       Math.ceil(hexHFloat)             // 11 px — bounding box
+    readonly property real stepX:      hexRadius * 1.5                  // 9 px  — column pitch
 
     // ── Padding ────────────────────────────────────────────────────────────────
     readonly property real hPad: 4   // left + right breathing room
-    readonly property real vPad: 2   // top + bottom (centres 2-row grid in 32 px bar)
+    readonly property real vPad: 2   // top + bottom
 
     // ── Hyprland workspace map  (idx → workspace object) ─────────────────────
     property var wsMap: {
