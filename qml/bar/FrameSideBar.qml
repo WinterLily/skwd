@@ -3,42 +3,57 @@ import Quickshell.Wayland
 import QtQuick
 import ".."
 
+// One thin frame edge — instantiate once per side: "top" | "bottom" | "left" | "right".
+// All four live on WlrLayer.Bottom so they sit behind the bar windows. The bar windows
+// are transparent in the centre, letting the frame line show through there, while the
+// opaque corner panels naturally cover the line at the screen corners.
 PanelWindow {
-    id: sideBar
+    id: frameEdge
 
-    // "left" or "right"
-    required property string side
+    property string side: "left"
 
-    screen: Quickshell.screens[0]
+    readonly property bool isHorizontal: side === "top" || side === "bottom"
+
     WlrLayershell.namespace: "frame-" + side
     WlrLayershell.layer: WlrLayer.Bottom
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     anchors {
-        top: true
-        bottom: true
-        left: side === "left"
-        right: side === "right"
+        top:    side !== "bottom"
+        bottom: side !== "top"
+        left:   side !== "right"
+        right:  side !== "left"
     }
 
-    implicitWidth: Config.frameThickness
+    // The non-anchored dimension determines the panel thickness.
+    implicitWidth:  isHorizontal ? 1 : Math.ceil(Config.frameThickness)
+    implicitHeight: isHorizontal ? Math.ceil(Config.frameThickness) : 1
+
     color: "transparent"
 
-    // Surface fill
+    // normal style: surface fill behind the accent line
     Rectangle {
+        visible: Config.frameStyle === "normal"
         anchors.fill: parent
         color: Colors.surface
     }
 
-    // Accent line on the screen-center-facing edge
+    // accent-only: solid accent fill
     Rectangle {
-        visible: Config.accentEdges
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.right: sideBar.side === "left" ? parent.right : undefined
-        anchors.left: sideBar.side === "right" ? parent.left : undefined
-        width: 1.5
+        visible: Config.frameStyle !== "normal"
+        anchors.fill: parent
         color: Colors.primary
+    }
+
+    // normal style: 1.5 px accent line on the inner (screen-content-facing) edge
+    Rectangle {
+        visible: Config.frameStyle === "normal"
+        color: Colors.primary
+        // x/y: place at the inner edge
+        x: side === "left" ? parent.width - 1.5 : 0
+        y: side === "top"  ? parent.height - 1.5 : 0
+        width:  frameEdge.isHorizontal ? parent.width : 1.5
+        height: frameEdge.isHorizontal ? 1.5 : parent.height
     }
 }

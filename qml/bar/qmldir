@@ -1,3 +1,4 @@
 TopBar 1.0 TopBar.qml
 BottomBar 1.0 BottomBar.qml
 CornerPanel 1.0 CornerPanel.qml
+FrameSideBar 1.0 FrameSideBar.qml

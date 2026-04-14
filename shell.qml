@@ -475,4 +475,53 @@ ShellRoot {
       clock: root.clockRef
     }
   }
+
+  // Frame mode: four screen edges (all on WlrLayer.Bottom, behind the bar windows)
+  Variants {
+    model: {
+      if (!Config.barEnabled || !Config.frameMode) return []
+      return Array.from({length: Quickshell.screens.length}, (_, i) => i)
+    }
+    FrameSideBar {
+      property var modelData
+      screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
+      side: "top"
+    }
+  }
+
+  Variants {
+    model: {
+      if (!Config.barEnabled || !Config.frameMode) return []
+      return Array.from({length: Quickshell.screens.length}, (_, i) => i)
+    }
+    FrameSideBar {
+      property var modelData
+      screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
+      side: "bottom"
+    }
+  }
+
+  Variants {
+    model: {
+      if (!Config.barEnabled || !Config.frameMode) return []
+      return Array.from({length: Quickshell.screens.length}, (_, i) => i)
+    }
+    FrameSideBar {
+      property var modelData
+      screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
+      side: "left"
+    }
+  }
+
+  Variants {
+    model: {
+      if (!Config.barEnabled || !Config.frameMode) return []
+      return Array.from({length: Quickshell.screens.length}, (_, i) => i)
+    }
+    FrameSideBar {
+      property var modelData
+      screen: Quickshell.screens[modelData] ?? Quickshell.screens[0]
+      side: "right"
+    }
+  }
 }

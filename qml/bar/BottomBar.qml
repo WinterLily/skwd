@@ -31,11 +31,11 @@ PanelWindow {
         width: brPanel.width
         height: bottomBar.barHeight
 
-        // Bottom-left corner panel (only when any widget is enabled)
+        // Bottom-left corner panel (when any widget is enabled, or framed mode)
         Region {
             x: 0
             y: 0
-            width: Config.blAnyEnabled ? blPanel.width : 0
+            width: (Config.blAnyEnabled || Config.frameMode) ? blPanel.width : 0
             height: bottomBar.barHeight
         }
     }
@@ -57,14 +57,14 @@ PanelWindow {
         ClockWidget      { visible: Config.brCalendar; clock: bottomBar.clock }
     }
 
-    // Bottom-left corner panel (hidden by default; enable via config)
+    // Bottom-left corner panel (hidden by default; always shown in framed mode)
     CornerPanel {
         id: blPanel
         corner: "bottom-left"
         anchors.left: parent.left
         anchors.top: parent.top
         height: bottomBar.barHeight
-        visible: Config.blAnyEnabled
+        visible: Config.blAnyEnabled || Config.frameMode
 
         ModeToggleWidget { visible: Config.blModeToggle }
         BluetoothWidget  { visible: Config.blBluetooth }
@@ -74,4 +74,5 @@ PanelWindow {
         WifiWidget       { id: blWifiWidget; visible: Config.blWifi && blWifiWidget.ssid !== "" }
         ClockWidget      { visible: Config.blCalendar; clock: bottomBar.clock }
     }
+
 }

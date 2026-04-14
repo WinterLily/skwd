@@ -150,6 +150,10 @@ QtObject {
     readonly property bool visualizerBottom: (_bar.music?.visualizer_bottom !== false)
     readonly property bool musicAutohide: (_bar.music?.autohide !== false)
     readonly property bool accentEdges: _bar.accent_edges !== false
+    readonly property bool frameMode: _bar.mode === "framed"
+    readonly property real frameThickness: _bar.frame_thickness ?? 1.5
+    // "normal" = surface fill + accent inner edge; "accent-only" = pure accent line
+    readonly property string frameStyle: _bar.frame_style ?? "accent-only"
 
     readonly property bool appLauncherEnabled: _data.launcher?.enabled !== false
     readonly property int launcherHexRadius: _data.launcher?.radius ?? 56

@@ -251,4 +251,5 @@ PanelWindow {
         weatherCity: bar.weatherCity
         weatherForecast: bar.weatherForecast
     }
+
 }
