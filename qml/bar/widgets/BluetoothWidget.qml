@@ -1,29 +1,35 @@
+import "../.."
 import QtQuick
 import Quickshell.Bluetooth
-import "../.."
 
 Item {
     id: root
 
-    signal clicked()
-
     readonly property var connectedDevices: {
         if (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.devices)
             return [];
-        return Bluetooth.defaultAdapter.devices.values.filter(d => d && d.connected);
+
+        return Bluetooth.defaultAdapter.devices.values.filter((d) => {
+            return d && d.connected;
+        });
     }
     readonly property string batteryText: {
-        let bats = connectedDevices
-            .filter(d => d.batteryAvailable && d.battery > 0)
-            .map(d => Math.round(d.battery * 100) + "%");
+        let bats = connectedDevices.filter((d) => {
+            return d.batteryAvailable && d.battery > 0;
+        }).map((d) => {
+            return Math.round(d.battery * 100) + "%";
+        });
         return bats.length > 0 ? bats[0] : "";
     }
+
+    signal clicked()
 
     implicitWidth: _row.implicitWidth
     implicitHeight: _row.implicitHeight
 
     Row {
         id: _row
+
         spacing: 4
 
         Text {
@@ -31,8 +37,16 @@ Item {
             font.pixelSize: 14
             font.family: Style.fontFamilyNerdIcons
             color: root.batteryText !== "" ? Colors.primary : Colors.tertiary
-            Behavior on color { ColorAnimation { duration: 200 } }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 200
+                }
+
+            }
+
         }
+
         Text {
             text: root.batteryText
             visible: root.batteryText !== ""
@@ -41,6 +55,7 @@ Item {
             font.family: Style.fontFamily
             color: Colors.tertiary
         }
+
     }
 
     MouseArea {
@@ -48,4 +63,5 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
+
 }

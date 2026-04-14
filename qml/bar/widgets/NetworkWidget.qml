@@ -1,6 +1,6 @@
+import "../.."
 import QtQuick
 import Quickshell.Io
-import "../.."
 
 Item {
     id: root
@@ -10,20 +10,31 @@ Item {
 
     QtObject {
         id: _info
-        property string type: "none"  // "none" | "eth" | "wifi"
+
+        property string type: "none" // "none" | "eth" | "wifi"
         property int signalStrength: 0
+
         Component.onCompleted: _proc.running = true
     }
 
     Text {
         id: _icon
+
         text: {
-            if (_info.type === "eth") return "󰈀";
+            if (_info.type === "eth")
+                return "󰈀";
+
             if (_info.type === "wifi") {
                 let s = _info.signalStrength;
-                if (s < 25) return "󰤟";
-                if (s < 50) return "󰤢";
-                if (s < 75) return "󰤥";
+                if (s < 25)
+                    return "󰤟";
+
+                if (s < 50)
+                    return "󰤢";
+
+                if (s < 75)
+                    return "󰤥";
+
                 return "󰤨";
             }
             return "󰤭";
@@ -31,27 +42,24 @@ Item {
         font.pixelSize: 14
         font.family: Style.fontFamilyNerdIcons
         color: _info.type === "none" ? Colors.tertiary : Colors.primary
-        Behavior on color { ColorAnimation { duration: 200 } }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 200
+            }
+
+        }
+
     }
 
     Process {
         id: _proc
-        command: ["sh", "-c", [
-            "for iface in $(ls /sys/class/net/ 2>/dev/null); do",
-            "  [ \"$iface\" = lo ] && continue",
-            "  [ \"$(cat /sys/class/net/$iface/operstate 2>/dev/null)\" = up ] || continue",
-            "  if [ -d \"/sys/class/net/$iface/wireless\" ]; then",
-            "    signal=$(iw dev \"$iface\" link 2>/dev/null | awk '/signal:/{print $2}')",
-            "    [ -n \"$signal\" ] && printf 'wifi:%s\\n' \"$signal\" && exit 0",
-            "  else",
-            "    printf 'eth\\n' && exit 0",
-            "  fi",
-            "done",
-            "printf 'none\\n'"
-        ].join("\n")]
+
+        command: ["sh", "-c", ["for iface in $(ls /sys/class/net/ 2>/dev/null); do", "  [ \"$iface\" = lo ] && continue", "  [ \"$(cat /sys/class/net/$iface/operstate 2>/dev/null)\" = up ] || continue", "  if [ -d \"/sys/class/net/$iface/wireless\" ]; then", "    signal=$(iw dev \"$iface\" link 2>/dev/null | awk '/signal:/{print $2}')", "    [ -n \"$signal\" ] && printf 'wifi:%s\\n' \"$signal\" && exit 0", "  else", "    printf 'eth\\n' && exit 0", "  fi", "done", "printf 'none\\n'"].join("\n")]
         onExited: _pollTimer.start()
+
         stdout: SplitParser {
-            onRead: data => {
+            onRead: (data) => {
                 let trimmed = data.trim();
                 if (trimmed.startsWith("wifi:")) {
                     _info.type = "wifi";
@@ -66,11 +74,14 @@ Item {
                 }
             }
         }
+
     }
 
     Timer {
         id: _pollTimer
+
         interval: Config.wifiPollMs || 5000
         onTriggered: _proc.running = true
     }
+
 }

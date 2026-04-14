@@ -1,18 +1,19 @@
-import QtQuick
 import "../.."
+import QtQuick
 
 Item {
     id: root
 
-    signal clicked()
-
     required property var clock
+
+    signal clicked()
 
     implicitWidth: _row.implicitWidth
     implicitHeight: _row.implicitHeight
 
     Row {
         id: _row
+
         spacing: 0
 
         Text {
@@ -22,6 +23,7 @@ Item {
             font.family: Style.fontFamily
             color: Colors.primary
         }
+
         Text {
             text: ":"
             font.pixelSize: 13
@@ -29,6 +31,7 @@ Item {
             font.family: Style.fontFamily
             color: Colors.tertiary
         }
+
         Text {
             text: Qt.formatTime(root.clock.date, "mm")
             font.pixelSize: 13
@@ -36,6 +39,7 @@ Item {
             font.family: Style.fontFamily
             color: Colors.tertiary
         }
+
     }
 
     MouseArea {
@@ -43,4 +47,5 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
+
 }

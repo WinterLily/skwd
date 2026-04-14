@@ -121,6 +121,11 @@ Scope {
                 onTriggered: hexGrid.forceActiveFocus()
             }
 
+            Component.onCompleted: {
+                if (searchPanel.searchInputItem)
+                    searchPanel.searchInputItem.Keys.formwardTo = [hexGrid];
+            }
+
             // Card container with fade-in animation
             Item {
                 id: cardContainer
@@ -288,7 +293,6 @@ Scope {
                 onAppLaunched: appLauncher.showing = false
                 onSearchInputRequested: text => {
                     searchPanel.searchText += text;
-                    searchPanel.searchInputItem.forceActiveFocus();
                 }
                 onBackspaceRequested: {
                     if (searchPanel.searchText.length > 0)

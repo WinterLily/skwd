@@ -35,11 +35,7 @@ QtObject {
     }
 
     property var _tomlConverter: Process {
-        command: [
-            "python3", "-c",
-            "import tomllib,json,sys; f=open(sys.argv[1],'rb'); print(json.dumps(tomllib.load(f)))",
-            config.configDir + "/data/config.toml"
-        ]
+        command: ["python3", "-c", "import tomllib,json,sys; f=open(sys.argv[1],'rb'); print(json.dumps(tomllib.load(f)))", config.configDir + "/data/config.toml"]
         stdout: SplitParser {
             splitMarker: ""
             onRead: data => config._rawParts.push(data)
@@ -101,53 +97,52 @@ QtObject {
     property var _brWidgets: _bar["bottom-right"]?.widgets ?? _bar.bottom?.widgets ?? {}
 
     // Top-left corner (stats default on; all other widgets default off)
-    readonly property bool tlCpu:        _tlWidgets.cpu        !== false
-    readonly property bool tlGpu:        _tlWidgets.gpu        !== false
-    readonly property bool tlMemory:     _tlWidgets.memory     !== false
-    readonly property bool tlBluetooth:  _tlWidgets.bluetooth  ?? false
-    readonly property bool tlBattery:    _tlWidgets.battery    ?? false
-    readonly property bool tlNetwork:    _tlWidgets.network    ?? false
-    readonly property bool tlVolume:     _tlWidgets.volume     ?? false
-    readonly property bool tlCalendar:   _tlWidgets.calendar   ?? false
-    readonly property bool tlWeather:    _tlWidgets.weather    ?? false
-    readonly property bool tlWifi:       _tlWidgets.wifi       ?? false
+    readonly property bool tlCpu: _tlWidgets.cpu !== false
+    readonly property bool tlGpu: _tlWidgets.gpu !== false
+    readonly property bool tlMemory: _tlWidgets.memory !== false
+    readonly property bool tlBluetooth: _tlWidgets.bluetooth ?? false
+    readonly property bool tlBattery: _tlWidgets.battery ?? false
+    readonly property bool tlNetwork: _tlWidgets.network ?? false
+    readonly property bool tlVolume: _tlWidgets.volume ?? false
+    readonly property bool tlCalendar: _tlWidgets.calendar ?? false
+    readonly property bool tlWeather: _tlWidgets.weather ?? false
+    readonly property bool tlWifi: _tlWidgets.wifi ?? false
     readonly property bool tlModeToggle: _tlWidgets.mode_toggle ?? false
-    readonly property bool tlWorkspace:  _tlWidgets.workspace  ?? false
+    readonly property bool tlWorkspace: _tlWidgets.workspace ?? false
 
     // Top-right corner
-    readonly property bool trWeather:    _trWidgets.weather    ?? weatherEnabled
-    readonly property bool trBluetooth:  _trWidgets.bluetooth  ?? bluetoothEnabled
-    readonly property bool trWifi:       _trWidgets.wifi       ?? wifiEnabled
-    readonly property bool trVolume:     _trWidgets.volume     ?? volumeEnabled
-    readonly property bool trCalendar:   _trWidgets.calendar   ?? calendarEnabled
-    readonly property bool trBattery:    _trWidgets.battery    ?? false
-    readonly property bool trNetwork:    _trWidgets.network    ?? false
+    readonly property bool trWeather: _trWidgets.weather ?? weatherEnabled
+    readonly property bool trBluetooth: _trWidgets.bluetooth ?? bluetoothEnabled
+    readonly property bool trWifi: _trWidgets.wifi ?? wifiEnabled
+    readonly property bool trVolume: _trWidgets.volume ?? volumeEnabled
+    readonly property bool trCalendar: _trWidgets.calendar ?? calendarEnabled
+    readonly property bool trBattery: _trWidgets.battery ?? false
+    readonly property bool trNetwork: _trWidgets.network ?? false
     readonly property bool trModeToggle: _trWidgets.mode_toggle ?? false
-    readonly property bool trWorkspace:  _trWidgets.workspace  ?? false
+    readonly property bool trWorkspace: _trWidgets.workspace ?? false
 
     // Bottom-left corner (all off by default)
     readonly property bool blModeToggle: _blWidgets.mode_toggle ?? false
-    readonly property bool blBluetooth:  _blWidgets.bluetooth  ?? false
-    readonly property bool blNetwork:    _blWidgets.network    ?? false
-    readonly property bool blBattery:    _blWidgets.battery    ?? false
-    readonly property bool blVolume:     _blWidgets.volume     ?? false
-    readonly property bool blCalendar:   _blWidgets.calendar   ?? false
-    readonly property bool blWeather:    _blWidgets.weather    ?? false
-    readonly property bool blWifi:       _blWidgets.wifi       ?? false
-    readonly property bool blWorkspace:  _blWidgets.workspace  ?? false
-    readonly property bool blAnyEnabled: blModeToggle || blBluetooth || blNetwork || blBattery
-                                      || blVolume || blCalendar || blWeather || blWifi || blWorkspace
+    readonly property bool blBluetooth: _blWidgets.bluetooth ?? false
+    readonly property bool blNetwork: _blWidgets.network ?? false
+    readonly property bool blBattery: _blWidgets.battery ?? false
+    readonly property bool blVolume: _blWidgets.volume ?? false
+    readonly property bool blCalendar: _blWidgets.calendar ?? false
+    readonly property bool blWeather: _blWidgets.weather ?? false
+    readonly property bool blWifi: _blWidgets.wifi ?? false
+    readonly property bool blWorkspace: _blWidgets.workspace ?? false
+    readonly property bool blAnyEnabled: blModeToggle || blBluetooth || blNetwork || blBattery || blVolume || blCalendar || blWeather || blWifi || blWorkspace
 
     // Bottom-right corner
     readonly property bool brModeToggle: _brWidgets.mode_toggle ?? true
-    readonly property bool brBluetooth:  _brWidgets.bluetooth  ?? bluetoothEnabled
-    readonly property bool brNetwork:    _brWidgets.network    ?? true
-    readonly property bool brBattery:    _brWidgets.battery    ?? true
-    readonly property bool brVolume:     _brWidgets.volume     ?? false
-    readonly property bool brCalendar:   _brWidgets.calendar   ?? false
-    readonly property bool brWeather:    _brWidgets.weather    ?? false
-    readonly property bool brWifi:       _brWidgets.wifi       ?? false
-    readonly property bool brWorkspace:  _brWidgets.workspace  ?? false
+    readonly property bool brBluetooth: _brWidgets.bluetooth ?? bluetoothEnabled
+    readonly property bool brNetwork: _brWidgets.network ?? true
+    readonly property bool brBattery: _brWidgets.battery ?? true
+    readonly property bool brVolume: _brWidgets.volume ?? false
+    readonly property bool brCalendar: _brWidgets.calendar ?? false
+    readonly property bool brWeather: _brWidgets.weather ?? false
+    readonly property bool brWifi: _brWidgets.wifi ?? false
+    readonly property bool brWorkspace: _brWidgets.workspace ?? false
     readonly property string preferredPlayer: _bar.music?.preferred_player ?? "spotify"
     readonly property string visualizerTheme: _bar.music?.visualizer ?? "wave"
     readonly property bool visualizerTop: (_bar.music?.visualizer_top !== false)
@@ -156,7 +151,6 @@ QtObject {
     readonly property bool accentEdges: _bar.accent_edges !== false
     readonly property bool frameMode: _bar.mode === "framed"
     readonly property real frameThickness: _bar.frame_thickness ?? 1.5
-    // "normal" = surface fill + accent inner edge; "accent-only" = pure accent line
     readonly property string frameStyle: _bar.frame_style ?? "accent-only"
 
     readonly property bool appLauncherEnabled: _data.launcher?.enabled !== false
@@ -216,7 +210,8 @@ QtObject {
 
     readonly property var integrations: _data.integrations ?? []
     onIntegrationsChanged: _generateMatugenConfig()
-    onConfigLoadedChanged: if (configLoaded) _generateMatugenConfig()
+    onConfigLoadedChanged: if (configLoaded)
+        _generateMatugenConfig()
 
     property var _matugenConfigWriter: FileView {
         id: matugenConfigWriter

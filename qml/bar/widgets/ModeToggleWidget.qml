@@ -1,5 +1,5 @@
-import QtQuick
 import "../.."
+import QtQuick
 
 Item {
     id: root
@@ -9,11 +9,19 @@ Item {
 
     Text {
         id: _icon
+
         text: ColorMode.isDark ? "󰖔" : "󰖙"
         font.pixelSize: 16
         font.family: Style.fontFamilyNerdIcons
         color: Colors.primary
-        Behavior on color { ColorAnimation { duration: 200 } }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 200
+            }
+
+        }
+
     }
 
     MouseArea {
@@ -21,4 +29,5 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: ColorMode.toggle()
     }
+
 }

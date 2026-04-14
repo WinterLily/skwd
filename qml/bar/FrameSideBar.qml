@@ -1,7 +1,7 @@
+import ".."
+import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import QtQuick
-import ".."
 
 // One thin frame edge — instantiate once per side: "top" | "bottom" | "left" | "right".
 // All four live on WlrLayer.Bottom so they sit behind the bar windows. The bar windows
@@ -11,26 +11,23 @@ PanelWindow {
     id: frameEdge
 
     property string side: "left"
-
     readonly property bool isHorizontal: side === "top" || side === "bottom"
 
     WlrLayershell.namespace: "frame-" + side
     WlrLayershell.layer: WlrLayer.Bottom
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    // The non-anchored dimension determines the panel thickness.
+    implicitWidth: isHorizontal ? 1 : Math.ceil(Config.frameThickness)
+    implicitHeight: isHorizontal ? Math.ceil(Config.frameThickness) : 1
+    color: "transparent"
 
     anchors {
-        top:    side !== "bottom"
+        top: side !== "bottom"
         bottom: side !== "top"
-        left:   side !== "right"
-        right:  side !== "left"
+        left: side !== "right"
+        right: side !== "left"
     }
-
-    // The non-anchored dimension determines the panel thickness.
-    implicitWidth:  isHorizontal ? 1 : Math.ceil(Config.frameThickness)
-    implicitHeight: isHorizontal ? Math.ceil(Config.frameThickness) : 1
-
-    color: "transparent"
 
     // normal style: surface fill behind the accent line
     Rectangle {
@@ -52,8 +49,9 @@ PanelWindow {
         color: Colors.primary
         // x/y: place at the inner edge
         x: side === "left" ? parent.width - 1.5 : 0
-        y: side === "top"  ? parent.height - 1.5 : 0
-        width:  frameEdge.isHorizontal ? parent.width : 1.5
+        y: side === "top" ? parent.height - 1.5 : 0
+        width: frameEdge.isHorizontal ? parent.width : 1.5
         height: frameEdge.isHorizontal ? 1.5 : parent.height
     }
+
 }

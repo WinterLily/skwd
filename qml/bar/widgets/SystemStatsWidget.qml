@@ -1,6 +1,6 @@
-import QtQuick
-import "../../services"
 import "../.."
+import "../../services"
+import QtQuick
 
 Item {
     id: root
@@ -14,17 +14,20 @@ Item {
 
     Row {
         id: _row
+
         spacing: 8
 
         Row {
             visible: root.showCpu
             spacing: 4
+
             Text {
                 text: "󰻠"
                 font.pixelSize: 14
                 font.family: Style.fontFamilyNerdIcons
                 color: Colors.primary
             }
+
             Text {
                 text: Math.round(SystemStatService.cpuUsage) + "%"
                 font.pixelSize: 12
@@ -32,6 +35,7 @@ Item {
                 font.family: Style.fontFamily
                 color: Colors.tertiary
             }
+
             Text {
                 text: Math.round(SystemStatService.cpuTemp) + "°"
                 font.pixelSize: 12
@@ -39,17 +43,20 @@ Item {
                 font.family: Style.fontFamily
                 color: Colors.tertiary
             }
+
         }
 
         Row {
             visible: root.showMemory
             spacing: 4
+
             Text {
                 text: "󰍛"
                 font.pixelSize: 14
                 font.family: Style.fontFamilyNerdIcons
                 color: Colors.primary
             }
+
             Text {
                 text: Math.round(SystemStatService.memUsage) + "%"
                 font.pixelSize: 12
@@ -57,6 +64,9 @@ Item {
                 font.family: Style.fontFamily
                 color: Colors.tertiary
             }
+
         }
+
     }
+
 }

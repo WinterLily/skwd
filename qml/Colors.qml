@@ -9,12 +9,8 @@ QtObject {
     id: colors
 
     // Color file watcher (hot-reloads on wallpaper change or mode toggle)
-    property string colorFilePath: ColorMode.isDark
-        ? (Config.cacheDir + "/colors-dark.json")
-        : (Config.cacheDir + "/colors-light.json")
+    property string colorFilePath: ColorMode.isDark ? (Config.cacheDir + "/colors-dark.json") : (Config.cacheDir + "/colors-light.json")
     property var colorFileView
-
-    onColorFilePathChanged: colorFileView.reload()
     // Color properties (Material Design 3 scheme)
     // Primary
     property color primary: "#ffb4ab"
@@ -93,6 +89,8 @@ QtObject {
             console.log("Colors: Error parsing colors.json:", e);
         }
     }
+
+    onColorFilePathChanged: colorFileView.reload()
 
     colorFileView: FileView {
         path: colors.colorFilePath
