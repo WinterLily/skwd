@@ -112,6 +112,7 @@ QtObject {
     readonly property bool tlWeather:    _tlWidgets.weather    ?? false
     readonly property bool tlWifi:       _tlWidgets.wifi       ?? false
     readonly property bool tlModeToggle: _tlWidgets.mode_toggle ?? false
+    readonly property bool tlWorkspace:  _tlWidgets.workspace  ?? false
 
     // Top-right corner
     readonly property bool trWeather:    _trWidgets.weather    ?? weatherEnabled
@@ -122,6 +123,7 @@ QtObject {
     readonly property bool trBattery:    _trWidgets.battery    ?? false
     readonly property bool trNetwork:    _trWidgets.network    ?? false
     readonly property bool trModeToggle: _trWidgets.mode_toggle ?? false
+    readonly property bool trWorkspace:  _trWidgets.workspace  ?? false
 
     // Bottom-left corner (all off by default)
     readonly property bool blModeToggle: _blWidgets.mode_toggle ?? false
@@ -132,8 +134,9 @@ QtObject {
     readonly property bool blCalendar:   _blWidgets.calendar   ?? false
     readonly property bool blWeather:    _blWidgets.weather    ?? false
     readonly property bool blWifi:       _blWidgets.wifi       ?? false
+    readonly property bool blWorkspace:  _blWidgets.workspace  ?? false
     readonly property bool blAnyEnabled: blModeToggle || blBluetooth || blNetwork || blBattery
-                                      || blVolume || blCalendar || blWeather || blWifi
+                                      || blVolume || blCalendar || blWeather || blWifi || blWorkspace
 
     // Bottom-right corner
     readonly property bool brModeToggle: _brWidgets.mode_toggle ?? true
@@ -144,6 +147,7 @@ QtObject {
     readonly property bool brCalendar:   _brWidgets.calendar   ?? false
     readonly property bool brWeather:    _brWidgets.weather    ?? false
     readonly property bool brWifi:       _brWidgets.wifi       ?? false
+    readonly property bool brWorkspace:  _brWidgets.workspace  ?? false
     readonly property string preferredPlayer: _bar.music?.preferred_player ?? "spotify"
     readonly property string visualizerTheme: _bar.music?.visualizer ?? "wave"
     readonly property bool visualizerTop: (_bar.music?.visualizer_top !== false)

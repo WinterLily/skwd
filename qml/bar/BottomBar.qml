@@ -48,6 +48,7 @@ PanelWindow {
         anchors.top: parent.top
         height: bottomBar.barHeight
 
+        WorkspaceWidget { visible: Config.brWorkspace; screen: bottomBar.screen }
         ModeToggleWidget { visible: Config.brModeToggle }
         BluetoothWidget  { visible: Config.brBluetooth }
         NetworkWidget    { visible: Config.brNetwork }
@@ -66,6 +67,7 @@ PanelWindow {
         height: bottomBar.barHeight
         visible: Config.blAnyEnabled || Config.frameMode
 
+        WorkspaceWidget { visible: Config.blWorkspace; screen: bottomBar.screen }
         ModeToggleWidget { visible: Config.blModeToggle }
         BluetoothWidget  { visible: Config.blBluetooth }
         NetworkWidget    { visible: Config.blNetwork }

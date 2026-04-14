@@ -104,6 +104,10 @@ PanelWindow {
             anchors.top: parent.top
             height: bar.barHeight
 
+            WorkspaceWidget {
+                visible: Config.tlWorkspace
+                screen:  bar.screen
+            }
             SystemStatsWidget {
                 showCpu:    Config.tlCpu
                 showGpu:    Config.tlGpu
@@ -166,6 +170,10 @@ PanelWindow {
             anchors.top: parent.top
             height: bar.barHeight
 
+            WorkspaceWidget {
+                visible: Config.trWorkspace
+                screen:  bar.screen
+            }
             WeatherWidget {
                 id: weatherWidget
                 visible: Config.trWeather && weatherWidget.hasData

@@ -7,3 +7,4 @@ VolumeWidget 1.0 VolumeWidget.qml
 ClockWidget 1.0 ClockWidget.qml
 ModeToggleWidget 1.0 ModeToggleWidget.qml
 SystemStatsWidget 1.0 SystemStatsWidget.qml
+WorkspaceWidget 1.0 WorkspaceWidget.qml
