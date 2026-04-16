@@ -13,7 +13,7 @@
           "{{colors.tertiary.dark.hex}}"
         ],
         "background.appearance": "opaque",
-        "border": "{{colors.outline_variant.dark.hex}}",
+        "border": "{{colors.surface_container_low.dark.hex}}",
         "border.variant": "{{colors.outline.dark.hex}}",
         "border.focused": "{{colors.primary.dark.hex}}",
         "border.selected": "{{colors.primary.dark.hex}}",
